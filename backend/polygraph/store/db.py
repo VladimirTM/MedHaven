@@ -196,6 +196,22 @@ class Store:
         rows = self._q("SELECT data FROM feed_events WHERE patient_id = ? ORDER BY at, rowid", (pid,))
         return [json.loads(r[0]) for r in rows]
 
+    def last_event_cursor(self) -> int:
+        """Cel mai mare rowid din feed_events: cursorul de la care portalul ascultă evenimentele noi (QA5.1)."""
+        return self._q("SELECT coalesce(max(rowid), 0) FROM feed_events")[0][0]
+
+    def events_after(self, cursor: int, pids: list[str]) -> list[tuple[int, str, Json]]:
+        """(rowid, patient_id, eveniment) scrise după `cursor`, doar pentru pacienții dați. INSERT OR REPLACE dă un rowid
+        nou, deci și un eveniment rescris apare aici."""
+        if not pids:
+            return []
+        marks = ",".join("?" * len(pids))
+        rows = self._q(
+            f"SELECT rowid, patient_id, data FROM feed_events WHERE rowid > ? AND patient_id IN ({marks}) ORDER BY rowid",
+            (cursor, *pids),
+        )
+        return [(r[0], r[1], json.loads(r[2])) for r in rows]
+
     # ---------------------------------------------------------------- link-uri de partajare (B6)
 
     def create_share(self, token: str, pid: str, expires_at: str) -> None:

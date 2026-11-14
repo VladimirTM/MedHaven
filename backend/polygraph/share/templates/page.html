@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% from "live.html" import live_stale %}
 {% block title %}{{ patient.name }} · Portalul medicului de familie{% endblock %}
 {% block body_class %}page{% endblock %}
 
@@ -81,8 +82,9 @@
   </div>
 </header>
 
-<main class="content">
-  <section class="summary" aria-labelledby="h-summary">
+<main class="content" data-live="{{ live }}">
+  {{ live_stale() }}
+  <section class="summary" aria-labelledby="h-summary" id="live-summary" data-live-part>
     <h2 id="h-summary" class="visually-hidden">Rezumat: {{ summary | join(" · ") }}</h2>
     <ul class="stats">
       {% for s in stats %}
@@ -97,13 +99,13 @@
     <p class="small muted summary-foot">Actualizată {{ updated | lower }}. Medicamentele sunt introduse de familie din cutii și rețete; verificați-le cu pacientul la consultație.</p>
   </section>
 
-  <section aria-labelledby="h-grave">
+  <section aria-labelledby="h-grave" id="live-grave" data-live-part>
     <h2 id="h-grave">Alerte grave</h2>
     <p class="section-lead">De discutat cu prioritate. Alegeți o decizie pe fiecare; familia o vede în aplicație.</p>
     {% for a in grave %}{{ alert_card(a) }}{% else %}<p class="muted">Nicio alertă gravă.</p>{% endfor %}
   </section>
 
-  <section aria-labelledby="h-meds">
+  <section aria-labelledby="h-meds" id="live-meds" data-live-part>
     <h2 id="h-meds">Medicamente</h2>
     {% if meds %}
     <p class="section-lead">Ce ia acum și cum. Substanța activă și codul ATC sunt la „i”.</p>
@@ -129,7 +131,7 @@
     {% endif %}
   </section>
 
-  <section aria-labelledby="h-schedule">
+  <section aria-labelledby="h-schedule" id="live-schedule" data-live-part>
     <h2 id="h-schedule">Programul de azi <span class="count">{{ schedule.date }}</span></h2>
     {% if schedule.moments %}
     <ol class="schedule">
@@ -146,7 +148,7 @@
     {% for u in schedule.unsatisfied %}<p class="small">Nu s-a putut respecta: {{ u.meds | join(" + ") }}: {{ u.reason }}</p>{% endfor %}
   </section>
 
-  <section aria-labelledby="h-checkins">
+  <section aria-labelledby="h-checkins" id="live-checkins" data-live-part>
     <h2 id="h-checkins">Cum s-a simțit în ultimele 7 zile</h2>
     <div class="card-list">
     {% for ci in checkins %}
@@ -162,6 +164,7 @@
     </div>
   </section>
 
+  <div id="live-other" data-live-part>
   {% if other %}
   <section aria-labelledby="h-other">
     <h2 id="h-other">Celelalte alerte <span class="count">{{ other | length }}</span></h2>
@@ -172,6 +175,7 @@
     </details>
   </section>
   {% endif %}
+  </div>
 
   {% if meds %}
   <section aria-labelledby="h-graph" class="no-print">
@@ -195,4 +199,5 @@
 <script src="/static/share/graph.js" defer></script>
 {% endif %}
 <script src="/static/share/share.js" defer></script>
+<script src="/static/share/live.js" defer></script>
 {% endblock %}

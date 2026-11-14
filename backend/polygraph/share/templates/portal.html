@@ -1,9 +1,10 @@
 {% extends "base.html" %}
+{% from "live.html" import live_stale %}
 {% block title %}Pacienții mei · Portalul medicului de familie{% endblock %}
 {% block body_class %}portal{% endblock %}
 
 {% macro patient(c) %}
-<li>
+<li id="patient-{{ c.patient.id }}">
   <a class="patient-card{% if c.escalated %} is-escalated{% elif c.open_grave %} is-pending{% endif %}" href="/portal/patients/{{ c.patient.id }}">
     <span class="patient-avatar tone-{{ c.avatar_tone }}" data-tone="{{ c.avatar_tone }}" aria-hidden="true">{{ c.patient.name[:1] }}</span>
     <div class="patient-main">
@@ -36,15 +37,16 @@
   </div>
 </header>
 
-<main class="content portal-content">
+<main class="content portal-content" data-live="{{ live }}">
+  {{ live_stale() }}
   <section class="welcome" aria-labelledby="h-welcome">
     <p class="eyebrow">{{ date | capitalize }}</p>
     <h1 id="h-welcome" class="page-title welcome-title">Pacienții mei</h1>
-    <p class="welcome-lead">{{ lead }}</p>
+    <p class="welcome-lead" id="live-lead" data-live-part>{{ lead }}</p>
   </section>
 
   <section aria-label="Rezumat">
-    <ul class="stats">
+    <ul class="stats" id="live-stats" data-live-part>
       {% for s in stats %}
       <li class="stat{% if s.tone %} tone-{{ s.tone }}{% endif %}" id="stat-{{ s.id }}">
         <p class="stat-value">{{ s.value }}</p>
@@ -55,6 +57,7 @@
     </ul>
   </section>
 
+  <div id="live-patients" data-live-part>
   {% if not cards %}
   <section class="empty">
     <h2>Încă nu aveți pacienți în portal</h2>
@@ -76,6 +79,7 @@
     <ul class="patients">{% for c in others %}{{ patient(c) }}{% endfor %}</ul>
   </section>
   {% endif %}
+  </div>
 
   <section class="add-card" aria-labelledby="h-add">
     <svg class="add-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect x="3.5" y="3.5" width="6" height="6" rx="1.2"/><rect x="14.5" y="3.5" width="6" height="6" rx="1.2"/><rect x="3.5" y="14.5" width="6" height="6" rx="1.2"/><path d="M14.5 14.5h2.5v2.5M20.5 14.5v.01M17 20.5h3.5v-3"/></svg>
@@ -86,4 +90,5 @@
   </section>
 </main>
 <script src="/static/share/share.js" defer></script>
+<script src="/static/share/live.js" defer></script>
 {% endblock %}

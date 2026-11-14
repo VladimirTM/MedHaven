@@ -28,14 +28,24 @@
 
   function theme() { return { dark: dark.matches, contrast: contrast.matches }; }
 
-  var graph = window.pgMount(container, data, {
-    dark: dark.matches,
-    contrast: contrast.matches,
-    // în fișă graful nu fură derularea paginii
-    interactive: !page,
-    onAlert: function (id) { open("alert", id); },
-    onMed: function (id) { open("med", id); },
-    onReady: function (count) { post("ready", count); },
+  function mount(elements) {
+    return window.pgMount(container, elements, {
+      dark: dark.matches,
+      contrast: contrast.matches,
+      // în fișă graful nu fură derularea paginii
+      interactive: !page,
+      onAlert: function (id) { open("alert", id); },
+      onMed: function (id) { open("med", id); },
+      onReady: function (count) { post("ready", count); },
+    });
+  }
+
+  var graph = mount(data);
+
+  // QA5.1: fișa s-a actualizat singură (live.js) și graful are date noi
+  document.addEventListener("pg:graph", function (event) {
+    graph.destroy();
+    graph = mount(event.detail);
   });
 
   [dark, contrast].forEach(function (mq) {
