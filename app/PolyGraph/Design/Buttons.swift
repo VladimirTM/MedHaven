@@ -135,21 +135,11 @@ extension View {
     }
 }
 
-/// Eticheta lui „Gata” din bară (`.confirmationAction`). Pe iOS 26 sistemul îl desenează plin, în accent, cu
-/// text alb (același contrast slab ca mai sus, în Dark), deci eticheta ia `onAccent`; pe iOS 18 e text
-/// în accent pe bară și rămâne așa.
-struct BarConfirmLabel: View {
-    let title: String
-
-    init(_ title: String) {
-        self.title = title
-    }
-
-    var body: some View {
-        if #available(iOS 26, *) {
-            Text(title).foregroundStyle(PgColor.onAccent)
-        } else {
-            Text(title)
-        }
+/// Butoanele cu text din bare stau pe sticlă: pe iOS 27 nici „Gata” (`.confirmationAction`) nu mai e plin.
+/// Teal-ul accentului trece la limită pe material, iar auditul de contrast îl pică în Dark și Contrast
+/// (T-Q3F4-03), deci textul ia culoarea de sistem a etichetelor. Pictogramele din bare rămân în accent.
+extension View {
+    func pgBarButton() -> some View {
+        tint(Color.primary)
     }
 }
