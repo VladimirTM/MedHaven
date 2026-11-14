@@ -105,6 +105,7 @@ def banner(usable: list[str], unusable: list[str], port: int, code: str) -> list
     lines += [f"  nefolosibilă (link-local, telefoanele nu ajung la ea): {ip}" for ip in unusable]
     lines += [
         f"  Portalul medicului:  {url}/portal   (cod: {code})",
+        f"  Pagina familiei:     {url}/acasa/demo   (Maria, fără aplicație)",
         f"  Verificare:          make demo-check URL=http://127.0.0.1:{port}",
         "",
     ]

@@ -47,6 +47,16 @@ CREATE TABLE IF NOT EXISTS feed_events(
     patient_id TEXT NOT NULL REFERENCES patients(id) ON DELETE CASCADE, id TEXT NOT NULL, at TEXT NOT NULL,
     data TEXT NOT NULL, PRIMARY KEY (patient_id, id)
 );
+CREATE TABLE IF NOT EXISTS home_links(
+    code TEXT PRIMARY KEY, patient_id TEXT NOT NULL REFERENCES patients(id) ON DELETE CASCADE, expires_at TEXT NOT NULL
+);
+CREATE TABLE IF NOT EXISTS home_sessions(
+    token TEXT PRIMARY KEY, patient_id TEXT NOT NULL REFERENCES patients(id) ON DELETE CASCADE, expires_at TEXT NOT NULL
+);
+CREATE TABLE IF NOT EXISTS pillbox(
+    patient_id TEXT NOT NULL REFERENCES patients(id) ON DELETE CASCADE, day TEXT NOT NULL, moment_label TEXT NOT NULL,
+    signature TEXT NOT NULL, prepared_at TEXT NOT NULL, PRIMARY KEY (patient_id, day, moment_label)
+);
 CREATE TABLE IF NOT EXISTS gtin_cache(gtin TEXT PRIMARY KEY, product TEXT NOT NULL);
 CREATE TABLE IF NOT EXISTS doctors(id TEXT PRIMARY KEY, name TEXT NOT NULL, code_hash TEXT NOT NULL UNIQUE);
 CREATE TABLE IF NOT EXISTS doctor_sessions(
@@ -107,6 +117,21 @@ class Store:
 
     def update_patient(self, pid: str, patient: Json) -> None:
         self._x("UPDATE patients SET data = ? WHERE id = ?", (_dump(patient), pid))
+
+    def update_patient_and_move_doses(self, pid: str, patient: Json, moves: list[tuple[str, str, str, Json]]) -> None:
+        """E1: orele zilei noi și dozele de azi mutate la orele noi, în aceeași tranzacție.
+        `moves` = (med_id, cheia veche, cheia nouă, doza cu scheduled_at nou)."""
+        with self._lock, self._conn:
+            self._conn.execute("UPDATE patients SET data = ? WHERE id = ?", (_dump(patient), pid))
+            for med_id, old_key, _new_key, _dose in moves:
+                self._conn.execute(
+                    "DELETE FROM doses WHERE patient_id = ? AND med_id = ? AND scheduled_at = ?", (pid, med_id, old_key)
+                )
+            for med_id, _old_key, new_key, dose in moves:
+                self._conn.execute(
+                    "INSERT OR REPLACE INTO doses(patient_id, med_id, scheduled_at, data) VALUES (?, ?, ?, ?)",
+                    (pid, med_id, new_key, _dump(dose)),
+                )
 
     # ---------------------------------------------------------------- medicamente
 
@@ -221,6 +246,74 @@ class Store:
         """(patient_id, expires_at) pentru token, fără verificarea expirării (o face apelantul)."""
         row = self._q("SELECT patient_id, expires_at FROM share_tokens WHERE token = ?", (token,))
         return (row[0][0], row[0][1]) if row else None
+
+    # ---------------------------------------------------------------- pagina familiei pe web (E2)
+
+    def create_home_link(self, pid: str, expires_at: str) -> str:
+        code = secrets.token_urlsafe(18)
+        self._x("INSERT INTO home_links(code, patient_id, expires_at) VALUES (?, ?, ?)", (code, pid, expires_at))
+        return code
+
+    def use_home_link(self, code: str) -> tuple[str, str] | None:
+        """(patient_id, expires_at) pentru cod, șters în aceeași tranzacție: codul merge o singură dată.
+        Expirarea o verifică apelantul."""
+        with self._lock, self._conn:
+            row = self._conn.execute("SELECT patient_id, expires_at FROM home_links WHERE code = ?", (code,)).fetchone()
+            if row:
+                self._conn.execute("DELETE FROM home_links WHERE code = ?", (code,))
+        return (row[0], row[1]) if row else None
+
+    def create_home_session(self, pid: str, expires_at: str) -> str:
+        token = secrets.token_urlsafe(24)
+        self._x("INSERT INTO home_sessions(token, patient_id, expires_at) VALUES (?, ?, ?)", (token, pid, expires_at))
+        return token
+
+    def home_session(self, token: str) -> tuple[str, str] | None:
+        """(patient_id, expires_at), fără verificarea expirării (o face apelantul)."""
+        row = self._q("SELECT patient_id, expires_at FROM home_sessions WHERE token = ?", (token,))
+        return (row[0][0], row[0][1]) if row else None
+
+    def delete_home_session(self, token: str) -> None:
+        self._x("DELETE FROM home_sessions WHERE token = ?", (token,))
+
+    def patient_fingerprint(self, pid: str) -> str:
+        """Amprenta a tot ce arată pagina familiei (pacient, medicamente, doze, check-in-uri, Noutăți, alerte): fluxul
+        /acasa/events o compară la fiecare tick, ca o bifă din aplicație să apară pe web fără refresh."""
+        h = hashlib.sha256()
+        with self._lock:
+            for sql in (
+                "SELECT data FROM patients WHERE id = ?",
+                "SELECT id, data FROM meds WHERE patient_id = ? ORDER BY position",
+                "SELECT med_id, scheduled_at, data FROM doses WHERE patient_id = ? ORDER BY scheduled_at, med_id",
+                "SELECT count(*), max(rowid) FROM checkins WHERE patient_id = ?",
+                "SELECT count(*), max(rowid) FROM feed_events WHERE patient_id = ?",
+                "SELECT alert_id, status, resolution FROM alert_state WHERE patient_id = ? ORDER BY alert_id",
+                "SELECT day, moment_label, signature FROM pillbox WHERE patient_id = ? ORDER BY day, moment_label",
+            ):
+                for row in self._conn.execute(sql, (pid,)):
+                    h.update(repr(row).encode())
+                h.update(b"|")
+        return h.hexdigest()
+
+    # ---------------------------------------------------------------- cutiuța săptămânală (E3)
+
+    def pillbox(self, pid: str, first: str, last: str) -> dict[tuple[str, str], tuple[str, str]]:
+        """(zi, eticheta momentului) → (semnătura conținutului, prepared_at) pentru zilele [first, last]."""
+        rows = self._q(
+            "SELECT day, moment_label, signature, prepared_at FROM pillbox WHERE patient_id = ? AND day BETWEEN ? AND ?",
+            (pid, first, last),
+        )
+        return {(r[0], r[1]): (r[2], r[3]) for r in rows}
+
+    def set_pillbox(self, pid: str, day: str, label: str, signature: str | None, prepared_at: str | None = None) -> None:
+        """Bifează compartimentul cu semnătura conținutului de acum, sau îl debifează (signature None)."""
+        if signature is None:
+            self._x("DELETE FROM pillbox WHERE patient_id = ? AND day = ? AND moment_label = ?", (pid, day, label))
+        else:
+            self._x(
+                "INSERT OR REPLACE INTO pillbox(patient_id, day, moment_label, signature, prepared_at) VALUES (?, ?, ?, ?, ?)",
+                (pid, day, label, signature, prepared_at or ""),
+            )
 
     # ---------------------------------------------------------------- portalul medicului de familie (B6)
 

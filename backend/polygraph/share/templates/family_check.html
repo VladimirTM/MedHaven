@@ -1,0 +1,65 @@
+{% extends "family_base.html" %}
+{% block page_title %}De verificat{% endblock %}
+{% macro family_alert(a) %}
+<article class="alert sev-{{ a.severity }}{% if a.reviewed %} is-reviewed{% endif %}" id="alert-{{ a.id }}">
+  <header class="alert-head">
+    <span class="badge sev-{{ a.severity }}">{{ a.severity_label }}</span>
+    <span class="kind">{{ a.kind_label }}</span>
+  </header>
+  <h3 class="alert-title">{{ a.title }}</h3>
+  <p class="alert-meds">{{ a.meds | join(" · ") }}</p>
+  <div class="family-todo">
+    <p class="family-todo-head">Ce puteți face</p>
+    <p>{{ a.recommendation }}</p>
+    <p class="small muted">{{ a.route_text }}</p>
+  </div>
+  {% if a.reviewed and a.family_decision_label %}
+  <p class="family-decision" role="status"><strong>Medicul de familie:</strong> {{ a.family_decision_label }}{% if a.resolution_at %} · {{ a.resolution_at }}{% endif %}{% if a.resolution and a.resolution.note %}<br><span class="note">„{{ a.resolution.note }}”</span>{% endif %}</p>
+  {% endif %}
+  <details class="why">
+    <summary>De ce văd asta?</summary>
+    <dl class="facts">
+      <dt>Explicația</dt><dd>{{ a.detail }}</dd>
+      <dt>Sursa</dt><dd>{{ a.source_label }}{% if a.source.ref %}<br><span class="small muted">{{ a.source.ref }}</span>{% endif %}</dd>
+      {% if a.basis == "class_analogy" %}<dt>De confirmat</dt><dd>Dedusă prin analogie cu un medicament din aceeași clasă; medicul de familie o poate confirma.</dd>{% endif %}
+    </dl>
+  </details>
+</article>
+{% endmacro %}
+{% block main %}
+<div class="family-head">
+  <h1 class="page-title">De verificat</h1>
+  <p class="muted">Ce a găsit PolyGraph în lista de medicamente, din baze de date și reguli publice. Nimic de aici nu înseamnă „opriți medicamentul”.</p>
+</div>
+{% if empty %}
+<p class="family-empty">Nu am găsit nimic de verificat în lista de acum.</p>
+{% else %}
+{% if grave %}
+<section aria-labelledby="h-grave">
+  <h2 id="h-grave">De discutat cu prioritate</h2>
+  {% for a in grave %}{{ family_alert(a) }}{% endfor %}
+</section>
+{% endif %}
+{% if moderate %}
+<section aria-labelledby="h-moderate">
+  <h2 id="h-moderate">De discutat la următoarea vizită <span class="count">{{ moderate | length }}</span></h2>
+  <details class="more">
+    <summary class="btn btn-secondary"><span class="when-closed">Arată {{ "alerta" if moderate | length == 1 else "cele " ~ moderate_label }}</span><span class="when-open">Ascunde</span></summary>
+    <div class="more-body">{% for a in moderate %}{{ family_alert(a) }}{% endfor %}</div>
+  </details>
+</section>
+{% endif %}
+{% if food %}
+<section aria-labelledby="h-food">
+  <h2 id="h-food">Mâncare și băutură</h2>
+  {% for a in food %}{{ family_alert(a) }}{% endfor %}
+</section>
+{% endif %}
+{% if acb %}
+<section aria-labelledby="h-acb">
+  <h2 id="h-acb">Încărcarea anticolinergică <span class="count">ACB {{ acb_total }}</span></h2>
+  {% for a in acb %}{{ family_alert(a) }}{% endfor %}
+</section>
+{% endif %}
+{% endif %}
+{% endblock %}

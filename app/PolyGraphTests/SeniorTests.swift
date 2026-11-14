@@ -396,3 +396,51 @@ nonisolated final class StubServer: URLProtocol {
         return (404, Data())
     }
 }
+
+/// E1 + E2: bifele de pe server (pagina familiei, dozele mutate după orele noi) ajung în `DoseLog`.
+@MainActor
+struct DoseSyncTests {
+    private func freshDefaults() -> UserDefaults {
+        let name = "pg.test.sync.\(UUID().uuidString)"
+        let defaults = UserDefaults(suiteName: name) ?? .standard
+        defaults.removePersistentDomain(forName: name)
+        return defaults
+    }
+
+    private func dose(_ medID: String, _ clock: String, _ status: DoseStatus, calendar: Calendar) throws -> Dose {
+        let at = try #require(SeniorDay.scheduledAt(day: "2026-11-14", time: clock, calendar: calendar))
+        return Dose(medid: medID, recordedAt: nil, scheduledAt: at, status: status)
+    }
+
+    @Test func takenOnTheWebShowsInSeniorMode() throws {
+        let calendar = bucharest()
+        let schedule = try demoSchedule()
+        let log = DoseLog(defaults: freshDefaults())
+        log.sync(with: [try dose("med_05", "07:00", .taken, calendar: calendar)], schedule: schedule, calendar: calendar)
+        #expect(log.status(day: "2026-11-14", time: "07:00", medID: "med_05") == .taken)
+        // anularea de pe web (pending) șterge bifa
+        log.sync(with: [try dose("med_05", "07:00", .pending, calendar: calendar)], schedule: schedule, calendar: calendar)
+        #expect(log.status(day: "2026-11-14", time: "07:00", medID: "med_05") == nil)
+    }
+
+    @Test func checksFollowTheMovedDinner() throws {
+        let calendar = bucharest()
+        let schedule = try demoSchedule()
+        var object = try #require(
+            try JSONSerialization.jsonObject(with: ContractFiles.data("fixtures/expected_schedule.json")) as? [String: Any])
+        var moments = try #require(object["moments"] as? [[String: Any]])
+        for index in moments.indices where moments[index]["time"] as? String == "19:00" {
+            moments[index]["time"] = "20:00"
+        }
+        object["moments"] = moments
+        let moved = try JSONCoding.decoder.decode(Schedule.self, from: JSONSerialization.data(withJSONObject: object))
+
+        let log = DoseLog(defaults: freshDefaults())
+        log.sync(with: [try dose("med_01", "19:00", .taken, calendar: calendar)], schedule: schedule, calendar: calendar)
+        #expect(log.status(day: "2026-11-14", time: "19:00", medID: "med_01") == .taken)
+        // serverul a mutat doza la 20:00: bifa de la 19:00 dispare, cea de la 20:00 apare
+        log.sync(with: [try dose("med_01", "20:00", .taken, calendar: calendar)], schedule: moved, calendar: calendar)
+        #expect(log.status(day: "2026-11-14", time: "19:00", medID: "med_01") == nil)
+        #expect(log.status(day: "2026-11-14", time: "20:00", medID: "med_01") == .taken)
+    }
+}

@@ -19,7 +19,7 @@ from datetime import UTC, date, datetime, timedelta
 from pathlib import Path
 from typing import Any
 
-from fastapi import FastAPI, Header, HTTPException, Request, Response
+from fastapi import FastAPI, Header, HTTPException, Query, Request, Response
 from fastapi.responses import HTMLResponse, JSONResponse
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -445,6 +445,20 @@ def record_dose(pid: str, body: dict[str, Any], x_patient_token: str | None = He
     }
     state.doses[pid][(dose["med_id"], dose["scheduled_at"])] = dose
     return dose
+
+
+@app.get("/v1/patients/{pid}/doses")
+def list_doses(pid: str, day: str | None = Query(None, alias="date"), x_patient_token: str | None = Header(None)):
+    auth(pid, x_patient_token)
+    want = day or now().date().isoformat()
+    return [d for d in state.doses[pid].values() if d["scheduled_at"][:10] == want]
+
+
+@app.post("/v1/patients/{pid}/web-link", status_code=201)
+def web_link(pid: str, request: Request, x_patient_token: str | None = Header(None)) -> dict[str, Any]:
+    auth(pid, x_patient_token)
+    base = str(request.base_url).rstrip("/")
+    return {"url": f"{base}/acasa/intra/{secrets.token_urlsafe(18)}", "expires_at": iso(now() + timedelta(minutes=10))}
 
 
 @app.post("/v1/patients/{pid}/checkins", status_code=201)

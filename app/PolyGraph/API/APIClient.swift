@@ -50,6 +50,17 @@ struct MedicationUpdate: Encodable {
     }
 }
 
+/// Răspunsul la POST /v1/patients/{id}/web-link (E2; schema e inline în openapi.yaml, deci nu e în Contracts.swift).
+struct WebLink: Decodable, Equatable {
+    let url: String
+    let expiresAt: Date
+
+    enum CodingKeys: String, CodingKey {
+        case url
+        case expiresAt = "expires_at"
+    }
+}
+
 private struct CheckInText: Encodable {
     let text: String
 }
@@ -128,7 +139,8 @@ struct APIClient {
     }
 
     func updateMed(patientID: String, medID: String, _ changes: MedicationUpdate) async throws -> MedicationItem {
-        try await send(request("PATCH", "v1/patients/\(patientID)/meds/\(medID)", body: changes))
+        try await send(
+            request("PATCH", "v1/patients/\(patientID)/meds/\(medID)", json: JSONCoding.medicationUpdateBody(changes)))
     }
 
     func deleteMed(patientID: String, medID: String) async throws {
@@ -151,6 +163,17 @@ struct APIClient {
     func getSchedule(patientID: String, date: String? = nil) async throws -> Schedule {
         let query = date.map { [URLQueryItem(name: "date", value: $0)] } ?? []
         return try await send(request("GET", "v1/patients/\(patientID)/schedule", query: query))
+    }
+
+    /// E2: dozele înregistrate într-o zi, inclusiv cele bifate pe pagina familiei.
+    func listDoses(patientID: String, date: String? = nil) async throws -> [Dose] {
+        let query = date.map { [URLQueryItem(name: "date", value: $0)] } ?? []
+        return try await send(request("GET", "v1/patients/\(patientID)/doses", query: query))
+    }
+
+    /// E2: linkul de unică folosință (10 minute) către pagina familiei pe web.
+    func createWebLink(patientID: String) async throws -> WebLink {
+        try await send(request("POST", "v1/patients/\(patientID)/web-link"))
     }
 
     func recordDose(patientID: String, _ dose: Dose) async throws -> Dose {
@@ -186,6 +209,13 @@ struct APIClient {
 
     func createShare(patientID: String) async throws -> ShareLink {
         try await send(request("POST", "v1/patients/\(patientID)/share"))
+    }
+
+    /// Linkul paginii familiei construit din adresa pe care o folosește telefonul (ca la `sharePageURL`):
+    /// serverul răspunde cu adresa la care l-a văzut, care pe simulator poate fi 127.0.0.1.
+    func webPageURL(_ serverURL: String) -> URL? {
+        guard let path = URL(string: serverURL)?.path, !path.isEmpty else { return nil }
+        return makeURL(String(path.drop { $0 == "/" }))
     }
 
     func sharePageURL(token: String) -> URL? {

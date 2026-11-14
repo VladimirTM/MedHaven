@@ -1,0 +1,49 @@
+{% extends "family_base.html" %}
+{% block page_title %}Azi{% endblock %}
+{% block main %}
+<div class="family-head">
+  <h1 class="page-title">Azi</h1>
+  {% if progress %}<p class="muted">{{ progress }}{% if all_done %} · ați terminat pastilele de azi{% endif %}</p>{% endif %}
+</div>
+{% if empty %}
+<p class="family-empty">{{ empty_text }}</p>
+{% else %}
+<ol class="day-list">
+  {% for m in moments %}
+  <li class="day-moment status-{{ m.status }}{% if m.current %} is-current{% endif %}{% if m.missed %} is-missed{% endif %}" id="m-{{ m.time | replace(':', '') }}">
+    <header class="day-moment-head">
+      <p class="day-moment-time"><span class="time">{{ m.time }}</span> {{ m.label }}</p>
+      {% if m.current and m.status == "open" %}<span class="tag">Acum</span>{% endif %}
+    </header>
+    <ul class="day-doses">
+      {% for d in m.doses %}
+      <li class="day-dose">
+        {% if d.photo_url %}<img class="box-photo" src="{{ d.photo_url }}" alt="Cutia de {{ d.name }}" width="56" height="56" loading="lazy">{% else %}<span class="box-photo is-empty" aria-hidden="true"></span>{% endif %}
+        <div>
+          <p class="day-dose-name">{{ d.name }}</p>
+          <p class="day-dose-how">{{ d.quantity }}{% if d.instruction %}<span class="muted"> · {{ d.instruction }}</span>{% endif %}</p>
+        </div>
+      </li>
+      {% endfor %}
+    </ul>
+    <div class="day-moment-actions">
+      {% if m.status == "taken" %}
+      <p class="day-state is-taken" role="status">✓ Luat{% if m.taken_at %} la {{ m.taken_at }}{% endif %}</p>
+      <form method="post" action="/acasa/doze"><input type="hidden" name="moment" value="{{ m.time }}"><input type="hidden" name="status" value="pending"><button class="btn btn-secondary" type="submit">Anulează</button></form>
+      {% elif m.status == "skipped" %}
+      <p class="day-state" role="status">Sărit</p>
+      <form method="post" action="/acasa/doze"><input type="hidden" name="moment" value="{{ m.time }}"><input type="hidden" name="status" value="pending"><button class="btn btn-secondary" type="submit">Anulează</button></form>
+      {% elif m.due %}
+      {% if m.missed %}<p class="day-state is-missed">Nu ați bifat încă</p>{% endif %}
+      <form method="post" action="/acasa/doze" class="day-take"><input type="hidden" name="moment" value="{{ m.time }}"><input type="hidden" name="status" value="taken"><button class="btn btn-large" type="submit">Am luat</button></form>
+      <form method="post" action="/acasa/doze"><input type="hidden" name="moment" value="{{ m.time }}"><input type="hidden" name="status" value="skipped"><button class="btn btn-secondary" type="submit">Am sărit</button></form>
+      {% else %}
+      <p class="day-state muted">„Am luat” apare cu o jumătate de oră înainte.</p>
+      {% endif %}
+    </div>
+  </li>
+  {% endfor %}
+</ol>
+{% for u in unsatisfied %}<p class="small">Nu s-a putut respecta o regulă de program: {{ u.reason }}</p>{% endfor %}
+{% endif %}
+{% endblock %}

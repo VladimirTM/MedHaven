@@ -188,7 +188,12 @@ paths:
     patch:
       tags: [meds]
       operationId: updateMed
-      summary: Editare (câmpurile de nivel unu ale MedicationItem, înlocuite întregi) → reanaliză
+      summary: Editare parțială a unui MedicationItem → reanaliză
+      description: >-
+        Obiectele de nivel doi (product, dosage, prescriber) se combină cu cele salvate: câmpurile lipsă din
+        corp rămân neschimbate, iar un câmp trimis explicit cu null se salvează ca null. substances și câmpurile
+        simple (start_date, end_date, photo_url…) se înlocuiesc întregi. Rezultatul combinat trebuie să fie un
+        MedicationItem valid, altfel 422 cu numele câmpului în română.
       requestBody:
         required: true
         content:
@@ -294,6 +299,25 @@ paths:
             application/json:
               schema: { $ref: "../schema/dose.schema.json" }
         "401": { $ref: "#/components/responses/Unauthorized" }
+    get:
+      tags: [day]
+      operationId: listDoses
+      summary: Dozele înregistrate într-o zi (E2), ca „Am luat” de pe pagina familiei să apară și în aplicație
+      parameters:
+        - name: date
+          in: query
+          required: false
+          description: ziua (Europe/Bucharest); implicit azi
+          schema: { type: string, format: date }
+      responses:
+        "200":
+          description: Dozele din ziua cerută, cu ultima stare (inclusiv `pending` după o anulare)
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "../schema/dose.schema.json" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
 
   /v1/patients/{id}/checkins:
     parameters:
@@ -362,6 +386,31 @@ paths:
           content:
             application/json:
               schema: { $ref: "../schema/share_link.schema.json" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+
+  /v1/patients/{id}/web-link:
+    parameters:
+      - $ref: "#/components/parameters/PatientId"
+    post:
+      tags: [share]
+      operationId: createWebLink
+      summary: Linkul de intrare în pagina familiei pe web (E2); de unică folosință, valabil 10 minute
+      description: |
+        Aplicația îl arată ca QR + „Copiază” (Setări → Deschide pe web). GET pe url pune sesiunea paginii familiei
+        (cookie, 30 de zile) și redirecționează la /acasa. Paginile /acasa/... sunt servite de backend; nu fac parte
+        din API-ul aplicației.
+      responses:
+        "201":
+          description: Link creat
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: false
+                required: [url, expires_at]
+                properties:
+                  url: { type: string }
+                  expires_at: { type: string, format: date-time }
         "401": { $ref: "#/components/responses/Unauthorized" }
 
   /share/{token}:

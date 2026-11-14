@@ -146,6 +146,36 @@ final class DoseLog {
         return post([])
     }
 
+    /// E1 + E2: starea de pe server pentru ziua din program. Bifele de pe pagina familiei apar și aici, iar după ce
+    /// orele zilei s-au schimbat (serverul a mutat dozele de azi), bifele urmează momentele la orele noi.
+    /// Ce n-a ajuns încă la server (coada `unsent`) rămâne cum a apăsat pacientul.
+    func sync(with serverDoses: [Dose], schedule: Schedule, calendar: Calendar = .current) {
+        let day = schedule.date
+        let waiting = Set(unsent.compactMap { dose -> String? in
+            let time = PgFormat.clock(dose.scheduledAt, calendar: calendar)
+            return PgFormat.isoDay(dose.scheduledAt, calendar: calendar) == day
+                ? Self.key(day: day, time: time, medID: dose.medid) : nil
+        })
+        var server: [String: DoseStatus] = [:]
+        for dose in serverDoses where PgFormat.isoDay(dose.scheduledAt, calendar: calendar) == day {
+            let time = PgFormat.clock(dose.scheduledAt, calendar: calendar)
+            server[Self.key(day: day, time: time, medID: dose.medid)] = dose.status
+        }
+        let planned = Set(schedule.moments.flatMap { moment in
+            moment.doses.map { Self.key(day: day, time: moment.time, medID: $0.medid) }
+        })
+        var next = statuses.filter { $0.key.hasPrefix(day) }
+        // orele s-au mutat: bifele de la orele vechi nu mai aparțin niciunui moment
+        next = next.filter { planned.contains($0.key) || waiting.contains($0.key) }
+        for key in planned where !waiting.contains(key) {
+            guard let status = server[key] else { continue }
+            next[key] = status == .pending ? nil : status
+        }
+        guard next != statuses else { return }
+        statuses = next
+        persist()
+    }
+
     /// La deconectare sau la pacientul demo refăcut: nimic din ziua veche nu mai contează.
     func clear() {
         undoTimer?.cancel()

@@ -143,7 +143,7 @@ def test_missed_dose_after_reset_is_new(client):
     ("kwargs", "detail"),
     [
         ({"content": b"{nu e json", "headers": {"Content-Type": "application/json"}}, "Corpul cererii nu e JSON valid."),
-        ({"json": {k: v for k, v in MED_09.items() if k != "product"}}, "Câmpul «product» lipsește."),
+        ({"json": {k: v for k, v in MED_09.items() if k != "product"}}, "Lipsește produsul."),
         ({"json": {**MED_09, "source": "fax"}}, "Câmpul «source» are o valoare nepermisă."),
         ({"json": {**MED_09, "culoare": "roșu"}}, "Corpul cererii conține un câmp necunoscut."),
         ({"json": [MED_09]}, "Corpul cererii are tipul greșit."),

@@ -36,6 +36,14 @@ struct SeniorRoot: View {
         }
         // notificările se refac după orice schimbare a programului
         .task(id: scheduleSignature) { await store.rescheduleReminders() }
+        // E1 + E2: orele schimbate de familie și „Am luat” de pe pagina web ajung aici fără reîncărcare
+        .task {
+            while !Task.isCancelled {
+                try? await Task.sleep(for: AppStore.dayRefreshInterval)
+                guard !Task.isCancelled else { return }
+                await store.refreshDay()
+            }
+        }
         // Q3-06: Maria revine în aplicație după ore (sau a doua zi) și vede programul de acum
         .onChange(of: scenePhase) { _, phase in
             switch phase {
