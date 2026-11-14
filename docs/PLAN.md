@@ -26,9 +26,9 @@ Etapele au prefixele **P** (împreună), **A** (Dev A: aplicația iOS), **B** (D
 **Tema UniHack:** The Bloom (Connected Communities, Mobility & Healthcare), track-ul **Medical Renaissance**. PolyGraph ține de „comunitatea conectată” din temă: pacientul, familia și medicul de familie văd aceeași listă de medicamente și aceleași alerte.
 
 **Problema.** Un vârstnic cu 5–10 medicamente are de obicei rețete de la mai mulți specialiști, plus ce cumpără singur din farmacie (antiinflamatoare, suplimente). Niciun medic nu vede lista întreagă, medicii nu comunică între ei, iar singurul care „integrează” tratamentul e pacientul. Cifrele pe care le folosim (verificate în sursele de la final, slide-ul 1 din secțiunea 17):
-- ~1 din 10 internări ale vârstnicilor e legată de reacții adverse la medicamente (studiul ADAPT, un spital din Irlanda, ≥65 de ani: 10,0%; o meta-analiză internațională pe pacienți de peste 60 de ani, 42 de studii: 8,7%);
-- Comisia Europeană a estimat în 2008 ~5% din toate internările și ~197.000 de decese pe an în UE din reacții adverse;
-- polimedicația a crescut de ~3 ori șansele ca o internare să fie legată de medicamente într-un studiu finlandez dintr-un singur spital (OR 3,3; IC 95% 1,5–6,9).
+- ~1 din 10 (Irlanda 10,0%; meta-analiză internațională 8,7%) internări ale vârstnicilor e legată de reacții adverse la medicamente (studiul ADAPT, un spital din Irlanda, ≥65 de ani; meta-analiza: pacienți de peste 60 de ani, 42 de studii);
+- estimarea Comisiei Europene (2008): ~5% din toate internările și ~197.000 de decese pe an în UE din reacții adverse;
+- polimedicația: de ~3 ori mai multe șanse ca internarea să fie legată de medicamente (OR 3,3; IC 95% 1,5–6,9), într-un studiu finlandez dintr-un singur spital.
 
 **Pitch într-o frază:** pozezi cutiile de medicamente și rețetele bunicii; PolyGraph construiește graful ei terapeutic, găsește deterministic interacțiunile, dublurile și medicamentele nepotrivite vârstei, îi face un program zilnic simplu, o ascultă când spune cum se simte și ține familia și medicul de familie în aceeași buclă.
 
@@ -1063,7 +1063,7 @@ Plan B pentru fiecare pas: scanarea pică → butonul „Adaugă rețeta ORL” 
 
 ## 17. Pitch (7 slide-uri + demo)
 
-1. **Problema, cu cifre:** ~1 din 10 internări ale vârstnicilor e legată de reacții adverse la medicamente (studiul ADAPT, un spital din Irlanda, ≥65 de ani: 10,0%; o meta-analiză internațională pe pacienți de peste 60 de ani, 42 de studii: 8,7%); Comisia Europeană a estimat în 2008 ~5% din toate internările și ~197.000 de decese pe an în UE din reacții adverse. Polimedicația a crescut de ~3 ori șansele ca internarea să fie legată de medicamente într-un studiu finlandez (OR 3,3).
+1. **Problema, cu cifre:** ~1 din 10 (Irlanda 10,0%; meta-analiză internațională 8,7%) internări ale vârstnicilor e legată de reacții adverse la medicamente; estimarea Comisiei Europene (2008): ~5% din toate internările și ~197.000 de decese pe an în UE din reacții adverse. Polimedicația: de ~3 ori mai multe șanse ca internarea să fie legată de medicamente (OR 3,3), într-un studiu finlandez. Sursele și formulările verificate: `docs/pitch/figures.md`.
 2. **De ce acum / de ce noi:** nimeni nu vede lista completă; medicii nu comunică; vârstnicul e singurul „integrator”. API-ul public de interacțiuni al NLM a fost oprit în 2024, deci soluțiile simple nu mai merg.
 3. **Soluția:** poză → graf → alerte deterministe → program simplu → voce → familia și medicul de familie în buclă.
 4. **Demo** (secțiunea 16).
