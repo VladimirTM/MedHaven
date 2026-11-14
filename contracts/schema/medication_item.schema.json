@@ -87,6 +87,13 @@
         "null"
       ]
     },
+    "pill_photo_url": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "poza unei pastile, făcută de familie (E5); opțional: lipsă sau null = fără poză, nu se afișează nimic în loc"
+    },
     "match": {
       "type": "object",
       "additionalProperties": false,

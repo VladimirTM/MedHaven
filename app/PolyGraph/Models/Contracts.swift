@@ -963,6 +963,9 @@ struct MedicationItem: Codable {
     let id: String
     let match: Match
     let photourl: String?
+    /// poza unei pastile, făcută de familie (E5); opțional: lipsă sau null = fără poză, nu se
+    /// afișează nimic în loc
+    let pillPhotourl: String?
     let prescriber: Prescriber
     let product: Product
     let source: MedicationSource
@@ -974,6 +977,7 @@ struct MedicationItem: Codable {
         case endDate = "end_date"
         case id, match
         case photourl = "photo_url"
+        case pillPhotourl = "pill_photo_url"
         case prescriber, product, source
         case startDate = "start_date"
         case substances
@@ -1004,6 +1008,7 @@ extension MedicationItem {
         id: String? = nil,
         match: Match? = nil,
         photourl: String?? = nil,
+        pillPhotourl: String?? = nil,
         prescriber: Prescriber? = nil,
         product: Product? = nil,
         source: MedicationSource? = nil,
@@ -1016,6 +1021,7 @@ extension MedicationItem {
             id: id ?? self.id,
             match: match ?? self.match,
             photourl: photourl ?? self.photourl,
+            pillPhotourl: pillPhotourl ?? self.pillPhotourl,
             prescriber: prescriber ?? self.prescriber,
             product: product ?? self.product,
             source: source ?? self.source,
