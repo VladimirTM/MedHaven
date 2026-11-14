@@ -7,6 +7,8 @@ from polygraph.kb import norm
 
 SLOTS = ("morning", "noon", "evening", "bedtime")
 MAX_UNITS = 10  # mai mult de atâtea comprimate la o priză e o citire greșită
+# „1-0-1,7 zile”: OCR-ul lipește durata de ultima cifră; virgula urmată de „N zile” nu e zecimală (Q4-01)
+DURATION_COMMA = re.compile(r"(?<=\d)\s*[,;]\s*(?=\d{1,3}\s*(?:de\s+)?zi(?:le)?\b)", re.IGNORECASE)
 TIMES = (r"dimineata", r"la pranz|amiaza|la amiaza", r"seara", r"la culcare|inainte de culcare")
 AMOUNT = r"(?:\d{1,3}\s*/\s*\d{1,3}|\d{1,3}(?:[.,]\d{1,3})?)"
 PATTERN = re.compile(rf"(?<![\w/.,-])({AMOUNT})\s*[-–]\s*({AMOUNT})\s*[-–]\s*({AMOUNT})(?:\s*[-–]\s*({AMOUNT}))?(?![\w/-])")
@@ -28,6 +30,7 @@ def parse_posology(raw: str | None) -> tuple[dict, bool]:
         return dosage, True
 
     prepared = raw.translate(str.maketrans({"½": "1/2", "¼": "1/4", "¾": "3/4"}))
+    prepared = DURATION_COMMA.sub(", ", prepared)
     notation = PATTERN.search(prepared)
     amounts = {}
     if notation:
@@ -49,6 +52,8 @@ def parse_posology(raw: str | None) -> tuple[dict, bool]:
         return dosage, True
     if any(v > MAX_UNITS for v in values.values()):
         return dosage, True  # „12-0-0”: nu e o posologie, câmpul rămâne gol și e marcat „verificați”
+    if any((v * 4) % 1 for v in values.values()):
+        return dosage, True  # „1,7”: o priză e un număr întreg de sferturi de comprimat; altfel e o citire greșită
     dosage["pattern"].update(values)
     # Frecvența singură nu indică orele de administrare.
     return dosage, not amounts and not as_needed
