@@ -4,7 +4,7 @@
 **Platformă:** aplicație **iOS nativă (SwiftUI)**, backend Python. Fără Android: echipa are două MacBook-uri și două iPhone-uri, iar demo-ul se face pe iPhone.
 **Repo:** [github.com/VladimirTM/PolyGraph](https://github.com/VladimirTM/PolyGraph) (local: `~/Git/PolyGraph`)
 
-> **Pe scurt (14.11.2026 seara, `main` la [PR #53](https://github.com/VladimirTM/PolyGraph/pull/53)):** tot MVP-ul (F1–F10), bonusurile X1 și X2, reparațiile din Q3 (Q3F0–Q3F6), QA1–QA4, QA5.1–QA5.2 și J-1 (rețeaua locală, #52, #53) sunt în `main`. **În [PR #55](https://github.com/VladimirTM/PolyGraph/pull/55) (draft):** E0, E1, E2, E3 și E6, cu backend-ul verde (`make check`, `make demo-check`); build-ul iOS, `make check-ios` și turul pe simulator rulează pe al doilea laptop. E4 și E5 așteaptă PR-ul de contract comun. **Urmează:** reparațiile din testarea #55 și merge-ul, apoi S4 (feature freeze, D 09:30), Q4, D1 și D2. Statusul complet e în [secțiunea 7](#7-statusul-pe-scurt), iar ce are de făcut fiecare în [Partea III](#partea-iii--ce-e-de-făcut).
+> **Pe scurt (14.11.2026 seara, `main` la [PR #53](https://github.com/VladimirTM/PolyGraph/pull/53)):** tot MVP-ul (F1–F10), bonusurile X1 și X2, reparațiile din Q3 (Q3F0–Q3F6), QA1–QA4, QA5.1–QA5.2 și J-1 (rețeaua locală, #52, #53) sunt în `main`. **În [PR #55](https://github.com/VladimirTM/PolyGraph/pull/55) (draft):** E0, E1, E2, E3 și E6, cu backend-ul verde (`make check`, `make demo-check`); build-ul iOS, `make check-ios` și turul pe simulator rulează pe al doilea laptop. **E5** (poza pastilei) e pe branch-ul `feature/e5-poza-pastilei`, cu contractul lui (`pill_photo_url`), fără pozele demo; E4 nu e început. **Urmează:** reparațiile din testarea #55 și merge-ul, apoi S4 (feature freeze, D 09:30), Q4, D1 și D2. Statusul complet e în [secțiunea 7](#7-statusul-pe-scurt), iar ce are de făcut fiecare în [Partea III](#partea-iii--ce-e-de-făcut).
 
 ## Cum e organizat documentul
 
@@ -227,7 +227,8 @@ Cele două surse se completează: CNAS are lista oficială a rețetelor, PolyGra
 | J-1 rețeaua locală pe al doilea iPhone | Dev A + B | ✅ | [#52](https://github.com/VladimirTM/PolyGraph/pull/52), [#53](https://github.com/VladimirTM/PolyGraph/pull/53) | mesajul „Rețea locală” în loc de „offline”; IP-urile ordonate după rețea (`bridge100` primul) |
 | E0 bug: editarea unui medicament → 422 | Dev A + B | 🔄 în PR | [#55](https://github.com/VladimirTM/PolyGraph/pull/55) | backend verde (T-E0-02); de confirmat build-ul iOS (T-E0-01) și pe iPhone (T-E0-03) |
 | E1–E3, E6 ideile din 14.11 seara | amândoi | 🔄 în PR | [#55](https://github.com/VladimirTM/PolyGraph/pull/55) | orele zilei (app + web), pagina familiei (`/acasa`), calendarul și cutiuța, mai mulți pacienți; backend verde, iOS de testat; contract nou: `POST /web-link`, `GET /doses` (de confirmat cu Dev A) |
-| E4 stocul · E5 poza pastilei | amândoi | ⬜ | – | așteaptă PR-ul de contract comun (14.6); ce nu e în `main` la D 08:30 trece în 19 |
+| E5 poza pastilei | amândoi | 🔄 în PR | `feature/e5-poza-pastilei` | contract (`pill_photo_url`, `POST` / `DELETE …/pill-photo`), backend și web verzi (T-E5-01); iOS de testat (T-E5-02, T-E5-03); fără pasul din ConfirmSheet și fără pozele demo (mutate în 19) |
+| E4 stocul | amândoi | ⬜ | – | PR-ul de contract încă nefăcut; ce nu e în `main` la D 08:30 trece în 19 |
 | S4 + Q4 · D1 · D2 | amândoi | ⬜ | – | secțiunea 15 |
 
 ### 7.2 Livrate în afara etapelor (14.11.2026, [PR #33](https://github.com/VladimirTM/PolyGraph/pull/33))
@@ -713,7 +714,7 @@ Ordinea ține cont de S4 (feature freeze, D 09:30): ce e marcat „înainte de S
 | A-8 | **E0** editarea unui medicament: corpul `PATCH /meds` cu `null` (`JSONCoding`), ca la `POST` | înainte de S4, primul | 15 min | 🔄 [#55](https://github.com/VladimirTM/PolyGraph/pull/55) | 14.6, E0 |
 | A-9 | **E1** „Orele zilei” în Setări (rândurile din onboarding), notificările reprogramate | înainte de S4 | 45 min | 🔄 [#55](https://github.com/VladimirTM/PolyGraph/pull/55) | 14.6, E1 |
 | A-10 | **E4** stocul în aplicație: „Comprimate într-o cutie”, „Câte cutii aveți acasă?”, „Mai aveți pentru N zile”, „Am cumpărat o cutie”, `stock_low` în Noutăți (+ PR-ul de contract, împreună cu Dev B) | opțional | 1,5 h | ⬜ | 14.6, E4 |
-| A-11 | **E5** poza pastilei: fotografierea și afișarea lângă cutie pe „Acum” și „Ziua de azi”; butonul „Deschide pe web” din E2 (15 min) | opțional | 1 h | ⬜ E5; „Deschide pe web” (E2) 🔄 [#55](https://github.com/VladimirTM/PolyGraph/pull/55) | 14.6, E2 și E5 |
+| A-11 | **E5** poza pastilei: fotografierea și afișarea lângă cutie pe „Acum” și „Ziua de azi”; butonul „Deschide pe web” din E2 (15 min) | opțional | 1 h | 🔄 E5 (`feature/e5-poza-pastilei`, doar în MedDetailView, fără pasul din ConfirmSheet); „Deschide pe web” (E2) 🔄 [#55](https://github.com/VladimirTM/PolyGraph/pull/55) | 14.6, E2 și E5 |
 
 ### 12.2 Dev B (date, motor, backend, portal)
 
@@ -731,7 +732,7 @@ Ordinea ține cont de S4 (feature freeze, D 09:30): ce e marcat „înainte de S
 | B-10 | **E1** ordinea orelor validată, dozele de azi mutate la orele noi, `/acasa/ore` | înainte de S4 | 45 min | 🔄 [#55](https://github.com/VladimirTM/PolyGraph/pull/55) | 14.6, E1 |
 | B-11 | **E2** pagina familiei pe web: intrarea cu link din aplicație, „Azi” cu „Am luat”, „Medicamentele mele” cu „i”, „De verificat” cu „De ce văd asta?” | înainte de S4 | 3 h | 🔄 [#55](https://github.com/VladimirTM/PolyGraph/pull/55) | 14.6, E2 |
 | B-12 | **E3** „Calendar săptămânal” și „Pregătesc cutiuța” | opțional | 1,5 h | 🔄 [#55](https://github.com/VladimirTM/PolyGraph/pull/55) | 14.6, E3 |
-| B-13 | **E4** PR-ul de contract (cu Dev A), calculul stocului, `stock_low`, „am rămas fără…” la check-in; **E5** ruta `pill-photo`, pozele pe web, pozele demo | opțional | 2 h + 45 min | ⬜ | 14.6, E4 și E5 |
+| B-13 | **E4** PR-ul de contract (cu Dev A), calculul stocului, `stock_low`, „am rămas fără…” la check-in; **E5** ruta `pill-photo`, pozele pe web, pozele demo | opțional | 2 h + 45 min | ⬜ E4; 🔄 E5 (`feature/e5-poza-pastilei`; pozele demo mutate în 19) | 14.6, E4 și E5 |
 | B-14 | **E6** mai mulți pacienți în același browser | opțional | 1 h | 🔄 [#55](https://github.com/VladimirTM/PolyGraph/pull/55) | 14.6, E6 |
 
 ### 12.3 Împreună
@@ -796,7 +797,7 @@ Constatările QA-nn și Q3-nn citate în prompturi sunt în Anexa C. QA0 e gata 
 | QA5 | funcționalitățile pentru demo (opțional) | Dev B | 2–4 h | `feature/qa5-…` |
 | E0–E6 | ideile din 14.11 seara: bug-ul de editare, orele zilei, pagina familiei, cutiuța, stocul, poza pastilei, mai mulți pacienți | Dev A + Dev B | 30 min – 3,5 h fiecare | `fix/e0-…`, `feature/e1-…` … (14.6) |
 
-Status la 14.11.2026: QA0 ✅ (#33); QA1 ✅ (#43); QA2–QA4 ✅ (#44); QA5.1 și QA5.2 ✅ ([#49](https://github.com/VladimirTM/PolyGraph/pull/49), [#51](https://github.com/VladimirTM/PolyGraph/pull/51)), QA5.3 mutat în secțiunea 19; E0–E3 și E6 🔄 în [#55](https://github.com/VladimirTM/PolyGraph/pull/55) (draft, 14.11 seara), E4–E5 ⬜ (14.6). Dependențele: QA2 și QA3 după QA1, QA4 după QA3, QA5 după QA2 și QA4; E1, E2 și E4 după E0, E3 și E6 după E2, E5 după contractul din E4.
+Status la 14.11.2026: QA0 ✅ (#33); QA1 ✅ (#43); QA2–QA4 ✅ (#44); QA5.1 și QA5.2 ✅ ([#49](https://github.com/VladimirTM/PolyGraph/pull/49), [#51](https://github.com/VladimirTM/PolyGraph/pull/51)), QA5.3 mutat în secțiunea 19; E0–E3 și E6 🔄 în [#55](https://github.com/VladimirTM/PolyGraph/pull/55) (draft, 14.11 seara), E4 ⬜, E5 🔄 pe `feature/e5-poza-pastilei` (14.6). Dependențele: QA2 și QA3 după QA1, QA4 după QA3, QA5 după QA2 și QA4; E1, E2 și E4 după E0, E3 și E6 după E2, E5 cu contractul lui (`pill_photo_url`), făcut separat de E4.
 
 ### 14.1 QA1 · Robustețea backend-ului
 
@@ -1098,6 +1099,8 @@ Criterii de acceptare: Sintrom cu 10 comprimate, ½ pe zi → „Mai aveți pent
 
 Pastila se fotografiază de familie, o dată, nu se recunoaște și nu se desenează: o imagine inventată a unei pastile e mai periculoasă decât niciuna. Fără poză, nu apare nimic în locul ei.
 
+**Status (15.11, noaptea):** 🔄 pe `feature/e5-poza-pastilei`, cu scopul redus: contractul (`pill_photo_url` opțional, `POST` / `DELETE /meds/{mid}/pill-photo`) într-un commit separat; backend-ul (JPEG ≤ 5 MB, micșorat la 1024 px, fără EXIF; erorile 422 în română); web-ul („Azi” și „Medicamentele mele”, cu „Cutia” / „Pastila”; tipărirea nu); aplicația („Fotografiați o pastilă” doar în MedDetailView; „Acum” și „Ziua de azi” în modul senior). Lăsate deoparte, în secțiunea 19: pasul opțional din ConfirmSheet (fluxul de scanare e pe scenă la 0:15) și pozele demo din `demo/pills/`. Pacientul demo rămâne fără poze de pastile; dacă juriul întreabă, Ana fotografiază una pe loc din detaliul medicamentului.
+
 ~~~text
 [WORKFLOW] Branch: feature/e5-poza-pastilei. Folosește pill_photo_url din PR-ul de contract E4. Citește .claude/skills/apple-design/SKILL.md și docs/DESIGN.md. Nu edita project.pbxproj; fără dependențe externe în iOS.
 
@@ -1112,7 +1115,7 @@ Criterii de acceptare: o pastilă fotografiată în aplicație apare pe „Acum�
 ~~~
 
 **Teste**
-- [ ] T-E5-01 pytest: upload → `pill_photo_url` setat, `/media/...` răspunde; fișier non-JPEG sau > 5 MB → 422 în română; DELETE → `null`.
+- [x] T-E5-01 pytest (`backend/tests/test_e5_pill_photo.py`): upload → `pill_photo_url` setat, `/media/...` răspunde; fișier non-JPEG sau > 5 MB → 422 în română; DELETE → `null`.
 - [ ] T-E5-02 XCTest / `EdgeCaseTour`: „Acum” cu și fără poza pastilei, la Dynamic Type AX5, fără suprapuneri.
 - [ ] T-E5-03 Manual: poza făcută pe iPhone apare pe web în „Azi”.
 
@@ -1346,6 +1349,7 @@ Plan B pentru fiecare pas: scanarea pică → butonul „Adaugă rețeta ORL” 
 - Push real (APNs), conturi și consimțământ GDPR complet, audit log; Android doar dacă pilotul o cere.
 - Dozele individualizate (INR pentru anticoagulante, funcția renală) doar prin medic, niciodată automat.
 - Din etapele E (14.6), ce nu intră până la S4; plus, oricum după hackathon: **ora fixă pe un singur medicament** („Euthyrox la 06:30”, un câmp nou în `dosage` și o constrângere în solver), **mai mulți pacienți în aplicație** (`AppStore` cu o listă de `(id, token)` în Keychain și un selector, perechea lui E6), stocul pe push real și numărul de cutii citit din DataMatrix la fiecare scanare.
+- Din E5, lăsate deoparte la S4: pozele pastilelor pentru pacientul demo (`demo/pills/<med_id>.jpg`, făcute cu cutiile fizice, încărcate la `make demo`; atenție la Sintrom și Nurofen, care intră în listă abia la scanarea live), pasul opțional „Fotografiați o pastilă” după „Salvează” în ConfirmSheet și T-E5-02 în `EdgeCaseTour`.
 - QA5.3 (14.5), mutat aici: „Ce s-a schimbat de la ultima consultație” în capul fișei din portal, din `feed_events`, `doses` și `checkins`, de la ultima decizie a medicului (medicamente noi, alerte noi, doze ratate, simptome), cu testul T-QA5-03.
 - Din review-ul Q3 (aplicația, `docs/reviews/Q3.md`): avertizare „expiră curând” din DataMatrix (azi doar „expirat”); aderența săptămânală în portal („5 din 7 seri”, cu „neconfirmate”, nu „nelulate”); al doilea telefon al familiei legat de același pacient, fără reset; „Pot să iau…?” și pentru suplimente / plante (sunătoare, ginkgo), din surse verificate; QR spre fișă pe reconcilierea tipărită; graful what-if în portal pentru o întrebare gravă; istoricul pe zile în „Ziua de azi” (doar citire, butoane mari); exportul FHIR `MedicationStatement`; actualizarea cutiei existente la o scanare duplicat (expirare, lot), în loc de un al doilea medicament.
 
