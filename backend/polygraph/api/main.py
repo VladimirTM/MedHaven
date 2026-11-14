@@ -50,7 +50,7 @@ from polygraph.kb import Kb, KbMissing, default_kb  # noqa: E402
 from polygraph.net import lan_base_url  # noqa: E402
 from polygraph.schedule import build_schedule  # noqa: E402
 from polygraph.share import STATIC_DIR, render  # noqa: E402
-from polygraph.share.view import page_context, patient_card, portal_summary, review_event  # noqa: E402
+from polygraph.share.view import page_context, patient_card, portal_summary, review_event, whatif_context  # noqa: E402
 from polygraph.store import MedIdTaken, Store  # noqa: E402
 from polygraph.voice import can_i_take  # noqa: E402
 from polygraph.voice.correlate import correlate, feed_event, reply_text  # noqa: E402
@@ -428,6 +428,11 @@ def what_if(pid: str, body: dict[str, Any], x_patient_token: str | None = Header
     invalid("what_if_request", body)
     if "query" in body and not body["query"].strip():
         raise HTTPException(422, "Scrieți numele medicamentului.")
+    return run_what_if(pid, patient, body)
+
+
+def run_what_if(pid: str, patient: dict[str, Any], body: dict[str, Any]) -> dict[str, Any]:
+    """Răspunsul /what-if, comun aplicației (POST /what-if) și portalului („Dacă prescriu…”, QA5.2)."""
     meds = store().list_meds(pid)
     taken = {m["id"] for m in meds}
     if "med" in body:
@@ -773,6 +778,27 @@ def review_alert(pid: str, alert_id: str, body: ReviewBody, request: Request) ->
     event = review_event(alert, body.decision, note, at, secrets.token_hex(4), changed=changed)
     resolution, _ = store().review_alert(pid, alert_id, resolution, event)  # QA-07: aceeași decizie = un singur eveniment
     return {**alert, "status": "reviewed_by_doctor", "resolution": resolution}
+
+
+@app.post("/portal/patients/{pid}/what-if", response_class=HTMLResponse)
+def portal_what_if(pid: str, request: Request, query: Annotated[str, Form(max_length=200)] = "") -> HTMLResponse:
+    """„Dacă prescriu…” pe fișă (QA5.2): același what-if ca în aplicație, întors ca fragment HTML cu cardurile fișei.
+    Rută internă a portalului, nu face parte din API-ul aplicației."""
+    if current_doctor(request) is None:
+        raise HTTPException(401, "Autentificați-vă în portal.")
+    if doctor_patient(request, pid) is None:
+        raise HTTPException(404, "Pacientul nu e în lista dumneavoastră.")
+    query = query.strip()
+    if not query:
+        return page("whatif.html", state="empty")
+    patient = store().get_patient(pid)
+    result = run_what_if(pid, patient, {"query": query})
+    unknown = result["matched"] is None
+    if unknown:
+        # necunoscut în catalog: motorul îl vede ca pe un medicament fără substanțe și dă alerta lui `unverified`
+        stub = med_from_kb({"brand": query, "strength_text": None, "form": None, "substances": []}, "med_whatif")
+        result = run_what_if(pid, patient, {"med": stub})
+    return page("whatif.html", **whatif_context(result, store().list_meds(pid), today(), unknown=unknown))
 
 
 # ---------------------------------------------------------------- portalul în timp real (QA5.1)

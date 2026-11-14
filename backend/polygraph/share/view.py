@@ -10,7 +10,8 @@ from zoneinfo import ZoneInfo
 
 from polygraph.engine.analyze import is_active
 from polygraph.engine.context import brand
-from polygraph.engine.texts_ro import doctor_review_title, ro_name
+from polygraph.engine.texts_ro import WHATIF_NONE_FOUND, doctor_review_title, ro_name
+from polygraph.extract.display import display_strength
 from polygraph.kb import SEV_RANK
 
 Json = dict[str, Any]
@@ -506,4 +507,51 @@ def review_event(alert: Json, decision: str, note: str, at: str, suffix: str, *,
         "med_ids": alert["med_ids"],
         "alert_id": alert["id"],
         "checkin_id": None,
+    }
+
+
+def _number(n: int) -> str:
+    """„3”, „20 de” (aceeași regulă ca `plural`)."""
+    return str(n) if n == 0 or 0 < n % 100 < 20 else f"{n} de"
+
+
+def new_alerts_text(alerts: list[Json]) -> str | None:
+    """„2 alerte grave noi și 2 de discutat”, la început de propoziție: aceleași cuvinte și aceeași numărare ca
+    `NewAlerts.text` din app/PolyGraph/Alerts/AlertSections.swift (grave = critical + major fără mâncare; de discutat =
+    moderate fără mâncare). None dacă nu e nimic de numărat."""
+    other = [a for a in alerts if a["kind"] != "food"]
+    grave = sum(1 for a in other if a["severity"] in GRAVE)
+    discuss = sum(1 for a in other if a["severity"] == "moderate")
+    grave_text = "o alertă gravă nouă" if grave == 1 else f"{_number(grave)} alerte grave noi"
+    if grave and discuss:
+        text = f"{grave_text} și {'una' if discuss == 1 else _number(discuss)} de discutat"
+    elif grave:
+        text = grave_text
+    elif discuss:
+        text = "o alertă nouă de discutat" if discuss == 1 else f"{_number(discuss)} alerte noi de discutat"
+    else:
+        return None
+    return text[0].upper() + text[1:]
+
+
+def whatif_context(result: Json, meds: list[Json], today: date, *, unknown: bool = False) -> Json:
+    """Răspunsul „Dacă prescriu…” din portal (QA5.2): aceleași alerte ca POST /what-if, în aceeași ordine, cu textele
+    fișei (recomandarea în varianta pentru medic). Un medicament necunoscut vine ca alerta `unverified` a motorului;
+    pentru medic, textul ei e explicația (detail), nu sfatul pentru familie."""
+    matched = result["matched"]
+    product = matched["product"]
+    strength = display_strength(product.get("strength_text"))
+    name = f"{product['brand']} {strength}" if strength else product["brand"]
+    names = {**{m["id"]: med_name(m) for m in meds}, matched["id"]: name}
+    alerts = [alert_view(a, names, today) for a in result["new_alerts"]]
+    if unknown:
+        alerts = [{**a, "recommendation": a["detail"]} for a in alerts if a["kind"] == "unverified"]
+    subs = matched.get("substances") or []
+    return {
+        "state": "unknown" if unknown else ("alerts" if alerts else "none"),
+        "name": name,
+        "dci": ", ".join(ro_name(x.get("inn"), x.get("dci")) for x in subs),
+        "alerts": alerts,
+        "count": None if unknown else new_alerts_text(alerts),
+        "none_text": WHATIF_NONE_FOUND,
     }
