@@ -13,6 +13,7 @@ portalul medicului de familie (lista de pacienți, fișa, tipărirea, graful) di
 
 from __future__ import annotations
 
+import asyncio
 import copy
 import json
 import logging
@@ -28,7 +29,7 @@ from zoneinfo import ZoneInfo
 
 from fastapi import FastAPI, File, Form, Header, HTTPException, Query, Request, Response, UploadFile
 from fastapi.exceptions import RequestValidationError
-from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
+from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field, TypeAdapter, ValidationError
 
@@ -686,6 +687,8 @@ def portal(request: Request, eroare: int = 0, next: str | None = None) -> HTMLRe
         # QA-15: după un cod greșit, POST /portal/login trimite aici, cu mesajul și ținta în query
         return login_page(safe_next(next), "Codul de acces nu e corect." if eroare else None)
     s = store()
+    # cursorul se ia înaintea datelor: un eveniment scris între timp ajunge oricum la pagină (QA5.1)
+    live = f"/portal/events?after={s.last_event_cursor()}"
     cards = []
     for pid in s.doctor_patient_ids(doctor["id"]):
         patient = s.get_patient(pid)
@@ -693,7 +696,7 @@ def portal(request: Request, eroare: int = 0, next: str | None = None) -> HTMLRe
         checkins = s.list_checkins(pid)
         cards.append(patient_card(patient, meds, run_analysis(pid, patient, meds), checkins, today()))
     cards.sort(key=lambda c: c["sort"])
-    return page("portal.html", doctor=doctor, cards=cards, **portal_summary(cards, today()))
+    return page("portal.html", doctor=doctor, cards=cards, live=live, **portal_summary(cards, today()))
 
 
 @app.post("/portal/login", response_class=HTMLResponse)
@@ -724,7 +727,8 @@ def portal_logout(request: Request) -> Response:
 def portal_patient(pid: str, request: Request) -> HTMLResponse:
     if doctor_patient(request, pid) is None:
         return expired_page(not_in_list=True) if current_doctor(request) else login_page(f"/portal/patients/{pid}")
-    return page("page.html", base=f"/portal/patients/{pid}", **patient_context(pid))
+    live = f"/portal/events?{urlencode({'patient': pid, 'after': store().last_event_cursor()})}"
+    return page("page.html", base=f"/portal/patients/{pid}", live=live, **patient_context(pid))
 
 
 @app.get("/portal/patients/{pid}/print", response_class=HTMLResponse)
@@ -769,6 +773,66 @@ def review_alert(pid: str, alert_id: str, body: ReviewBody, request: Request) ->
     event = review_event(alert, body.decision, note, at, secrets.token_hex(4), changed=changed)
     resolution, _ = store().review_alert(pid, alert_id, resolution, event)  # QA-07: aceeași decizie = un singur eveniment
     return {**alert, "status": "reviewed_by_doctor", "resolution": resolution}
+
+
+# ---------------------------------------------------------------- portalul în timp real (QA5.1)
+
+LIVE_TICK = 0.5  # cât de des se uită fluxul în feed_events (s)
+LIVE_PING = 15.0  # un comentariu gol din când în când, ca nimic de pe drum să nu închidă conexiunea
+LIVE_LIFETIME = 60.0  # apoi fluxul se închide, iar EventSource se reconectează singur, cu Last-Event-ID
+
+
+def sse(name: str, cursor: int, data: dict[str, Any]) -> str:
+    return f"event: {name}\nid: {cursor}\ndata: {json.dumps(data, ensure_ascii=False)}\n\n"
+
+
+async def live_stream(request: Request, doctor_id: str, patient: str | None, cursor: int):
+    """Evenimentele noi din feed_events pentru pacienții medicului (sau doar pentru fișa deschisă). Pagina nu primește
+    conținutul, doar semnalul: își cere singură fragmentele, prin aceeași rută care o randează."""
+    s = store()
+    loop = asyncio.get_running_loop()
+    began = pinged = loop.time()
+    # fără `data`, mesajul nu ajunge la pagină, dar fixează Last-Event-ID pentru reconectare
+    yield f"id: {cursor}\nretry: 3000\n\n"
+    while loop.time() - began < LIVE_LIFETIME:
+        if await request.is_disconnected() or current_doctor(request) is None:
+            return
+        head = s.last_event_cursor()
+        if head < cursor:
+            # /demo/reset a șters evenimentele, iar rowid-urile o iau de la capăt: pagina se reîmprospătează oricum
+            cursor = head
+            yield sse("reset", cursor, {})
+        pids = [patient] if patient else s.doctor_patient_ids(doctor_id)
+        for rowid, pid, event in s.events_after(cursor, pids):
+            if rowid > head:
+                break
+            yield sse("feed", rowid, {"patient_id": pid, "type": event["type"], "alert_id": event.get("alert_id")})
+        cursor = head
+        if loop.time() - pinged >= LIVE_PING:
+            pinged = loop.time()
+            yield ": ping\n\n"
+        await asyncio.sleep(LIVE_TICK)
+
+
+@app.get("/portal/events")
+async def portal_events(
+    request: Request,
+    after: Annotated[int | None, Query(ge=0)] = None,
+    patient: str | None = None,
+    last_event_id: Annotated[str | None, Header()] = None,
+) -> StreamingResponse:
+    """Server-Sent Events pentru lista și fișa din portal; rută internă a portalului, nu face parte din API-ul aplicației."""
+    doctor = current_doctor(request)
+    if doctor is None:
+        raise HTTPException(401, "Autentificați-vă în portal.")
+    if patient is not None and not store().doctor_has_patient(doctor["id"], patient):
+        raise HTTPException(404, "Pacientul nu e în lista dumneavoastră.")
+    if last_event_id and last_event_id.isdecimal():
+        cursor = int(last_event_id)
+    else:
+        cursor = after if after is not None else store().last_event_cursor()
+    headers = {"Cache-Control": "no-store", "X-Accel-Buffering": "no", "X-Content-Type-Options": "nosniff"}
+    return StreamingResponse(live_stream(request, doctor["id"], patient, cursor), media_type="text/event-stream", headers=headers)
 
 
 # ---------------------------------------------------------------- kb
