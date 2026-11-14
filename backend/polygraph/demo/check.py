@@ -1,4 +1,4 @@
-"""`make demo-check` (R4): scenariul demo din docs/PLAN.md, secțiunea 7, rulat prin API și comparat cu contracts/fixtures.
+"""`make demo-check` (R4): scenariul demo din docs/PLAN.md, secțiunea 16, rulat prin API și comparat cu contracts/fixtures.
 
 Două moduri:
 - implicit, în proces: backend-ul real cu o bază de date temporară, DEMO_MODE=1, data din fixture și Gemini oprit

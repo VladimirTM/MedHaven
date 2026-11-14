@@ -1,3 +1,3 @@
 # docs/
 
-`PLAN.md` (planul complet; fazele și sync point-urile sunt la început), `DESIGN.md` (secțiunea 2.4 din plan + convențiile UI), `reviews/` (rapoartele Q1–Q4), `pitch/` (slide-uri).
+`PLAN.md` (planul complet: proiectul, statusul, apoi ce are de făcut fiecare), `DESIGN.md` (designul și convențiile UI; planul trimite aici), `reviews/` (rapoartele Q1–Q4), `pitch/` (slide-uri).

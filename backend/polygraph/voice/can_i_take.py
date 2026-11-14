@@ -1,4 +1,4 @@
-"""„Pot să iau…?” (bonusul X1): medicamentul întrebat rulat ca what-if pe regimul pacientului (docs/PLAN.md, 1.3).
+"""„Pot să iau…?” (bonusul X1): medicamentul întrebat rulat ca what-if pe regimul pacientului (docs/PLAN.md, 5.2).
 
 Răspunsul diferă după cea mai gravă alertă nouă (fără alimente), ca să nu fie mereu „întrebați medicul”:
 - serious (critical / major): numele și motivul; „Nu luați X până nu vă răspunde medicul de familie”; eveniment în Noutăți.

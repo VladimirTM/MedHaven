@@ -25,7 +25,7 @@ Aplicația iOS: `app/PolyGraph.xcodeproj` (vezi [`app/README.md`](app/README.md)
 | `kb/` | reguli, interacțiuni verificate, ingestia | Dev B |
 | `contracts/` | schemele, API-ul, fixture-urile demo: sursa de adevăr | amândoi |
 | `demo/` | poze, rețeta, transcrieri | Dev B |
-| `docs/` | [planul](docs/PLAN.md) (fazele sunt la început), [designul](docs/DESIGN.md), review-urile | amândoi |
+| `docs/` | [planul](docs/PLAN.md) (statusul e la început), [designul](docs/DESIGN.md), review-urile | amândoi |
 
 Cum lucrăm: [`CONTRIBUTING.md`](CONTRIBUTING.md).
 
