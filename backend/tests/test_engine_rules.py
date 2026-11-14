@@ -101,7 +101,8 @@ def test_new_alerts_only(mini_kb):
 def test_unknown_substance_does_not_crash(mini_kb):
     meds = [med("med_01", "Ceva", "nonexistentium", "Z99ZZ99"), med("med_02", "Altceva", "nonexistentium", "Z99ZZ99")]
     r = analyze(PATIENT, meds, TODAY, kb=mini_kb)
-    assert [a["kind"] for a in r["alerts"]] == ["duplicate"]
+    # QA-03: substanța necunoscută nu ascunde medicamentul; fiecare primește alerta `unverified`
+    assert sorted(a["kind"] for a in r["alerts"]) == ["duplicate", "unverified", "unverified"]
 
 
 # --- texte -----------------------------------------------------------------------------------

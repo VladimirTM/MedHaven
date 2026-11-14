@@ -258,7 +258,7 @@ struct ScanView: View {
                     .contentShape(Circle())
                 }
                 .buttonStyle(PressableButtonStyle())
-                .accessibilityLabel("Fotografiază fața cutiei")
+                .accessibilityLabel("Fotografiază cutia")
                 .accessibilityIdentifier("scan.shutter")
 
                 Button("Completez manual") { model.startManualEntry() }

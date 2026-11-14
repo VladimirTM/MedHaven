@@ -28,6 +28,7 @@ KIND_LABEL = {
     "timing": "Program greu de respectat",
     "expired": "Cutie expirată",
     "symptom": "Simptom raportat",
+    "unverified": "Medicament neverificat",
 }
 SOURCE_LABEL = {
     "ddinter": "DDInter 2.0",
@@ -50,6 +51,7 @@ QUESTION = {
     "timing": "{meds}: se poate simplifica programul de administrare?",
     "expired": "{meds}: e nevoie de o rețetă nouă?",
     "symptom": "Simptomele raportate: pot fi legate de {meds}?",
+    "unverified": "{meds}: care e substanța activă?",
 }
 MAX_QUESTIONS = 7
 

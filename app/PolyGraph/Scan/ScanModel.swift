@@ -98,7 +98,7 @@ final class ScanModel {
     /// Textul din pastila de sus (stările de status, skill §16).
     var guidance: String? {
         switch status {
-        case .aiming: mode == .box ? "Arătați codul pătrat de pe cutie" : "Fotografiați toată foaia rețetei"
+        case .aiming: mode == .box ? "Încadrați codul de pe cutie" : "Fotografiați toată foaia rețetei"
         case .codeRead: "Am citit codul. Acum fotografiați fața cutiei."
         case .reading: mode == .box ? "Citesc cutia…" : "Citesc rețeta…"
         case .matching: "Caut substanța activă…"
@@ -135,6 +135,7 @@ final class ScanModel {
             return
         }
         #endif
+        status = .reading
         do {
             image = try await proxy.capturePhoto()
         } catch {
@@ -162,12 +163,16 @@ final class ScanModel {
 
     /// „Completez manual”: același sheet de confirmare, cu un medicament gol (și GTIN-ul, dacă s-a citit codul).
     func startManualEntry() {
+        startManualEntry(ocrLines: [])
+    }
+
+    private func startManualEntry(ocrLines: [OCRLine]) {
         probeTask?.cancel()
         let code = scannedCode.flatMap { try? GS1.parse($0) }
         let blank = MedDraft.blankItem(code: code)
         confirmation = ScanConfirmation(
             result: ExtractionResult(candidates: [blank], rawText: nil, warnings: []),
-            photo: capturedImage, kind: mode.kind, ocrLines: [], datamatrix: scannedCode)
+            photo: capturedImage, kind: mode.kind, ocrLines: ocrLines, datamatrix: scannedCode)
     }
 
     /// După „Renunță” în sheet, sau la schimbarea modului: se poate scana din nou.
@@ -183,17 +188,21 @@ final class ScanModel {
     // MARK: - Trimiterea
 
     private func submit(image: UIImage?, kind: ScanKind, datamatrix: String?, store: AppStore) async {
-        lastSubmission = Submission(image: image, kind: kind, datamatrix: datamatrix)
         capturedImage = image
         status = .reading
 
         let words = OCR.customWords(extra: store.meds.map(\.product.brand))
-        let prepared = await Task.detached(priority: .userInitiated) { () -> ([OCRLine], Data?) in
-            guard let image else { return ([], nil) }
+        let prepared = await Task.detached(priority: .userInitiated) {
+            () -> (lines: [OCRLine], jpeg: Data?, photoCode: String?) in
+            guard let image else { return ([], nil, nil) }
+            let photoCode = kind == .box && datamatrix == nil ? BoxBarcode.readPhoto(image) : nil
             let lines = (try? OCR.recognize(image, customWords: words)) ?? []
-            return (lines, ImageUpload.jpeg(image))
+            return (lines, ImageUpload.jpeg(image), photoCode)
         }.value
-        Log.scan.info("OCR: \(prepared.0.count) linii")
+        let datamatrix = datamatrix ?? prepared.photoCode
+        if let photoCode = prepared.photoCode { scannedCode = photoCode }
+        lastSubmission = Submission(image: image, kind: kind, datamatrix: datamatrix)
+        Log.scan.info("OCR: \(prepared.lines.count) linii")
 
         status = .matching
         guard let patientID = store.settings.patientID else {
@@ -202,15 +211,20 @@ final class ScanModel {
         }
         do {
             let result = try await store.api.scan(
-                patientID: patientID, kind: kind, ocrLines: prepared.0, image: prepared.1, datamatrix: datamatrix)
+                patientID: patientID, kind: kind, ocrLines: prepared.lines, image: prepared.jpeg, datamatrix: datamatrix)
             guard !result.candidates.isEmpty else {
+                if kind == .box, let datamatrix, (try? GS1.parse(datamatrix)) != nil {
+                    startManualEntry(ocrLines: prepared.lines)
+                    status = .codeRead
+                    return
+                }
                 fail(result.warnings.first
                     ?? (kind == .box ? "Nu am putut citi cutia, completați manual." : "Nu am putut citi rețeta, completați manual."))
                 return
             }
             confirmation = ScanConfirmation(
                 result: Self.withScannedCode(result, kind: kind, datamatrix: datamatrix),
-                photo: image, kind: kind, ocrLines: prepared.0, datamatrix: datamatrix)
+                photo: image, kind: kind, ocrLines: prepared.lines, datamatrix: datamatrix)
         } catch {
             fail(Self.message(for: error))
         }

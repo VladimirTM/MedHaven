@@ -23,6 +23,7 @@ from contextlib import asynccontextmanager
 from datetime import UTC, date, datetime, timedelta
 from pathlib import Path
 from typing import Annotated, Any, Literal
+from urllib.parse import urlencode
 from zoneinfo import ZoneInfo
 
 from fastapi import FastAPI, File, Form, Header, HTTPException, Query, Request, Response, UploadFile
@@ -153,6 +154,22 @@ def invalid(schema: str, body: Any) -> None:
         raise HTTPException(422, schema_message(errors))
 
 
+MAX_UNITS_PER_MOMENT = 10  # QA-09: peste atât pe un moment e aproape sigur o greșeală de citire sau de tastare
+DOSE_FUTURE_LIMIT = timedelta(hours=24)
+
+
+def plausible_med(med: dict[str, Any]) -> None:
+    """QA-08, QA-09: ce trece de schemă, dar nu poate fi adevărat, primește 422 în loc să dispară în tăcere.
+    Posologia 0-0-0-0 fără „la nevoie” rămâne permisă: e starea „Posologie necompletată” din aplicație
+    (o cutie scanată nu spune niciodată cum se ia medicamentul), iar familia o completează după."""
+    start, end = med.get("start_date"), med.get("end_date")
+    if start and end and end < start:
+        raise HTTPException(422, "Data de sfârșit e înaintea datei de început.")
+    pattern = med["dosage"]["pattern"]
+    if any(q > MAX_UNITS_PER_MOMENT for q in pattern.values()):
+        raise HTTPException(422, f"Doza pe un moment al zilei nu poate depăși {MAX_UNITS_PER_MOMENT} unități.")
+
+
 def auth(pid: str, token: str | None) -> dict[str, Any]:
     patient = store().get_patient(pid)
     if patient is None:
@@ -265,6 +282,7 @@ def list_meds(pid: str, x_patient_token: str | None = Header(None)) -> list[dict
 def add_med(pid: str, body: dict[str, Any], response: Response, x_patient_token: str | None = Header(None)) -> dict[str, Any]:
     patient = auth(pid, x_patient_token)
     invalid("medication_item", body)
+    plausible_med(body)
     med = copy.deepcopy(body)
     saved = store().get_med(pid, med["id"])
     if saved is not None:
@@ -341,6 +359,7 @@ def update_med(pid: str, mid: str, body: dict[str, Any], x_patient_token: str | 
         raise HTTPException(422, f"Câmpuri care nu se pot edita: {sorted(extra)}")
     med = {**med, **copy.deepcopy(body)}
     invalid("medication_item", med)
+    plausible_med(med)
     store().update_med(pid, med)
     return med
 
@@ -405,6 +424,8 @@ def med_from_kb(hit: dict[str, Any], mid: str) -> dict[str, Any]:
 def what_if(pid: str, body: dict[str, Any], x_patient_token: str | None = Header(None)) -> dict[str, Any]:
     patient = auth(pid, x_patient_token)
     invalid("what_if_request", body)
+    if "query" in body and not body["query"].strip():
+        raise HTTPException(422, "Scrieți numele medicamentului.")
     meds = store().list_meds(pid)
     taken = {m["id"] for m in meds}
     if "med" in body:
@@ -443,6 +464,8 @@ def record_dose(pid: str, body: dict[str, Any], x_patient_token: str | None = He
         raise HTTPException(422, "scheduled_at nu e o dată validă.") from None
     if at.tzinfo is None:
         at = at.replace(tzinfo=TZ)
+    if at - datetime.now(UTC) > DOSE_FUTURE_LIMIT:
+        raise HTTPException(422, "Doza nu poate fi înregistrată cu mai mult de o zi înainte.")
     # cheia de idempotență nu depinde de fusul în care telefonul a scris ora
     key = at.astimezone(UTC).isoformat()
     dose = {"med_id": body["med_id"], "scheduled_at": body["scheduled_at"], "status": body["status"], "recorded_at": now_iso()}
@@ -656,10 +679,11 @@ def share_graph(token: str, embed: Annotated[int, Query(ge=0, le=1)] = 0) -> HTM
 
 
 @app.get("/portal", response_class=HTMLResponse)
-def portal(request: Request) -> HTMLResponse:
+def portal(request: Request, eroare: int = 0, next: str | None = None) -> HTMLResponse:
     doctor = current_doctor(request)
     if doctor is None:
-        return login_page("/portal")
+        # QA-15: după un cod greșit, POST /portal/login trimite aici, cu mesajul și ținta în query
+        return login_page(safe_next(next), "Codul de acces nu e corect." if eroare else None)
     s = store()
     cards = []
     for pid in s.doctor_patient_ids(doctor["id"]):
@@ -676,7 +700,8 @@ def portal_login(code: Annotated[str, Form(max_length=200)] = "", next: Annotate
     target = safe_next(next)
     doctor = store().doctor_by_code(code) if code.strip() else None
     if doctor is None:
-        return login_page(target, "Codul de acces nu e corect.", status=401)
+        # QA-15: Post/Redirect/Get, ca refresh-ul paginii cu eroarea să nu retrimită formularul
+        return RedirectResponse(f"/portal?{urlencode({'eroare': 1, 'next': target})}", status_code=303)
     expires = (datetime.now(UTC) + SESSION_TTL).replace(microsecond=0)
     token = store().create_session(doctor["id"], expires.isoformat().replace("+00:00", "Z"))
     response = RedirectResponse(target, status_code=303)
@@ -738,8 +763,8 @@ def review_alert(pid: str, alert_id: str, body: ReviewBody, request: Request) ->
     at = datetime.now(TZ).replace(microsecond=0).isoformat()
     note = body.note.strip()
     resolution = {"by": "doctor", "decision": body.decision, "note": note, "at": at}
-    store().set_alert_state(pid, alert_id, "reviewed_by_doctor", resolution)
-    store().add_event(pid, review_event(alert, body.decision, note, at, secrets.token_hex(4)))
+    event = review_event(alert, body.decision, note, at, secrets.token_hex(4))
+    resolution, _ = store().review_alert(pid, alert_id, resolution, event)  # QA-07: aceeași decizie = un singur eveniment
     return {**alert, "status": "reviewed_by_doctor", "resolution": resolution}
 
 
