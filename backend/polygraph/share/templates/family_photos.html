@@ -1,0 +1,14 @@
+{# E5: poza cutiei și, doar dacă familia a fotografiat-o, poza pastilei lângă ea, cu etichete.
+   Fără poza pastilei, markup-ul e exact cel de dinainte (inclusiv locul gol pentru cutie). #}
+{% macro med_photos(name, photo_url, pill_photo_url, size) -%}
+{% if pill_photo_url -%}
+<span class="photo-pair">
+  {%- if photo_url %}<figure class="photo-labeled"><img class="box-photo" src="{{ photo_url }}" alt="Cutia de {{ name }}" width="{{ size }}" height="{{ size }}" loading="lazy"><figcaption>Cutia</figcaption></figure>{% endif -%}
+  <figure class="photo-labeled"><img class="box-photo" src="{{ pill_photo_url }}" alt="Pastila de {{ name }}" width="{{ size }}" height="{{ size }}" loading="lazy"><figcaption>Pastila</figcaption></figure>
+</span>
+{%- elif photo_url -%}
+<img class="box-photo" src="{{ photo_url }}" alt="Cutia de {{ name }}" width="{{ size }}" height="{{ size }}" loading="lazy">
+{%- else -%}
+<span class="box-photo is-empty" aria-hidden="true"></span>
+{%- endif %}
+{%- endmacro %}

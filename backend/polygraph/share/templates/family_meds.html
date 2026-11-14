@@ -1,5 +1,6 @@
 {% extends "family_base.html" %}
 {% from "alerts.html" import info %}
+{% from "family_photos.html" import med_photos %}
 {% block page_title %}Medicamentele mele{% endblock %}
 {% block main %}
 <div class="family-head">
@@ -10,7 +11,7 @@
 <ul class="med-list family-meds">
   {% for m in meds %}
   <li class="med family-med" id="med-{{ m.id }}">
-    {% if m.photo_url %}<img class="box-photo" src="{{ m.photo_url }}" alt="Cutia de {{ m.name }}" width="64" height="64" loading="lazy">{% else %}<span class="box-photo is-empty" aria-hidden="true"></span>{% endif %}
+    {{ med_photos(m.name, m.photo_url, m.pill_photo_url, 64) }}
     <div class="family-med-text">
       <p class="med-name">{{ m.name }}</p>
       <p class="med-how">{{ m.how }}{% if m.food %} · {{ m.food }}{% endif %}</p>

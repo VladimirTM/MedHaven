@@ -83,6 +83,7 @@ FIELD_LABELS = {
     "start_date": "data de început",
     "end_date": "data de sfârșit",
     "photo_url": "poza cutiei",
+    "pill_photo_url": "poza pastilei",
     "match": "potrivirea în nomenclator",
 }
 

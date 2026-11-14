@@ -261,6 +261,25 @@ final class AppStore {
         await reloadAnalysis()
     }
 
+    // MARK: - Poza pastilei (E5)
+
+    /// Poza pastilei nu schimbă analiza, deci alertele nu se reîncarcă.
+    func setPillPhoto(medID: String, jpeg: Data) async throws {
+        let id = try requirePatientID()
+        replaceMed(try await api.uploadPillPhoto(patientID: id, medID: medID, jpeg: jpeg))
+    }
+
+    func deletePillPhoto(medID: String) async throws {
+        let id = try requirePatientID()
+        replaceMed(try await api.deletePillPhoto(patientID: id, medID: medID))
+    }
+
+    private func replaceMed(_ saved: MedicationItem) {
+        if let index = meds.firstIndex(where: { $0.id == saved.id }) {
+            withPgAnimation(.pgStandard) { meds[index] = saved }
+        }
+    }
+
     // MARK: - Modul senior
 
     func recordDose(_ dose: Dose) async throws {

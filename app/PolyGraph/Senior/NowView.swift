@@ -60,7 +60,8 @@ struct NowView: View {
                             ForEach(moment.doses, id: \.medid) { dose in
                                 DoseCard(
                                     dose: dose, med: store.med(id: dose.medid),
-                                    photoURL: store.api.mediaURL(store.med(id: dose.medid)?.photourl))
+                                    photoURL: store.api.mediaURL(store.med(id: dose.medid)?.photourl),
+                                    pillPhotoURL: store.api.mediaURL(store.med(id: dose.medid)?.pillPhotourl))
                             }
                         }
                         .id(moment.time)

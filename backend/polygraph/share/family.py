@@ -113,6 +113,7 @@ def today_context(schedule: Json, meds: list[Json], doses: list[Json], now: date
                     "med_id": d["med_id"],
                     "name": med_name(med) if med else d["med_id"],
                     "photo_url": med.get("photo_url"),
+                    "pill_photo_url": med.get("pill_photo_url"),
                     "quantity": quantity(d["qty"], product.get("form")),
                     "instruction": d.get("instruction") or "",
                 }
@@ -177,6 +178,7 @@ def meds_context(meds: list[Json], today: date) -> Json:
                 "id": med["id"],
                 "name": med_name(med),
                 "photo_url": med.get("photo_url"),
+                "pill_photo_url": med.get("pill_photo_url"),
                 "how": how or "Posologie necompletată",
                 "raw": raw if raw and raw.lower() != how.lower() else None,
                 "food": food,
