@@ -15,7 +15,7 @@ from polygraph.kb import norm
 FORBIDDEN = re.compile(r"opri|nu mai lua|\bmg\b|\bmcg\b|\bml\b|\bui\b|\d\s*(?:cp|comprimat|capsul|pastil)", re.IGNORECASE)
 GENERIC_RECOMMENDATION = "Discutați cu medicul de familie; arătați-i lista completă de medicamente."
 
-SEVERITY_RO = {"critical": "de evitat", "major": "importantă", "moderate": "moderată", "minor": "minoră", "info": "informativă"}
+SEVERITY_RO = {"critical": "critică", "major": "gravă", "moderate": "moderată", "minor": "minoră", "info": "informativă"}
 
 SPECIALIST = {
     "cardiologie": "medicul cardiolog",
@@ -46,10 +46,35 @@ def doctor(specialty: str | None) -> str:
     return SPECIALIST.get(norm(specialty), "medicul") if specialty else "medicul"
 
 
+def _salt_ro(words: list[str]) -> str | None:
+    """Sărurile din nomenclator: „CALCII CARBONAS” → „carbonat de calciu” (QA-05)."""
+    if len(words) != 2 or words[0] not in _CATION:
+        return None
+    anion = words[1]
+    for a, b in (("ch", "c"), ("th", "t"), ("ph", "f"), ("y", "i")):
+        anion = anion.replace(a, b)
+    for latin, ro in (("oxidum", "oxid"), ("idum", "ură"), ("as", "at"), ("is", "it"), ("um", "")):
+        if anion.endswith(latin):
+            return f"{anion[: -len(latin)]}{ro} de {_CATION[words[0]]}"
+    return None
+
+
+_CATION = {"calcii": "calciu", "magnesii": "magneziu", "natrii": "sodiu", "kalii": "potasiu", "zinci": "zinc"}
+# „LEVOTHYROXINUM NATRIUM”: sarea nu schimbă numele substanței
+_COUNTER_ION = {"natrium", "kalium", "calcium", "magnesium", "hydrochloridum", "maleas", "besilas", "dihydricum"}
+
+
 def ro_name(inn: str | None, dci_ro: str | None = None) -> str:
-    """Numele românesc al substanței, din DCI-ul latin („WARFARINUM” → „warfarină”) sau din INN."""
-    if dci_ro and " " not in dci_ro.strip():
-        w = dci_ro.strip().lower()
+    """Numele românesc al substanței, din DCI-ul latin („WARFARINUM” → „warfarină”, „CALCII CARBONAS” → „carbonat de
+    calciu”) sau, ca rezervă, din INN-ul englezesc."""
+    words = (dci_ro or "").strip().lower().split()
+    if len(words) == 2 and words[1] in _COUNTER_ION:
+        words = words[:1]
+    salt = _salt_ro(words)
+    if salt:
+        return salt
+    if len(words) == 1:
+        w = words[0]
         for a, b in (("th", "t"), ("ph", "f"), ("y", "i")):
             w = w.replace(a, b)
         if w.endswith("inum"):
@@ -90,10 +115,6 @@ def analogy_note(via_ro: str) -> str:
 
 
 def ddi_title(severity: str, brand_a: str, brand_b: str) -> str:
-    if severity == "critical":
-        return f"{brand_a} și {brand_b}: combinație de evitat"
-    if severity == "major":
-        return f"{brand_a} și {brand_b}: interacțiune importantă"
     return f"{brand_a} și {brand_b}: interacțiune {SEVERITY_RO[severity]}"
 
 
@@ -197,3 +218,11 @@ def timing_patient_text(caregiver: str | None) -> str:
 
 def timing_recommendation(brands: list[str]) -> str:
     return f"Arătați programul medicului de familie și întrebați-l cum se pot împărți orele pentru {' și '.join(brands)}."
+
+
+# ---------------------------------------------------------------- decizia medicului (B6 / QA4)
+
+
+def doctor_review_title(alert_title: str, *, changed: bool = False) -> str:
+    verb = "a schimbat decizia" if changed else "a revizuit"
+    return f"Medicul de familie {verb}: {alert_title}"

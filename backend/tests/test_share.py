@@ -249,7 +249,7 @@ def test_review_reaches_app_alert_and_feed(doctor):
     assert after["status"] == "reviewed_by_doctor" and after["resolution"]["note"] == "Schimb AINS-ul joi."
     ev = next(e for e in doctor.get(f"{P}/feed", headers=H).json() if e["type"] == "doctor_reviewed")
     ok("feed_event", ev)
-    assert ev["alert_id"] == aid and ev["body"] == "Decizie: Modific la consultație. Schimb AINS-ul joi."
+    assert ev["alert_id"] == aid and ev["body"] == "Decizie: Îl modifică la consultație. Schimb AINS-ul joi."
     assert "Modific la consultație ·" in doctor.get(PORTAL).text
     assert "4 de revizuit" in doctor.get("/portal").text
 
@@ -271,8 +271,10 @@ def test_graph_pages(doctor):
     assert 'class="graph-page embed"' in r.text and 'id="graph-data"' in r.text and "graph-bar" not in r.text
     r = doctor.get(f"{PORTAL}/graph")
     assert r.status_code == 200 and "graph-bar" in r.text and f'href="{PORTAL}"' in r.text
+    core = doctor.get("/static/share/graph-core.js")
+    assert core.status_code == 200 and "pgRadialPositions" in core.text
     js = doctor.get("/static/share/graph.js")
-    assert js.status_code == 200 and "messageHandlers.alert" in js.text
+    assert js.status_code == 200 and "messageHandlers[name]" in js.text and "window.pgMount" in js.text
     assert doctor.get("/static/share/cytoscape.min.js").status_code == 200
     css = doctor.get("/static/share/share.css").text
     for query in ("prefers-reduced-motion", "prefers-reduced-transparency", "prefers-contrast: more", "@media print"):

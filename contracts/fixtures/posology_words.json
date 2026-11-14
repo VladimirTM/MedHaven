@@ -1,0 +1,40 @@
+{
+  "cases": [
+    {
+      "raw": "1-0-1",
+      "pattern": { "morning": 1, "noon": 0, "evening": 1, "bedtime": 0 },
+      "as_needed": false,
+      "words": "1 dimineața, 1 seara"
+    },
+    {
+      "raw": "0-0-1/2",
+      "pattern": { "morning": 0, "noon": 0, "evening": 0.5, "bedtime": 0 },
+      "as_needed": false,
+      "words": "½ seara"
+    },
+    {
+      "raw": "1-0-0",
+      "pattern": { "morning": 1, "noon": 0, "evening": 0, "bedtime": 0 },
+      "as_needed": false,
+      "words": "1 dimineața"
+    },
+    {
+      "raw": "0-0-0-1",
+      "pattern": { "morning": 0, "noon": 0, "evening": 0, "bedtime": 1 },
+      "as_needed": false,
+      "words": "1 la culcare"
+    },
+    {
+      "raw": "1-1-1",
+      "pattern": { "morning": 1, "noon": 1, "evening": 1, "bedtime": 0 },
+      "as_needed": true,
+      "words": "1 dimineața, 1 la prânz, 1 seara, la nevoie"
+    },
+    {
+      "raw": "",
+      "pattern": { "morning": 0, "noon": 0, "evening": 0, "bedtime": 0 },
+      "as_needed": true,
+      "words": "La nevoie"
+    }
+  ]
+}

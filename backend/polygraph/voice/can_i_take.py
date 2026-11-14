@@ -114,7 +114,7 @@ def _reason(alert: Json, atcs: list[list[str]]) -> str:
         return "împreună cresc riscul de sângerare"
     if alert["kind"] == "duplicate":
         return "sunt din aceeași clasă, iar efectele se adună"
-    return "au împreună o interacțiune importantă"
+    return "au împreună o interacțiune gravă"
 
 
 def _join(names: list[str]) -> str:
@@ -157,7 +157,7 @@ def answer(
             atcs = [_atcs(new), *(_atcs(by_id[m]) for m in on_list)]
             what = f"{brand} și {_join([names[m] for m in on_list])} {_reason(worst, atcs)}."
         else:
-            what = f"Am găsit o alertă importantă pentru {brand}: {worst['title'].rstrip('.')}."
+            what = f"Am găsit o alertă gravă pentru {brand}: {worst['title'].rstrip('.')}."
         source = SOURCES.get(worst["source"]["db"], worst["source"]["db"])
         return Answer(
             f"{what} Nu luați {brand} până nu vă răspunde medicul de familie. I-am trimis întrebarea lui și {dative(caregiver)}.",
