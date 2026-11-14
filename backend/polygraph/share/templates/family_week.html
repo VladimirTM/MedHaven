@@ -1,0 +1,110 @@
+{% extends "family_base.html" %}
+{% block page_title %}Calendar{% endblock %}
+{% macro cell_body(c) %}
+  <span class="week-count">{{ c.count_text }}</span>
+  <span class="week-thumbs" aria-hidden="true">{% for d in c.doses[:4] %}{% if d.photo_url %}<img src="{{ d.photo_url }}" alt="" width="24" height="24" loading="lazy">{% else %}<span class="thumb-empty"></span>{% endif %}{% endfor %}</span>
+  {% if c.prepared %}<span class="week-check">✓ Pregătit</span>{% elif c.changed %}<span class="week-changed">Programul s-a schimbat, verificați din nou</span>{% endif %}
+{% endmacro %}
+{% block main %}
+<div class="family-head">
+  <h1 class="page-title">Calendar</h1>
+  <p class="muted">{{ range }}{% if filling and cell_count %} · {{ prepared_count }} din {{ cell_count }} compartimente pregătite{% endif %}</p>
+</div>
+
+<div class="week-tools">
+  <nav class="week-nav" aria-label="Săptămâna">
+    <a class="btn btn-secondary" href="/acasa/saptamana?de={{ prev }}{% if filling %}&cutiuta=1{% endif %}">← Săptămâna trecută</a>
+    <a class="btn btn-secondary" href="/acasa/saptamana?de={{ next }}{% if filling %}&cutiuta=1{% endif %}">Săptămâna următoare →</a>
+  </nav>
+  <a class="pillbox-switch" role="switch" aria-checked="{{ 'true' if filling else 'false' }}" href="/acasa/saptamana?de={{ start }}{% if not filling %}&cutiuta=1{% endif %}">
+    <span class="switch-track" aria-hidden="true"><span class="switch-thumb"></span></span>
+    <span>Pregătesc cutiuța</span>
+  </a>
+</div>
+{% if filling %}
+<p class="section-lead">Atingeți un compartiment ca să vedeți ce și cât se pune în el. „Am luat” se bifează doar în tab-ul Azi.</p>
+{% if all_prepared %}<p class="family-note is-ok" role="status">Toată săptămâna e pregătită.</p>{% endif %}
+{% endif %}
+
+{% if not labels %}
+<p class="family-empty">Nu aveți pastile în program.</p>
+{% else %}
+<div class="week-grid" role="table" aria-label="Pastilele săptămânii, pe zile și momente">
+  <div class="week-row week-head" role="row">
+    <span class="week-corner" role="columnheader"><span class="visually-hidden">Momentul</span></span>
+    {% for d in days %}<span class="week-day{% if d.today %} is-today{% endif %}" role="columnheader">{{ d.name }}<br><span class="small muted">{{ d.date }}</span>{% if d.started %}<br><span class="week-diff">Începe: {{ d.started | join(", ") }}</span>{% endif %}{% if d.ended %}<br><span class="week-diff muted">Fără: {{ d.ended | join(", ") }}</span>{% endif %}</span>{% endfor %}
+  </div>
+  {% for label in labels %}
+  {% set row = loop.index0 %}
+  <div class="week-row" role="row">
+    <span class="week-label" role="rowheader">{{ label }}</span>
+    {% for d in days %}
+    {% set c = d.cells[row] %}
+    <div class="week-cell{% if c.empty %} is-empty{% endif %}{% if not c.empty and c.prepared %} is-prepared{% endif %}{% if d.today %} is-today{% endif %}" role="cell">
+      {% if not c.empty %}
+        {% if filling %}
+        <button class="week-cell-btn" type="button" data-dialog="{{ c.id }}" aria-label="{{ d.name }}, {{ label }}: {{ c.count_text }}{% if c.prepared %}, pregătit{% endif %}">{{ cell_body(c) }}</button>
+        {% else %}
+        {{ cell_body(c) }}
+        {% endif %}
+      {% endif %}
+    </div>
+    {% endfor %}
+  </div>
+  {% endfor %}
+</div>
+
+{# sub 600 px: lista pe zile, fără derulare orizontală #}
+<ol class="week-list">
+  {% for d in days %}
+  <li class="week-list-day{% if d.today %} is-today{% endif %}">
+    <h2 class="week-list-title">{{ d.name }} <span class="count">{{ d.date }}</span>{% if d.today %} <span class="tag">Azi</span>{% endif %}</h2>
+    {% if d.started %}<p class="small">Începe: {{ d.started | join(", ") }}</p>{% endif %}
+    {% if d.ended %}<p class="small muted">Fără: {{ d.ended | join(", ") }}</p>{% endif %}
+    <ul class="week-list-moments">
+      {% for c in d.cells if not c.empty %}
+      <li class="week-list-moment{% if c.prepared %} is-prepared{% endif %}">
+        {% if filling %}
+        <button class="week-cell-btn" type="button" data-dialog="{{ c.id }}"><span class="time">{{ c.time }}</span> {{ c.label }} · {{ cell_body(c) }}</button>
+        {% else %}
+        <p><span class="time">{{ c.time }}</span> {{ c.label }}</p>
+        <p class="small muted">{% for x in c.doses %}{{ x.name }} · {{ x.quantity }}{% if not loop.last %}; {% endif %}{% endfor %}</p>
+        {% endif %}
+      </li>
+      {% endfor %}
+    </ul>
+  </li>
+  {% endfor %}
+</ol>
+
+{% if filling %}
+{% for d in days %}{% for c in d.cells if not c.empty %}
+<dialog class="pill-dialog" id="{{ c.id }}" aria-labelledby="{{ c.id }}-t">
+  <form method="dialog" class="pill-dialog-close"><button class="btn btn-secondary" type="submit" aria-label="Închide">✕</button></form>
+  <h2 id="{{ c.id }}-t">{{ d.name }} · {{ c.label }}</h2>
+  <p class="muted">Ora {{ c.time }}</p>
+  <ul class="pill-dialog-list">
+    {% for x in c.doses %}
+    <li>
+      {% if x.photo_url %}<img class="box-photo" src="{{ x.photo_url }}" alt="Cutia de {{ x.name }}" width="56" height="56" loading="lazy">{% endif %}
+      {% if x.pill_photo_url %}<img class="box-photo" src="{{ x.pill_photo_url }}" alt="Pastila de {{ x.name }}" width="56" height="56" loading="lazy">{% endif %}
+      <span><strong>{{ x.name }}</strong><br>{{ x.quantity }}</span>
+    </li>
+    {% endfor %}
+  </ul>
+  <form method="post" action="/acasa/cutiuta">
+    <input type="hidden" name="day" value="{{ d.iso }}">
+    <input type="hidden" name="label" value="{{ c.label }}">
+    {% if c.prepared %}
+    <input type="hidden" name="prepared" value="0">
+    <button class="btn btn-secondary btn-large" type="submit">Nu e pregătit încă</button>
+    {% else %}
+    <input type="hidden" name="prepared" value="1">
+    <button class="btn btn-large" type="submit">Compartiment pregătit</button>
+    {% endif %}
+  </form>
+</dialog>
+{% endfor %}{% endfor %}
+{% endif %}
+{% endif %}
+{% endblock %}

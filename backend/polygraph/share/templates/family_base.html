@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{# E2: pagina familiei pe web. Același CSS și același accent ca portalul; bara de tab-uri jos pe telefon, sus pe ecrane late. #}
+{% block title %}{% block page_title %}{% endblock %} · {{ patient.name }} · PolyGraph{% endblock %}
+{% block body_class %}family{% endblock %}
+{% block body %}
+<header class="family-bar">
+  <div class="family-bar-inner">
+    {% if patients | length > 1 %}
+    {# E6: mai mulți pacienți în același browser #}
+    <details class="patient-switch">
+      <summary class="wordmark family-wordmark" aria-label="Pacientul: {{ patient.name }}. Alegeți alt pacient">
+        <img class="wordmark-logo" src="/static/share/logo.svg" alt="" width="28" height="28">
+        <span class="family-patient">{{ patient.name }}</span><span class="patient-switch-chevron" aria-hidden="true">⌄</span>
+      </summary>
+      <div class="patient-switch-menu">
+        {% for p in patients %}
+        <form method="post" action="/acasa/pacient"><input type="hidden" name="pid" value="{{ p.id }}"><button class="patient-switch-item{% if p.id == patient.id %} is-current{% endif %}" type="submit"{% if p.id == patient.id %} aria-current="true"{% endif %}>{{ p.name }}{% if p.id == patient.id %} ✓{% endif %}</button></form>
+        {% endfor %}
+        <p class="small muted">Alt pacient: deschideți linkul din aplicația lui (Setări → Deschide pe web).</p>
+      </div>
+    </details>
+    {% else %}
+    <a class="wordmark family-wordmark" href="/acasa" aria-label="PolyGraph, pagina de azi">
+      <img class="wordmark-logo" src="/static/share/logo.svg" alt="" width="28" height="28">
+      <span class="family-patient">{{ patient.name }}</span>
+    </a>
+    {% endif %}
+    <nav class="family-tabs" aria-label="Secțiuni">
+      {% for key, href, label in tabs %}
+      <a class="family-tab{% if key == tab %} is-current{% endif %}" href="{{ href }}"{% if key == tab %} aria-current="page"{% endif %}>
+        <span class="family-tab-icon" aria-hidden="true">{% if key == "today" %}◷{% elif key == "meds" %}▤{% elif key == "check" %}!{% elif key == "week" %}▦{% else %}☼{% endif %}</span>
+        <span class="family-tab-label">{{ label }}</span>
+      </a>
+      {% endfor %}
+    </nav>
+  </div>
+</header>
+
+<main class="content family-content" data-family-live="/acasa/events">
+  <div class="live-stale" role="status" hidden data-family-stale>
+    <p>Nu am putut actualiza.</p>
+    <button class="btn btn-secondary" type="button" data-family-retry>Încearcă din nou</button>
+  </div>
+  {% block main %}{% endblock %}
+  <footer class="family-foot">
+    <p class="small muted">PolyGraph nu înlocuiește medicul de familie. Nu opriți și nu schimbați un medicament fără acordul medicului.</p>
+    <form method="post" action="/acasa/iesire"><button class="btn btn-secondary" type="submit">{% if patients | length > 1 %}Închide pagina lui {{ patient.name }} pe acest dispozitiv{% else %}Ieșire de pe acest dispozitiv{% endif %}</button></form>
+  </footer>
+</main>
+<script src="/static/share/family.js" defer></script>
+{% endblock %}

@@ -201,7 +201,7 @@ final class MedDraft: Identifiable {
     func item() -> MedicationItem {
         let product = original.product.with(
             brand: brand.trimmingCharacters(in: .whitespaces),
-            expiry: .some(expiry.map(PgFormat.isoDay)),
+            expiry: .some(expiry.map { PgFormat.isoDay($0) }),
             form: .some(form),
             strengthText: .some(Self.nonEmpty(strengthText)))
         let dosage = original.dosage.with(

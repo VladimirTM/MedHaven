@@ -49,8 +49,61 @@ def _field(path: Iterable[Any]) -> str | None:
     return "/".join(parts) if parts else None
 
 
+# E0: căile din schemă pe care le poate atinge familia, cu numele din aplicație; restul rămân «cale/câmp»
+FIELD_LABELS = {
+    "name": "numele",
+    "birth_year": "anul nașterii",
+    "caregiver_name": "numele aparținătorului",
+    "anchors": "orele zilei",
+    "product": "produsul",
+    "product/brand": "numele de pe cutie",
+    "product/strength_text": "concentrația",
+    "product/form": "forma farmaceutică",
+    "product/gtin": "codul de pe cutie (GTIN)",
+    "product/pack_size": "numărul de comprimate din cutie",
+    "product/expiry": "data expirării",
+    "product/batch": "lotul",
+    "substances": "substanțele active",
+    "substances/dci": "DCI-ul substanței",
+    "substances/inn": "numele internațional al substanței",
+    "substances/atc": "codul ATC al substanței",
+    "substances/strength_mg": "cantitatea de substanță (mg)",
+    "dosage": "posologia",
+    "dosage/raw": "textul de pe rețetă",
+    "dosage/pattern": "schema de administrare",
+    "dosage/pattern/morning": "doza de dimineață",
+    "dosage/pattern/noon": "doza de la prânz",
+    "dosage/pattern/evening": "doza de seară",
+    "dosage/pattern/bedtime": "doza de la culcare",
+    "dosage/as_needed": "„la nevoie”",
+    "dosage/with_food": "legătura cu masa",
+    "prescriber": "medicul care l-a prescris",
+    "prescriber/name": "numele medicului",
+    "prescriber/specialty": "specialitatea medicului",
+    "start_date": "data de început",
+    "end_date": "data de sfârșit",
+    "photo_url": "poza cutiei",
+    "match": "potrivirea în nomenclator",
+}
+
+PLURAL_LABELS = {"substanțele active", "orele zilei"}
+
+
+def _label(field: str) -> str | None:
+    # căile din liste (substances/0/atc) folosesc eticheta listei
+    parts = [p for p in field.split("/") if not p.isdigit()]
+    return FIELD_LABELS.get("/".join(parts))
+
+
 def _sentence(field: str | None, kind: str) -> str:
-    return f"Câmpul «{field}» {kind}." if field else f"Corpul cererii {kind}."
+    if not field:
+        return f"Corpul cererii {kind}."
+    label = _label(field)
+    if label is None:
+        return f"Câmpul «{field}» {kind}."
+    if kind == "lipsește":
+        return f"{'Lipsesc' if label in PLURAL_LABELS else 'Lipsește'} {label}."
+    return f"Câmpul „{label}” {kind}."
 
 
 def request_message(errors: Sequence[dict[str, Any]]) -> str:

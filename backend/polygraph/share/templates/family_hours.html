@@ -1,0 +1,22 @@
+{% extends "family_base.html" %}
+{% block page_title %}Orele zilei{% endblock %}
+{% block main %}
+<div class="family-head">
+  <h1 class="page-title">Orele zilei</h1>
+  <p class="muted">Programul pastilelor se calculează după aceste ore.</p>
+</div>
+{% if saved %}<p class="family-note is-ok" role="status">Am salvat orele. Programul de azi s-a refăcut.</p>{% endif %}
+{% if error %}<p class="family-note is-error" role="alert">{{ error }}</p>{% endif %}
+<form class="hours-form" method="post" action="/acasa/ore">
+  <ul class="hours-list">
+    {% for r in rows %}
+    <li class="hours-row">
+      <label for="h-{{ r.key }}">{{ r.label }}</label>
+      <input id="h-{{ r.key }}" name="{{ r.key }}" type="time" value="{{ r.value }}" required step="300">
+    </li>
+    {% endfor %}
+  </ul>
+  <p class="section-lead">Pastilele se mută odată cu orele. Regulile dintre ele rămân aceleași.</p>
+  <button class="btn btn-large" type="submit">Salvează</button>
+</form>
+{% endblock %}

@@ -16,6 +16,7 @@ struct SettingsView: View {
     @State private var demoStatus: String?
     /// mesajul de succes al rețetei ORL rămâne pe ecran și dacă butonul e apăsat din nou (Q3-20)
     @State private var prescriptionStatus: String?
+    @State private var webLinkPresented = false
 
     private enum DemoAction {
         case prescription
@@ -114,6 +115,33 @@ struct SettingsView: View {
                     Text("Pacientul demo e refăcut pe server cu lista inițială de medicamente. Rețeta ORL e medicul nou din scenariu; doza ratată apare la aparținător în Noutăți.")
                 }
 
+                if settings.isSignedIn && pendingRole == .caregiver {
+                    Section {
+                        NavigationLink {
+                            DayHoursView()
+                        } label: {
+                            LabeledContent("Orele zilei", value: anchorsSummary)
+                        }
+                        .accessibilityIdentifier("settings.dayHoursButton")
+                    } footer: {
+                        Text("Trezirea, mesele și culcarea. Pastilele se mută odată cu orele.")
+                    }
+                }
+
+                if settings.isSignedIn {
+                    Section {
+                        Button {
+                            saveBaseURL()
+                            webLinkPresented = true
+                        } label: {
+                            Label("Deschide pe web", systemImage: "safari")
+                        }
+                        .accessibilityIdentifier("settings.openWebButton")
+                    } footer: {
+                        Text("Programul de azi, medicamentele și ce e de verificat, pe alt telefon, pe o tabletă sau pe laptop.")
+                    }
+                }
+
                 if settings.isSignedIn {
                     Section("Pacient") {
                         if let patient = store.patient {
@@ -140,6 +168,10 @@ struct SettingsView: View {
                     .accessibilityIdentifier("settings.doneButton")
                 }
             }
+            .sheet(isPresented: $webLinkPresented) {
+                WebLinkSheet()
+                    .environment(store)
+            }
             .confirmationDialog(
                 "Deconectați telefonul?",
                 isPresented: $confirmSignOut,
@@ -158,6 +190,12 @@ struct SettingsView: View {
             baseURL = store.settings.baseURLString
             pendingRole = store.settings.role
         }
+    }
+
+    /// „07:00–22:30”: de la trezire la culcare
+    private var anchorsSummary: String {
+        guard let anchors = store.patient?.anchors else { return "" }
+        return "\(anchors.wake)–\(anchors.bed)"
     }
 
     private func saveBaseURL() {

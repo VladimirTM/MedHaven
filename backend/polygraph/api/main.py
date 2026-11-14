@@ -49,7 +49,18 @@ from polygraph.extract.ocr_match import OcrLine  # noqa: E402
 from polygraph.kb import Kb, KbMissing, default_kb  # noqa: E402
 from polygraph.net import lan_base_url  # noqa: E402
 from polygraph.schedule import build_schedule  # noqa: E402
+from polygraph.schedule.move import anchors_in_order, changed_anchors, move_today  # noqa: E402
 from polygraph.share import STATIC_DIR, render  # noqa: E402
+from polygraph.share.family import (  # noqa: E402
+    cell_signature,
+    check_context,
+    dose_key,
+    hours_context,
+    meds_context,
+    today_context,
+    week_context,
+    week_start,
+)
 from polygraph.share.view import page_context, patient_card, portal_summary, review_event, whatif_context  # noqa: E402
 from polygraph.store import MedIdTaken, Store  # noqa: E402
 from polygraph.voice import can_i_take  # noqa: E402
@@ -224,9 +235,29 @@ def update_patient(pid: str, body: dict[str, Any], x_patient_token: str | None =
     extra = set(body) - {"name", "birth_year", "caregiver_name", "anchors"}
     if extra:
         raise HTTPException(422, f"Câmpuri necunoscute: {sorted(extra)}")
-    patient = {**patient, **body}
+    return save_patient(pid, patient, {**patient, **body})
+
+
+def save_patient(pid: str, old: dict[str, Any], patient: dict[str, Any]) -> dict[str, Any]:
+    """PATCH /patients și pagina „Orele zilei” de pe web (E1). Orele schimbate mută și dozele de azi deja bifate."""
     invalid("patient", patient)
-    store().update_patient(pid, patient)
+    if not anchors_in_order(patient["anchors"]):
+        raise HTTPException(422, "Orele trebuie să fie în ordinea zilei: trezirea, micul dejun, prânzul, cina, culcarea.")
+    if patient["anchors"] == old["anchors"]:
+        store().update_patient(pid, patient)
+        return patient
+    meds = store().list_meds(pid)
+    try:
+        catalog = kb()
+    except KbMissing:
+        store().update_patient(pid, patient)
+        return patient
+    moved = move_today(store(), pid, today(), old, patient, lambda p, day: build_schedule(p, meds, day, catalog))
+    LOG.info(
+        "PROGRAM   orele zilei schimbate (%s), %d doze de azi mutate",
+        ", ".join(changed_anchors(old["anchors"], patient["anchors"])),
+        moved,
+    )
     return patient
 
 
@@ -350,6 +381,22 @@ def announce_new_alerts(pid: str, patient: dict[str, Any], before: list[dict[str
         )
 
 
+MERGED_MED_OBJECTS = ("product", "dosage", "prescriber")
+
+
+def merged_med(med: dict[str, Any], body: dict[str, Any]) -> dict[str, Any]:
+    """E0: obiectele de nivel doi (product, dosage, prescriber) se combină cu cele salvate, ca un PATCH parțial
+    să nu șteargă `dosage.raw` sau numele medicului; `substances` și câmpurile simple se înlocuiesc întregi.
+    Un câmp trimis explicit cu null rămâne null."""
+    out = {**med}
+    for key, value in body.items():
+        if key in MERGED_MED_OBJECTS and isinstance(value, dict) and isinstance(med.get(key), dict):
+            out[key] = {**med[key], **value}
+        else:
+            out[key] = value
+    return out
+
+
 @app.patch("/v1/patients/{pid}/meds/{mid}")
 def update_med(pid: str, mid: str, body: dict[str, Any], x_patient_token: str | None = Header(None)) -> dict[str, Any]:
     auth(pid, x_patient_token)
@@ -359,7 +406,7 @@ def update_med(pid: str, mid: str, body: dict[str, Any], x_patient_token: str | 
     extra = set(body) - set(MED_FIELDS)
     if extra:
         raise HTTPException(422, f"Câmpuri care nu se pot edita: {sorted(extra)}")
-    med = {**med, **copy.deepcopy(body)}
+    med = merged_med(med, copy.deepcopy(body))
     invalid("medication_item", med)
     plausible_med(med)
     store().update_med(pid, med)
@@ -459,6 +506,16 @@ def schedule(pid: str, day: Annotated[date | None, Query(alias="date")] = None, 
     return build_schedule(patient, store().list_meds(pid), day or today(), kb())
 
 
+@app.get("/v1/patients/{pid}/doses")
+def list_doses(
+    pid: str, day: Annotated[date | None, Query(alias="date")] = None, x_patient_token: str | None = Header(None)
+) -> list[dict[str, Any]]:
+    """E2: dozele dintr-o zi (Europe/Bucharest), ca aplicația să vadă și bifele de pe pagina familiei."""
+    auth(pid, x_patient_token)
+    want = day or today()
+    return [d for d in store().list_doses(pid) if _instant(d["scheduled_at"]).astimezone(TZ).date() == want]
+
+
 @app.post("/v1/patients/{pid}/doses")
 def record_dose(pid: str, body: dict[str, Any], x_patient_token: str | None = Header(None)) -> dict[str, Any]:
     auth(pid, x_patient_token)
@@ -471,11 +528,16 @@ def record_dose(pid: str, body: dict[str, Any], x_patient_token: str | None = He
         raise HTTPException(422, "scheduled_at nu e o dată validă.") from None
     if at.tzinfo is None:
         at = at.replace(tzinfo=TZ)
+    return save_dose(pid, body["med_id"], at, body["scheduled_at"], body["status"])
+
+
+def save_dose(pid: str, med_id: str, at: datetime, scheduled_at: str, status: str) -> dict[str, Any]:
+    """POST /doses din aplicație și „Am luat” de pe pagina familiei (E2): aceeași cheie de idempotență."""
     if at - datetime.now(UTC) > DOSE_FUTURE_LIMIT:
         raise HTTPException(422, "Doza nu poate fi înregistrată cu mai mult de o zi înainte.")
     # cheia de idempotență nu depinde de fusul în care telefonul a scris ora
     key = at.astimezone(UTC).isoformat()
-    dose = {"med_id": body["med_id"], "scheduled_at": body["scheduled_at"], "status": body["status"], "recorded_at": now_iso()}
+    dose = {"med_id": med_id, "scheduled_at": scheduled_at, "status": status, "recorded_at": now_iso()}
     store().record_dose(pid, key, dose)
     return dose
 
@@ -859,6 +921,299 @@ async def portal_events(
         cursor = after if after is not None else store().last_event_cursor()
     headers = {"Cache-Control": "no-store", "X-Accel-Buffering": "no", "X-Content-Type-Options": "nosniff"}
     return StreamingResponse(live_stream(request, doctor["id"], patient, cursor), media_type="text/event-stream", headers=headers)
+
+
+# ---------------------------------------------------------------- pagina familiei pe web (E2)
+
+HOME_LINK_TTL = timedelta(minutes=10)
+HOME_SESSION_TTL = timedelta(days=30)
+HOME_COOKIE = "pg_home"
+HOME_MAX_PATIENTS = 6
+HOME_TABS = (
+    ("today", "/acasa", "Azi"),
+    ("meds", "/acasa/medicamente", "Medicamentele mele"),
+    ("check", "/acasa/verificat", "De verificat"),
+    ("week", "/acasa/saptamana", "Calendar"),
+    ("hours", "/acasa/ore", "Orele zilei"),
+)
+
+
+@app.post("/v1/patients/{pid}/web-link", status_code=201)
+def create_web_link(pid: str, request: Request, x_patient_token: str | None = Header(None)) -> dict[str, Any]:
+    """Linkul de intrare în pagina familiei: cod de unică folosință, valabil 10 minute (arătat ca QR în aplicație)."""
+    auth(pid, x_patient_token)
+    expires = (datetime.now(UTC) + HOME_LINK_TTL).replace(microsecond=0)
+    expires_at = expires.isoformat().replace("+00:00", "Z")
+    code = store().create_home_link(pid, expires_at)
+    base = lan_base_url(str(request.base_url)).rstrip("/")
+    return {"url": f"{base}/acasa/intra/{code}", "expires_at": expires_at}
+
+
+HOME_CURRENT = "pg_home_pid"  # E6: pacientul ales, când browserul ține mai mulți
+
+
+def home_tokens(request: Request) -> list[str]:
+    """Sesiunile din cookie (E6: una pentru fiecare pacient deschis în acest browser), separate prin punct."""
+    raw = request.cookies.get(HOME_COOKIE) or ""
+    return [t for t in raw.split(".") if t][:HOME_MAX_PATIENTS]
+
+
+def home_patients(request: Request) -> list[tuple[str, dict[str, Any]]]:
+    """(token, pacient) pentru sesiunile valabile, în ordinea intrării; un pacient apare o singură dată."""
+    out, seen = [], set()
+    for token in home_tokens(request):
+        entry = store().home_session(token)
+        if entry is None or _instant(entry[1]) <= datetime.now(UTC) or entry[0] in seen:
+            continue
+        patient = store().get_patient(entry[0])
+        if patient is not None:
+            seen.add(entry[0])
+            out.append((token, patient))
+    return out
+
+
+def home_patient(request: Request) -> dict[str, Any] | None:
+    patients = home_patients(request)
+    if not patients:
+        return None
+    wanted = request.cookies.get(HOME_CURRENT)
+    return next((p for _, p in patients if p["id"] == wanted), patients[0][1])
+
+
+def home_page(template: str, patient: dict[str, Any], tab: str, request: Request | None = None, **ctx: Any) -> HTMLResponse:
+    others = [p for _, p in home_patients(request)] if request is not None else [patient]
+    return page(template, patient=patient, tab=tab, tabs=HOME_TABS, patients=others, **ctx)
+
+
+def set_home_cookies(response: Response, tokens: list[str], current: str | None) -> None:
+    age = int(HOME_SESSION_TTL.total_seconds())
+    if tokens:
+        response.set_cookie(HOME_COOKIE, ".".join(tokens), max_age=age, httponly=True, samesite="lax", path="/acasa")
+    else:
+        response.delete_cookie(HOME_COOKIE, path="/acasa")
+    if current:
+        response.set_cookie(HOME_CURRENT, current, max_age=age, httponly=True, samesite="lax", path="/acasa")
+    else:
+        response.delete_cookie(HOME_CURRENT, path="/acasa")
+
+
+def home_enter_page(status: int = 200, *, used: bool = False) -> HTMLResponse:
+    return page("family_enter.html", status=status, used=used)
+
+
+@app.get("/acasa/intra/{code}", response_class=HTMLResponse)
+def home_enter(code: str, request: Request) -> Response:
+    entry = store().use_home_link(code)
+    if entry is None or _instant(entry[1]) <= datetime.now(UTC):
+        return home_enter_page(404, used=True)
+    pid = entry[0]
+    expires = (datetime.now(UTC) + HOME_SESSION_TTL).replace(microsecond=0)
+    token = store().create_home_session(pid, expires.isoformat().replace("+00:00", "Z"))
+    # E6: pacienții deschiși deja rămân; sesiunea veche a aceluiași pacient e înlocuită de cea nouă
+    kept = [t for t, p in home_patients(request) if p["id"] != pid]
+    response = RedirectResponse("/acasa", status_code=303)
+    set_home_cookies(response, [*kept, token][-HOME_MAX_PATIENTS:], pid)
+    return response
+
+
+@app.get("/acasa/demo")
+def home_demo(request: Request) -> Response:
+    """Doar cu DEMO_MODE=1: intrarea directă în pagina familiei pentru pacientul demo (linkul din `make demo`)."""
+    if not demo_mode() or store().get_patient(DEMO_ID) is None:
+        return home_enter_page(404, used=True)
+    code = store().create_home_link(DEMO_ID, (datetime.now(UTC) + HOME_LINK_TTL).replace(microsecond=0).isoformat())
+    return home_enter(code, request)
+
+
+@app.post("/acasa/pacient")
+def home_switch(request: Request, pid: Annotated[str, Form(max_length=64)]) -> Response:
+    """E6: alt pacient din același browser (Maria și Ion); doar dintre cei cu sesiune valabilă."""
+    patients = home_patients(request)
+    response = RedirectResponse("/acasa", status_code=303)
+    if any(p["id"] == pid for _, p in patients):
+        set_home_cookies(response, [t for t, _ in patients], pid)
+    return response
+
+
+@app.post("/acasa/iesire")
+def home_logout(request: Request) -> Response:
+    """Iese doar pacientul de pe ecran; ceilalți pacienți deschiși în acest browser rămân (E6)."""
+    patients = home_patients(request)
+    current = home_patient(request)
+    kept = []
+    for token, patient in patients:
+        if current is not None and patient["id"] == current["id"]:
+            store().delete_home_session(token)
+        else:
+            kept.append((token, patient))
+    response = RedirectResponse("/acasa", status_code=303)
+    set_home_cookies(response, [t for t, _ in kept], kept[0][1]["id"] if kept else None)
+    return response
+
+
+@app.get("/acasa", response_class=HTMLResponse)
+def home_today(request: Request) -> HTMLResponse:
+    patient = home_patient(request)
+    if patient is None:
+        return home_enter_page()
+    pid = patient["id"]
+    meds = store().list_meds(pid)
+    sched = build_schedule(patient, meds, today(), kb())
+    return home_page(
+        "family_today.html", patient, "today", request, **today_context(sched, meds, store().list_doses(pid), datetime.now(TZ))
+    )
+
+
+@app.post("/acasa/doze")
+def home_dose(
+    request: Request,
+    moment: Annotated[str, Form(pattern=r"^\d{2}:\d{2}$")],
+    status: Annotated[Literal["taken", "skipped", "pending"], Form()] = "taken",
+) -> Response:
+    """„Am luat” / „Am sărit” / „Anulează” pentru tot momentul, ca în modul senior; Post/Redirect/Get."""
+    patient = home_patient(request)
+    if patient is None:
+        return RedirectResponse("/acasa", status_code=303)
+    pid = patient["id"]
+    meds = store().list_meds(pid)
+    day = today()
+    sched = build_schedule(patient, meds, day, kb())
+    found = next((m for m in sched["moments"] if m["time"] == moment), None)
+    if found is None:
+        raise HTTPException(404, "Momentul nu mai e în programul de azi. Reîncărcați pagina.")
+    at = dose_key(day, moment)
+    scheduled_at = at.isoformat().replace("+00:00", "Z")
+    for d in found["doses"]:
+        save_dose(pid, d["med_id"], at, scheduled_at, status)
+    LOG.info(
+        "DOZE      %s de pe web: %s (%d doze)",
+        {"taken": "Am luat", "skipped": "Am sărit", "pending": "anulat"}[status],
+        moment,
+        len(found["doses"]),
+    )
+    return RedirectResponse(f"/acasa#m-{moment.replace(':', '')}", status_code=303)
+
+
+@app.get("/acasa/medicamente", response_class=HTMLResponse)
+def home_meds(request: Request) -> HTMLResponse:
+    patient = home_patient(request)
+    if patient is None:
+        return home_enter_page()
+    return home_page("family_meds.html", patient, "meds", request, **meds_context(store().list_meds(patient["id"]), today()))
+
+
+@app.get("/acasa/verificat", response_class=HTMLResponse)
+def home_check(request: Request) -> HTMLResponse:
+    patient = home_patient(request)
+    if patient is None:
+        return home_enter_page()
+    pid = patient["id"]
+    meds = store().list_meds(pid)
+    return home_page(
+        "family_check.html", patient, "check", request, **check_context(run_analysis(pid, patient, meds), meds, today())
+    )
+
+
+@app.get("/acasa/saptamana", response_class=HTMLResponse)
+def home_week(request: Request, de: date | None = None, cutiuta: int = 0) -> HTMLResponse:
+    """E3: săptămâna ca o cutiuță de medicamente (luni–duminică × momentele zilei); „Pregătesc cutiuța” cu cutiuta=1."""
+    patient = home_patient(request)
+    if patient is None:
+        return home_enter_page()
+    pid = patient["id"]
+    meds = store().list_meds(pid)
+    catalog = kb()
+    start = week_start(de or today())
+    schedules = [build_schedule(patient, meds, start + timedelta(days=i), catalog) for i in range(7)]
+    saved = store().pillbox(pid, start.isoformat(), (start + timedelta(days=6)).isoformat())
+    ctx = week_context(start, schedules, meds, saved, today())
+    for day, label in ctx["stale"]:
+        store().set_pillbox(pid, day, label, None)  # conținutul s-a schimbat după bifă: se verifică din nou
+    return home_page("family_week.html", patient, "week", request, filling=bool(cutiuta), **ctx)
+
+
+@app.post("/acasa/cutiuta")
+def home_pillbox(
+    request: Request,
+    day: Annotated[date, Form()],
+    label: Annotated[str, Form(max_length=80)],
+    prepared: Annotated[int, Form(ge=0, le=1)] = 1,
+) -> Response:
+    """Bifează / debifează un compartiment, cu semnătura conținutului de acum (programul acelei zile)."""
+    patient = home_patient(request)
+    if patient is None:
+        return RedirectResponse("/acasa", status_code=303)
+    pid = patient["id"]
+    sched = build_schedule(patient, store().list_meds(pid), day, kb())
+    moment = next((m for m in sched["moments"] if m["label"] == label), None)
+    if moment is None:
+        raise HTTPException(404, "Momentul nu mai e în programul acelei zile. Reîncărcați pagina.")
+    store().set_pillbox(pid, day.isoformat(), label, cell_signature(moment) if prepared else None, now_iso())
+    start = week_start(day)
+    return RedirectResponse(f"/acasa/saptamana?{urlencode({'de': start.isoformat(), 'cutiuta': 1})}", status_code=303)
+
+
+@app.get("/acasa/ore", response_class=HTMLResponse)
+def home_hours(request: Request, salvat: int = 0, eroare: str | None = None) -> HTMLResponse:
+    patient = home_patient(request)
+    if patient is None:
+        return home_enter_page()
+    return home_page("family_hours.html", patient, "hours", request, saved=bool(salvat), error=eroare, **hours_context(patient))
+
+
+@app.post("/acasa/ore")
+def home_hours_save(
+    request: Request,
+    wake: Annotated[str, Form(pattern=r"^\d{2}:\d{2}$")],
+    breakfast: Annotated[str, Form(pattern=r"^\d{2}:\d{2}$")],
+    lunch: Annotated[str, Form(pattern=r"^\d{2}:\d{2}$")],
+    dinner: Annotated[str, Form(pattern=r"^\d{2}:\d{2}$")],
+    bed: Annotated[str, Form(pattern=r"^\d{2}:\d{2}$")],
+) -> Response:
+    """E1 pe web: aceeași funcție ca PATCH /patients (ordinea validată, dozele de azi mutate)."""
+    patient = home_patient(request)
+    if patient is None:
+        return RedirectResponse("/acasa", status_code=303)
+    anchors = {"wake": wake, "breakfast": breakfast, "lunch": lunch, "dinner": dinner, "bed": bed}
+    try:
+        save_patient(patient["id"], patient, {**patient, "anchors": anchors})
+    except HTTPException as exc:
+        return RedirectResponse(f"/acasa/ore?{urlencode({'eroare': exc.detail})}", status_code=303)
+    return RedirectResponse("/acasa/ore?salvat=1", status_code=303)
+
+
+HOME_TICK = 1.0
+
+
+async def home_stream(request: Request, pid: str):
+    """Semnalul „s-a schimbat ceva” pentru pagina familiei: amprenta pacientului (doze, medicamente, alerte, ore),
+    comparată la fiecare secundă. Pagina își cere singură conținutul nou, ca portalul (QA5.1)."""
+    s = store()
+    loop = asyncio.get_running_loop()
+    began = pinged = loop.time()
+    last = s.patient_fingerprint(pid)
+    yield "retry: 3000\n\n"
+    while loop.time() - began < LIVE_LIFETIME:
+        if await request.is_disconnected() or home_patient(request) is None:
+            return
+        current = s.patient_fingerprint(pid)
+        if current != last:
+            last = current
+            yield "event: changed\ndata: {}\n\n"
+        if loop.time() - pinged >= LIVE_PING:
+            pinged = loop.time()
+            yield ": ping\n\n"
+        await asyncio.sleep(HOME_TICK)
+
+
+@app.get("/acasa/events")
+async def home_events(request: Request) -> StreamingResponse:
+    """Server-Sent Events pentru pagina familiei; rută internă, nu face parte din API-ul aplicației."""
+    patient = home_patient(request)
+    if patient is None:
+        raise HTTPException(401, "Deschideți linkul din aplicație.")
+    headers = {"Cache-Control": "no-store", "X-Accel-Buffering": "no", "X-Content-Type-Options": "nosniff"}
+    return StreamingResponse(home_stream(request, patient["id"]), media_type="text/event-stream", headers=headers)
 
 
 # ---------------------------------------------------------------- kb

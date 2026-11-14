@@ -1,0 +1,45 @@
+{% extends "family_base.html" %}
+{% from "alerts.html" import info %}
+{% block page_title %}Medicamentele mele{% endblock %}
+{% block main %}
+<div class="family-head">
+  <h1 class="page-title">Medicamentele mele</h1>
+  <p class="muted">Ce e acum în listă, după numele de pe cutie. Lista o completează familia în aplicație.</p>
+</div>
+{% if meds %}
+<ul class="med-list family-meds">
+  {% for m in meds %}
+  <li class="med family-med" id="med-{{ m.id }}">
+    {% if m.photo_url %}<img class="box-photo" src="{{ m.photo_url }}" alt="Cutia de {{ m.name }}" width="64" height="64" loading="lazy">{% else %}<span class="box-photo is-empty" aria-hidden="true"></span>{% endif %}
+    <div class="family-med-text">
+      <p class="med-name">{{ m.name }}</p>
+      <p class="med-how">{{ m.how }}{% if m.food %} · {{ m.food }}{% endif %}</p>
+      <p class="med-who">{{ m.who }}</p>
+      {% if m.expiry %}<p class="med-who{% if m.expiry.tone %} expiry-{{ m.expiry.tone }}{% endif %}">{{ m.expiry.label }}: {{ m.expiry.text }}</p>{% endif %}
+    </div>
+    {% call info("Mai multe despre " ~ m.name) %}
+      <dl class="facts">
+        {% if m.substances %}<dt>Substanța activă</dt><dd>{{ m.substances }}</dd>{% endif %}
+        {% if m.raw %}<dt>Pe rețetă / cutie</dt><dd>{{ m.raw }}</dd>{% endif %}
+        <dt>Cum se ia</dt><dd>{{ m.how }}{% if m.food %}, {{ m.food }}{% endif %}</dd>
+      </dl>
+    {% endcall %}
+  </li>
+  {% endfor %}
+</ul>
+{% else %}
+<p class="family-empty">Familia n-a adăugat încă medicamente.</p>
+{% endif %}
+
+<section aria-labelledby="h-glossary">
+  <h2 id="h-glossary">Pe înțelesul tuturor</h2>
+  <div class="glossary">
+    {% for g in glossary %}
+    <details class="glossary-item">
+      <summary>{{ g.title }}</summary>
+      <p>{{ g.text }}</p>
+    </details>
+    {% endfor %}
+  </div>
+</section>
+{% endblock %}

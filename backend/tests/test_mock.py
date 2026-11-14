@@ -152,6 +152,20 @@ def _doses(c):
     assert len(state.doses["pat_demo"]) == 1  # idempotent pe med_id + scheduled_at
 
 
+def _list_doses(c):
+    body = {"med_id": "med_05", "scheduled_at": "2026-11-14T07:00:00+02:00", "status": "taken"}
+    c.post(f"{P}/doses", headers=H, json=body)
+    r = c.get(f"{P}/doses", headers=H, params={"date": "2026-11-14"})
+    assert r.status_code == 200 and len(r.json()) == 1
+    for d in r.json():
+        ok("dose", d)
+
+
+def _web_link(c):
+    r = c.post(f"{P}/web-link", headers=H)
+    assert r.status_code == 201 and "/acasa/intra/" in r.json()["url"]
+
+
 def _checkins(c):
     r = c.post(f"{P}/checkins", headers=H, json={"text": "Mi se învârte capul și am vânătăi."})
     assert r.status_code == 201
@@ -223,6 +237,8 @@ CASES = {
     ("post", "/v1/patients/{id}/what-if"): _what_if,
     ("get", "/v1/patients/{id}/schedule"): _schedule,
     ("post", "/v1/patients/{id}/doses"): _doses,
+    ("get", "/v1/patients/{id}/doses"): _list_doses,
+    ("post", "/v1/patients/{id}/web-link"): _web_link,
     ("post", "/v1/patients/{id}/checkins"): _checkins,
     ("get", "/v1/patients/{id}/feed"): _feed,
     ("post", "/v1/patients/{id}/share"): _share,

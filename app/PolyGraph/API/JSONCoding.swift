@@ -52,6 +52,22 @@ extension JSONCoding {
         let data = try encoder.encode(med)
         guard var object = try JSONSerialization.jsonObject(with: data) as? [String: Any] else { return data }
         fillNulls(&object, ["start_date", "end_date", "photo_url"])
+        fillNestedNulls(&object)
+        return try JSONSerialization.data(withJSONObject: object, options: [.sortedKeys])
+    }
+
+    /// E0: corpul pentru `PATCH /meds/{mid}`. Aceleași `null`-uri ca la `POST`, dar doar în obiectele trimise
+    /// (backend-ul combină `product`, `dosage` și `prescriber` cu cele salvate): fără ele, `dosage.raw` = nil
+    /// și `prescriber` (nil, nil) dispăreau din JSON, iar medicamentul editat nu mai trecea de schemă (422).
+    /// `start_date` / `end_date` nil rămân omise: în PATCH înseamnă „neschimbat”.
+    static func medicationUpdateBody(_ changes: MedicationUpdate) throws -> Data {
+        let data = try encoder.encode(changes)
+        guard var object = try JSONSerialization.jsonObject(with: data) as? [String: Any] else { return data }
+        fillNestedNulls(&object)
+        return try JSONSerialization.data(withJSONObject: object, options: [.sortedKeys])
+    }
+
+    private static func fillNestedNulls(_ object: inout [String: Any]) {
         fillNulls(&object, in: "product", ["strength_text", "form", "gtin", "pack_size", "expiry", "batch"])
         fillNulls(&object, in: "dosage", ["raw"])
         fillNulls(&object, in: "prescriber", ["name", "specialty"])
@@ -61,7 +77,6 @@ extension JSONCoding {
             }
             object["substances"] = substances
         }
-        return try JSONSerialization.data(withJSONObject: object, options: [.sortedKeys])
     }
 
     private static func fillNulls(_ object: inout [String: Any], _ keys: [String]) {

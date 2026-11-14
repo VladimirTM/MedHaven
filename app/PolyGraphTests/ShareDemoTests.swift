@@ -63,6 +63,20 @@ struct DemoDataTests {
         }
     }
 
+    /// T-E0-01: corpul PATCH păstrează cheile cu `null` din obiectele trimise (Nurofen, fără rețetă și fără text).
+    @Test func medicationUpdateBodySendsNullsInsideSentObjects() throws {
+        let dosage = Dosage(
+            asNeeded: true, pattern: Pattern(bedtime: 0, evening: 1, morning: 0, noon: 0), raw: nil, withFood: .withMeal)
+        let changes = MedicationUpdate(dosage: dosage, prescriber: Prescriber(name: nil, specialty: nil))
+        let sent = try #require(
+            try JSONSerialization.jsonObject(with: JSONCoding.medicationUpdateBody(changes)) as? [String: Any])
+        let sentDosage = try #require(sent["dosage"] as? [String: Any])
+        let sentPrescriber = try #require(sent["prescriber"] as? [String: Any])
+        #expect(sentDosage["raw"] is NSNull)
+        #expect(sentPrescriber["name"] is NSNull && sentPrescriber["specialty"] is NSNull)
+        #expect(sent["product"] == nil && sent["start_date"] == nil, "Ce nu se schimbă nu se trimite")
+    }
+
     // T-A6-01: animațiile și culorile vin doar din Design/
     @Test func noHandWrittenMotionOrColorOutsideDesign() throws {
         let sources = Self.appFolder.appending(path: "PolyGraph")

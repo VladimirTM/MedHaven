@@ -7,6 +7,8 @@ import SwiftUI
 /// Orice schimbare a listei de medicamente reîncarcă analiza și programul.
 @Observable
 final class AppStore {
+    static let dayRefreshInterval: Duration = .seconds(30)
+
     let settings: AppSettings
     let clock: any AppClock
     @ObservationIgnored private let debug: DebugEnvironment
@@ -158,6 +160,7 @@ final class AppStore {
             analysis = try await api.getAnalysis(patientID: id)
             schedule = try await api.getSchedule(patientID: id, date: scheduleDate)
             lastError = nil
+            await syncDoses()
             doseLog.retryUnsent()
         } catch {
             report(error)
@@ -179,6 +182,50 @@ final class AppStore {
         } catch {
             report(error)
         }
+    }
+
+    /// E1 + E2: bifele de pe server (pagina familiei, dozele mutate după orele noi). O eroare aici nu strică
+    /// ecranul: rămân bifele de pe telefon, iar o versiune mai veche a serverului (fără ruta GET) e ignorată.
+    func syncDoses() async {
+        guard let id = settings.patientID, let schedule else { return }
+        do {
+            let doses = try await api.listDoses(patientID: id, date: schedule.date)
+            doseLog.sync(with: doses, schedule: schedule)
+        } catch {
+            Log.app.info("doze de pe server: \(String(describing: error), privacy: .public)")
+        }
+    }
+
+    /// Modul senior, la 30 s (E1 + E2): programul zilei (orele schimbate de familie, pe telefon sau pe web) și bifele
+    /// de pe server. Fără analiză și fără medicamente: cererea rămâne mică.
+    func refreshDay() async {
+        guard let id = settings.patientID, schedule != nil else { return }
+        do {
+            let fresh = try await api.getSchedule(patientID: id, date: scheduleDate)
+            // Schedule nu e Equatable (e generat din contract): comparăm JSON-ul, ca ecranul să nu se redeseneze degeaba
+            let encoder = JSONCoding.encoder
+            if (try? encoder.encode(fresh)) != (try? encoder.encode(schedule)) { schedule = fresh }
+            await syncDoses()
+        } catch {
+            Log.app.info("refreshDay: \(String(describing: error), privacy: .public)")
+        }
+    }
+
+    /// E1: orele zilei schimbate din Setări. Serverul mută dozele de azi deja bifate; aici se reîncarcă programul
+    /// (notificările se refac din `SeniorRoot`, după semnătura programului) și bifele urmează orele noi.
+    func updateAnchors(_ anchors: Anchors) async throws {
+        let id = try requirePatientID()
+        patient = try await api.updatePatient(id: id, PatientUpdate(anchors: anchors))
+        schedule = try await api.getSchedule(patientID: id, date: scheduleDate)
+        await syncDoses()
+        await rescheduleReminders()
+    }
+
+    // MARK: - Pagina familiei pe web (E2)
+
+    func createWebLink() async throws -> WebLink {
+        let id = try requirePatientID()
+        return try await api.createWebLink(patientID: id)
     }
 
     // MARK: - Medicamente
