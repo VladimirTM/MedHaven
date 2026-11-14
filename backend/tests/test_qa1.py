@@ -1,8 +1,8 @@
-"""QA1 (docs/PLAN.md, „QA · Testarea web și backend”): robustețea backend-ului.
+"""QA1 (docs/PLAN.md, 14.1): robustețea backend-ului.
 
-T-QA1-01 bugetul solverului (QA-02); T-QA1-03 decizia medicului idempotentă (QA-07); T-QA1-04 valorile neplauzibile
-(QA-08, QA-09); T-QA1-06 limita la nume (QA-11); T-QA1-07 Post/Redirect/Get la login (QA-15). T-QA1-05 (QA-10) e în
-test_q3f3.py. Testele cu kb-ul real se sar dacă kb/kb.sqlite nu e construit (CI).
+T-QA1-01 bugetul solverului (QA-02); T-QA1-02 alerta `unverified` (QA-03); T-QA1-03 decizia medicului idempotentă
+(QA-07); T-QA1-04 valorile neplauzibile (QA-08, QA-09); T-QA1-06 limita la nume (QA-11); T-QA1-07 Post/Redirect/Get
+la login (QA-15). T-QA1-05 (QA-10) e în test_q3f3.py. Testele cu kb-ul real se sar dacă kb/kb.sqlite nu e construit (CI).
 """
 
 from __future__ import annotations
@@ -93,6 +93,31 @@ def test_budget_hit_without_a_solution_falls_back_to_greedy(client, monkeypatch,
     expected = sorted(d["med_id"] for m in EXPECTED_SCHEDULE["moments"] for d in m["doses"])
     assert placed == expected  # nicio doză pierdută
     assert "buget atins" in caplog.text
+
+
+# ---------------------------------------------------------------- T-QA1-02 · QA-03
+
+
+@pytest.mark.parametrize("substances", [[], [{"inn": "nonexistentium", "dci": "nonexistentium", "atc": None, "strength_mg": 5}]])
+def test_med_without_known_substance_gets_an_unverified_alert(client, substances):
+    m = demo_med(client)
+    m.update(id="med_qa1", substances=substances)
+    m["product"]["brand"] = "Necunoscutin"
+    assert client.post(f"{P}/meds", headers=H, json=m).status_code == 201
+    body = client.get(f"{P}/analysis", headers=H).json()
+    assert not contracts.schema_errors("analysis", body)
+    alert = next(a for a in body["alerts"] if a["kind"] == "unverified")
+    assert alert["med_ids"] == ["med_qa1"] and alert["severity"] == "moderate" and alert["source"]["db"] == "app"
+    assert alert["title"].startswith("Nu am putut verifica Necunoscutin")
+    assert "Interacțiunile lui nu sunt incluse" in alert["detail"]
+    # fișa medicului de familie îl arată, nu „nicio alertă”
+    assert client.post("/portal/login", data={"code": CODE}).status_code == 303
+    page = client.get(PORTAL).text
+    assert "Nu am putut verifica Necunoscutin" in page
+
+
+def test_demo_patient_has_no_unverified_alert(client):
+    assert not [a for a in client.get(f"{P}/analysis", headers=H).json()["alerts"] if a["kind"] == "unverified"]
 
 
 # ---------------------------------------------------------------- T-QA1-03 · QA-07
