@@ -223,7 +223,7 @@ Cele două surse se completează: CNAS are lista oficială a rețetelor, PolyGra
 | QA1 robustețea backend-ului | Dev B (+ A) | ✅ | [#43](https://github.com/VladimirTM/PolyGraph/pull/43) | backend gata: T-QA1-01…07 verzi (`backend/tests/test_qa1.py`); build-ul iOS și testele unitare verzi |
 | QA2 · QA3 · QA4 | Dev B (+ A) | ✅ | [#44](https://github.com/VladimirTM/PolyGraph/pull/44) | graful comun (`graph-core.js`), textele comune (`posology_words.json`), portalul UX |
 | Scanarea cutiilor + GTIN-uri românești | Dev A + B | ✅ | [#45](https://github.com/VladimirTM/PolyGraph/pull/45) | kb/ro_gtins.csv, BoxBarcode.swift |
-| QA5 funcționalitățile pentru demo | Dev B | ⬜ opțional | – | doar dacă rămâne timp până la S4 |
+| QA5 funcționalitățile pentru demo | Dev B | ✅ 5.1, 5.2 | branch-urile `feature/qa5-live-portal` și `feature/qa5-what-if-portal` (PR-uri de deschis) | portalul se actualizează singur (`GET /portal/events`, SSE + polling la 5 s), „Dacă prescriu…” pe fișă; T-QA5-01/02 verzi; QA5.3 („Ce s-a schimbat”) mutat în secțiunea 19 |
 | S4 + Q4 · D1 · D2 | amândoi | ⬜ | – | secțiunea 15 |
 
 ### 7.2 Livrate în afara etapelor (14.11.2026, [PR #33](https://github.com/VladimirTM/PolyGraph/pull/33))
@@ -712,8 +712,8 @@ Ordinea ține cont de S4 (feature freeze, D 09:30): ce e marcat „înainte de S
 | B-2 | **QA2** graful comun (QA-01, 04, 05, 12, Q3-12), împreună cu Dev A | înainte de S4 | 2,5 h | ✅ ([#44](https://github.com/VladimirTM/PolyGraph/pull/44)) | 14.2 |
 | B-3 | **QA3** textele comune (severitatea, decizia, recomandarea pentru medic, posologia, stările goale, sursele fără căi, pacientul care nu e în listă) | înainte de S4 | 1,5 h | ✅ ([#44](https://github.com/VladimirTM/PolyGraph/pull/44)) | 14.3 |
 | B-4 | **QA4** portalul: deciziile fără stil primar, „Schimbă decizia”, mesajele de eroare, IP-ul din rețea pe `/`, țintele de 44 px | înainte de S4 | 2,5 h | ✅ ([#44](https://github.com/VladimirTM/PolyGraph/pull/44)) | 14.4 |
-| B-5 | QA5: portalul care se actualizează singur, „Dacă prescriu X?”, „Ce s-a schimbat” | opțional | 2–4 h | ⬜ | 14.5 |
-| B-6 | **Pitch-ul:** slide-ul 5 („Cum e construit”: diagrama din 8.1, „LLM doar la margini”, o captură cu logurile `SCAN` / `ALERTĂ` din `make demo`); cifrele de pe slide-ul 1 verificate în sursele originale; câte 2 fraze pentru fiecare întrebare probabilă a juriului, inclusiv CNAS (6.4) | înainte de D2 | 1 h | ⬜ | 17 |
+| B-5 | QA5: portalul care se actualizează singur (5.1), „Dacă prescriu…” (5.2); „Ce s-a schimbat” (5.3) mutat în secțiunea 19 | opțional | 2,5 h | ✅ (`feature/qa5-live-portal`, `feature/qa5-what-if-portal`; PR-uri de deschis) | 14.5 |
+| B-6 | **Pitch-ul:** slide-ul 5 („Cum e construit”: diagrama din 8.1, „LLM doar la margini”, o captură cu logurile `SCAN` / `ALERTĂ` din `make demo`); cifrele de pe slide-ul 1 verificate în sursele originale; câte 2 fraze pentru fiecare întrebare probabilă a juriului, inclusiv CNAS (6.4) | înainte de D2 | 1 h | ✅ ([#46](https://github.com/VladimirTM/PolyGraph/pull/46)) | 17 |
 | B-7 | **Materialele:** Nurofen se cumpără fără rețetă; Sintrom e pe rețetă, deci se tipărește cutia de test `demo/datamatrix/test_sintrom.png`; rețeta ORL tipărită (`demo/rx/reteta_demo_fromilid.pdf`, A4, scala 100%) | înainte de D1 | 30 min | ⬜ | 15.4 |
 | B-8 | Pregătirea pentru Q4 (rulează pe Mac-ul lui Dev B): `make check-ios` verde pe Mac-ul lui, laptopul la priză și fără sleep (`caffeinate`) | înainte de S4 | 15 min | ✅ | 15.1 |
 
@@ -897,16 +897,16 @@ Criterii de acceptare: pe un iPhone (Safari), o decizie se ia și se schimbă di
 
 În ordinea valorii pe scenă; fiecare e un PR separat, iar ce nu intră până la S4 trece la secțiunea 19.
 
-1. **Portalul se actualizează singur** (M): lista și fișa ascultă `GET /portal/events` (Server-Sent Events, sau polling la 5 s ca rezervă), alimentat din `feed_events`. Când familia scanează Nurofen în aplicație, cardul Mariei urcă în „De revizuit” pe ecranul proiectat, fără refresh. În aplicație nu se schimbă nimic: polling-ul existent arată deja decizia medicului.
-2. **„Dacă prescriu X?” în portal** (S–M): un câmp pe fișă care cheamă `/what-if` (X1) și arată alertele cu aceleași carduri; răspunsul e același pe care familia îl aude în aplicație la „Pot să iau…?”.
-3. **„Ce s-a schimbat de la ultima consultație”** (M): în capul fișei, din `feed_events`, `doses` și `checkins`, de la ultima decizie a medicului: medicamente noi, alerte noi, doze ratate, simptome.
+1. ✅ **Portalul se actualizează singur** (M): lista și fișa ascultă `GET /portal/events` (Server-Sent Events, sau polling la 5 s ca rezervă), alimentat din `feed_events`. Când familia scanează Nurofen în aplicație, cardul Mariei urcă în „De revizuit” pe ecranul proiectat, fără refresh. În aplicație nu se schimbă nimic: polling-ul existent arată deja decizia medicului.
+2. ✅ **„Dacă prescriu X?” în portal** (S–M): un câmp pe fișă care cheamă `/what-if` (X1) și arată alertele cu aceleași carduri; răspunsul e același pe care familia îl aude în aplicație la „Pot să iau…?”.
+3. ➡️ **Mutat în secțiunea 19 (nu intră înainte de S4).** **„Ce s-a schimbat de la ultima consultație”** (M): în capul fișei, din `feed_events`, `doses` și `checkins`, de la ultima decizie a medicului: medicamente noi, alerte noi, doze ratate, simptome.
 
 Restul ideilor din raport (simptome legate de medicamente, programul de lipit pe frigider, scrisoarea către specialist, aderența pe 30 de zile, lista medicului cu căutare și scoaterea unui pacient, STOPP v3, limitarea încercărilor de cod, eGFR, mai mulți medici) merg la secțiunea 19.
 
 **Teste**
-- [ ] T-QA5-01 Funcționalitatea 1: un medicament adăugat prin API apare în portal în < 5 s, fără reîncărcare.
-- [ ] T-QA5-02 Funcționalitatea 2: „Fromilid” în câmp dă aceleași alerte ca `POST /what-if` și ca scenariul 2:10.
-- [ ] T-QA5-03 Funcționalitatea 3: după o decizie, „Ce s-a schimbat” se golește; un medicament nou îl umple.
+- [x] T-QA5-01 Funcționalitatea 1: un medicament adăugat prin API apare în portal în < 5 s, fără reîncărcare (`backend/tests/test_qa5_live.py`).
+- [x] T-QA5-02 Funcționalitatea 2: „Fromilid” în câmp dă aceleași alerte ca `POST /what-if` și ca scenariul 2:10 (`backend/tests/test_qa5_whatif.py`).
+- [ ] T-QA5-03 Funcționalitatea 3: după o decizie, „Ce s-a schimbat” se golește; un medicament nou îl umple (cu 5.3, în secțiunea 19).
 
 ## 15. S4, Q4, D1, D2 și materialele
 
@@ -1114,6 +1114,7 @@ Plan B pentru fiecare pas: scanarea pică → butonul „Adaugă rețeta ORL” 
 - Neo4j pentru graful populațional (ce combinații produc cele mai multe alerte la pacienții cabinetelor partenere).
 - Push real (APNs), conturi și consimțământ GDPR complet, audit log; Android doar dacă pilotul o cere.
 - Dozele individualizate (INR pentru anticoagulante, funcția renală) doar prin medic, niciodată automat.
+- QA5.3 (14.5), mutat aici: „Ce s-a schimbat de la ultima consultație” în capul fișei din portal, din `feed_events`, `doses` și `checkins`, de la ultima decizie a medicului (medicamente noi, alerte noi, doze ratate, simptome), cu testul T-QA5-03.
 - Din review-ul Q3 (aplicația, `docs/reviews/Q3.md`): avertizare „expiră curând” din DataMatrix (azi doar „expirat”); aderența săptămânală în portal („5 din 7 seri”, cu „neconfirmate”, nu „nelulate”); al doilea telefon al familiei legat de același pacient, fără reset; „Pot să iau…?” și pentru suplimente / plante (sunătoare, ginkgo), din surse verificate; QR spre fișă pe reconcilierea tipărită; graful what-if în portal pentru o întrebare gravă; istoricul pe zile în „Ziua de azi” (doar citire, butoane mari); exportul FHIR `MedicationStatement`; actualizarea cutiei existente la o scanare duplicat (expirare, lot), în loc de un al doilea medicament.
 
 ---
