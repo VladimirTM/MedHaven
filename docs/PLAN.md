@@ -778,7 +778,7 @@ Constatările QA-nn și Q3-nn citate în prompturi sunt în Anexa C. QA0 e gata 
 | QA4 | portalul: decizii, mesaje, accesibilitate, QA-14, 16 | Dev B | 2,5 h | ✅ `fix/qa2-shared-graph` |
 | QA5 | funcționalitățile pentru demo (opțional) | Dev B | 2–4 h | `feature/qa5-…` |
 
-Status la 14.11.2026: QA0 ✅ (#33); QA1 ✅ (#43); QA2–QA4 ✅ (#44); QA5 ⬜. Dependențele: QA2 și QA3 după QA1, QA4 după QA3, QA5 după QA2 și QA4.
+Status la 14.11.2026: QA0 ✅ (#33); QA1 ✅ (#43); QA2–QA4 ✅ (#44); QA5.1 și QA5.2 ✅ (`feature/qa5-live-portal`, `feature/qa5-what-if-portal`; PR-uri de deschis), QA5.3 mutat în secțiunea 19. Dependențele: QA2 și QA3 după QA1, QA4 după QA3, QA5 după QA2 și QA4.
 
 ### 14.1 QA1 · Robustețea backend-ului
 
