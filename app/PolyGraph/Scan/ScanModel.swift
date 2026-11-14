@@ -68,6 +68,7 @@ final class ScanModel {
 
     @ObservationIgnored private var probeTask: Task<Void, Never>?
     @ObservationIgnored private var lastSubmission: Submission?
+    private var needsFrontPhoto = false
 
     private struct Submission {
         let image: UIImage?
@@ -99,7 +100,9 @@ final class ScanModel {
     var guidance: String? {
         switch status {
         case .aiming: mode == .box ? "Încadrați codul de pe cutie" : "Fotografiați toată foaia rețetei"
-        case .codeRead: "Am citit codul. Acum fotografiați fața cutiei."
+        case .codeRead: needsFrontPhoto
+            ? "Cod citit. Fotografiați fața aceleiași cutii, cu numele medicamentului."
+            : "Am citit codul. Acum fotografiați fața cutiei."
         case .reading: mode == .box ? "Citesc cutia…" : "Citesc rețeta…"
         case .matching: "Caut substanța activă…"
         case .recognized(let name): "Am recunoscut cutia: \(name)"
@@ -183,6 +186,7 @@ final class ScanModel {
         codeCorners = []
         capturedImage = nil
         lastSubmission = nil
+        needsFrontPhoto = false
     }
 
     // MARK: - Trimiterea
@@ -195,8 +199,10 @@ final class ScanModel {
         let prepared = await Task.detached(priority: .userInitiated) {
             () -> (lines: [OCRLine], jpeg: Data?, photoCode: String?) in
             guard let image else { return ([], nil, nil) }
-            let photoCode = kind == .box && datamatrix == nil ? BoxBarcode.readPhoto(image) : nil
             let lines = (try? OCR.recognize(image, customWords: words)) ?? []
+            let photoCode = kind == .box && datamatrix == nil
+                ? BoxBarcode.readPhoto(image) ?? BoxBarcode.printedProductCode(lines)
+                : nil
             return (lines, ImageUpload.jpeg(image), photoCode)
         }.value
         let datamatrix = datamatrix ?? prepared.photoCode
@@ -214,7 +220,12 @@ final class ScanModel {
                 patientID: patientID, kind: kind, ocrLines: prepared.lines, image: prepared.jpeg, datamatrix: datamatrix)
             guard !result.candidates.isEmpty else {
                 if kind == .box, let datamatrix, (try? GS1.parse(datamatrix)) != nil {
-                    startManualEntry(ocrLines: prepared.lines)
+                    if needsFrontPhoto {
+                        startManualEntry(ocrLines: prepared.lines)
+                    } else {
+                        needsFrontPhoto = true
+                        capturedImage = nil
+                    }
                     status = .codeRead
                     return
                 }

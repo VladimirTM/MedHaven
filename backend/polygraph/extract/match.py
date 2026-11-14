@@ -32,11 +32,18 @@ def scan(kb: Kb, store: Store, kind: str, lines: list[OcrLine], image: bytes, mi
         if datamatrix and code is None:
             warnings.append("Codul DataMatrix nu a putut fi citit.")
 
-    cached_id = store.cached_gtin(code["gtin"], kb.version) if code else None
-    cached = catalog(kb)[0].get(cached_id) if cached_id is not None else None
+    product_id, pack_size = (None, None)
+    if code:
+        known_pack = kb.scan_gtins().get(code["gtin"])
+        if known_pack:
+            product_id, pack_size = known_pack
+        else:
+            product_id = store.cached_gtin(code["gtin"], kb.version)
+    known_product = catalog(kb)[0].get(product_id) if product_id is not None else None
     unread: list[str] = []  # rândurile de rețetă care n-au putut fi potrivite, numite în avertizare
-    if cached:
-        matches, route = [Match(cached, RawExtraction(), "gtin_cache", 1.0)], "gtin_cache"
+    if known_product:
+        matches = [Match(known_product, RawExtraction(pack_size=pack_size), "gtin_cache", 1.0)]
+        route = "gtin_cache"
     elif kind == "prescription":
         matches, unread = prescription_matches(kb, lines)
         route = "ocr_match"

@@ -6,6 +6,7 @@ Interogările sunt mici și repetate (aceleași perechi la fiecare analiză), de
 
 from __future__ import annotations
 
+import csv
 import json
 import os
 import re
@@ -13,7 +14,7 @@ import sqlite3
 import threading
 import unicodedata
 from dataclasses import dataclass
-from functools import cache
+from functools import cache, lru_cache
 from pathlib import Path
 from typing import Any
 
@@ -193,6 +194,20 @@ class Kb:
         return tuple(
             self._q("SELECT id, brand, brand_norm, strength_text, form, dci_raw FROM product ORDER BY source = 'extra' DESC, id")
         )
+
+    @lru_cache(maxsize=2)  # noqa: B019
+    def scan_gtins(self) -> dict[str, tuple[int, int | None]]:
+        # Asocierile folosesc denumirea completă și forma, stabile la reconstruirea bazei.
+        products: dict[tuple[str, str], list[int]] = {}
+        for pid, brand, _, _, form, _ in self.scan_catalog():
+            products.setdefault((norm(brand), norm(form)), []).append(pid)
+        result = {}
+        with (ROOT / "kb" / "ro_gtins.csv").open(encoding="utf-8", newline="") as source:
+            for row in csv.DictReader(source):
+                ids = products.get((norm(row["brand"]), norm(row["form"])), [])
+                if len(ids) == 1:
+                    result[row["gtin"]] = (ids[0], int(row["pack_size"]) if row["pack_size"] else None)
+        return result
 
     @cache  # noqa: B019
     def scan_substances(self, product_id: int) -> tuple[tuple, ...]:

@@ -4,6 +4,7 @@ import sqlite3
 from fastapi.testclient import TestClient
 
 from polygraph.api import main
+from polygraph.extract.gs1 import valid_gtin
 from polygraph.kb import Kb
 from polygraph.store import Store
 
@@ -98,5 +99,35 @@ def test_missing_catalog_returns_503(tmp_path, monkeypatch):
             response = client.get("/v1/kb/search", params={"q": "sintrom"}, headers=HEADERS)
             assert response.status_code == 503
             assert "make kb" in response.json()["detail"]
+    finally:
+        main.configure()
+
+
+def test_catalog_gtins_identify_the_pack_before_it_is_saved(mini_kb):
+    with sqlite3.connect(mini_kb.path) as conn:
+        conn.executemany(
+            "INSERT INTO product(id, brand, brand_norm, form, strength_text, source) VALUES (?, ?, ?, ?, ?, 'extra')",
+            [
+                (1, "PADUDEN SR 300 mg", "paduden sr", "CAPS. CU ELIB. PREL.", "300mg"),
+                (2, "PADUDEN SR 300 mg", "paduden sr", "COMPR.", "300mg"),
+            ],
+        )
+    gtin = "05944702001390"
+    assert valid_gtin(gtin)
+    store = Store(":memory:")
+    kb = Kb(mini_kb.path)
+    assert store.cached_gtin(gtin, kb.version) is None
+    main.configure(store, kb)
+    main.reset_demo()
+    try:
+        with TestClient(main.app) as client:
+            response = client.post(SCAN, headers=HEADERS, data={"kind": "box", "datamatrix": f"01{gtin}17251200"})
+            assert response.status_code == 200, response.text
+            (candidate,) = response.json()["candidates"]
+            assert candidate["match"]["method"] == "gtin_cache"
+            assert candidate["product"]["form"] == "capsule cu eliberare prelungită"
+            assert candidate["product"]["gtin"] == gtin
+            assert candidate["product"]["pack_size"] == 10
+            assert candidate["product"]["expiry"] == "2025-12-31"
     finally:
         main.configure()

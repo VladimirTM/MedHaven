@@ -41,6 +41,16 @@ struct GS1Tests {
         #expect(BoxBarcode.linearPayload("5901234123457", symbology: .dataMatrix) == nil)
     }
 
+    @Test func printedProductCodeRequiresThePCLabelAndValidCheckDigit() {
+        let code = OCRLine(text: "PC: 03760254600315", height: 0.1)
+        let serial = OCRLine(text: "SN: 05944702001390", height: 0.1)
+        let badCode = OCRLine(text: "PC 03760254600316", height: 0.1)
+        let otherCode = OCRLine(text: "PC 05944702001390", height: 0.1)
+        #expect(BoxBarcode.printedProductCode([code, serial]) == "0103760254600315")
+        #expect(BoxBarcode.printedProductCode([serial, badCode]) == nil)
+        #expect(BoxBarcode.printedProductCode([code, otherCode]) == nil)
+    }
+
     @Test func monthThirteenIsInvalidExpiry() {
         #expect(throws: GS1Error.invalidExpiry) { try GS1.parse("010594900000001417281301") }
     }
