@@ -42,7 +42,8 @@ final class FeedModel {
         events.first { $0.id == id } ?? pendingNew.first { $0.id == id }
     }
 
-    /// Check-in-urile apar în feed doar când sunt escaladate; alertele contează de la `major` în sus.
+    /// Ce declanșează notificarea: orice check-in (după X1, și întrebările „Pot să iau…?” neescaladate)
+    /// și alertele `critical` / `major`. Restul evenimentelor apar doar în listă.
     static func isSerious(_ event: FeedEvent) -> Bool {
         event.type == .checkin || event.severity == .critical || event.severity == .major
     }
