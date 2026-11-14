@@ -308,4 +308,103 @@ final class ReviewTour: ReviewTestCase {
         expect("now.error", timeout: 15)
         step("now", audit: true)
     }
+
+    // MARK: - E0–E2 (ideile din 14.11 seara, PR #55)
+
+    /// E0: Nurofen (OTC, fără medic prescriptor) deschis din detaliu, „Editează” și salvat neschimbat.
+    /// Înainte de E0, `prescriber` (nil, nil) dispărea din JSON și PATCH /meds dădea 422.
+    func testEditOTCMed() {
+        launch("editOTC", role: .caregiver)
+        expect("meds.list", timeout: 10)
+        let nurofen = app.descendants(matching: .any).matching(
+            NSPredicate(format: "identifier BEGINSWITH 'meds.row.' AND NOT identifier ENDSWITH '.alert' "
+                + "AND label CONTAINS[c] 'Nurofen'")).firstMatch
+        for _ in 0..<4 where !(nurofen.exists && onScreen(nurofen)) { app.swipeUp() }
+        guard nurofen.exists else { return markAbsent("meds.row.* Nurofen") }
+        tapElement(nurofen)
+        expect("medDetail")
+        guard tap("medDetail.editButton") else { return }
+        guard expect("confirm.saveButton", timeout: 5) != nil else { return step("noSheet", audit: true) }
+        step("edit", audit: true)
+        tap("confirm.saveButton")
+        // succes: foaia se închide și rămâne detaliul; eșec: confirm.error (422) și foaia deschisă
+        if !element("confirm.saveButton").waitForNonExistence(timeout: 10) {
+            let error = element("confirm.error")
+            XCTFail("E0: editarea Nurofen nu s-a salvat: \(error.exists ? error.label : "foaia a rămas deschisă")")
+            return step("notSaved", audit: true)
+        }
+        expect("medDetail", timeout: 3)
+        step("saved", audit: true)
+    }
+
+    /// E1: Setări (aparținător) → „Orele zilei” → cina la 20:00 → Salvează; redeschis, cina vine 20:00 de la server.
+    func testDayHours() {
+        launch("dayHours", role: .caregiver)
+        expect("meds.list", timeout: 10)
+        guard tap("settings.openButton") else { return }
+        guard let open = scrollTo("settings.dayHoursButton") else { return }
+        open.tap()
+        guard let dinner = expect("hours.dinnerTime") else { return step("noHours", audit: true) }
+        step("hours", audit: true)
+        dinner.tap()
+        let picker = app.descendants(matching: .any)["hours.dinnerTime.picker"]
+        guard picker.waitForExistence(timeout: 3) else { return markAbsent("hours.dinnerTime.picker") }
+        setWheel(picker.pickerWheels.element(boundBy: 0), to: "20")
+        setWheel(picker.pickerWheels.element(boundBy: 1), to: "00")
+        step("dinner2000", audit: true)
+        XCTAssertTrue(dinner.label.contains("20:00"), "E1: rândul cinei arată „\(dinner.label)”, nu 20:00")
+        if element("hours.orderHint").exists { markAbsent("ordinea orelor (hours.orderHint vizibil cu cina la 20:00)") }
+        // roata se închide înainte de derulare: un swipe peste ea ar învârti ora (cina sărea la 08:00)
+        dinner.tap()
+        _ = picker.waitForNonExistence(timeout: 2)
+        guard let save = scrollTo("hours.saveButton") else { return }
+        XCTAssertTrue(dinner.label.contains("20:00"), "E1: înainte de Salvează, cina e „\(dinner.label)”")
+        save.tap()
+        // succes: înapoi în Setări; eșec: hours.error și ecranul rămâne
+        if !element("hours.saveButton").waitForNonExistence(timeout: 10) {
+            let error = element("hours.error")
+            XCTFail("E1: orele nu s-au salvat: \(error.exists ? error.label : "ecranul a rămas deschis")")
+            return step("notSaved", audit: true)
+        }
+        guard expect("settings.dayHoursButton", timeout: 3) != nil else { return }
+        step("saved")
+        tap("settings.dayHoursButton")
+        if let again = expect("hours.dinnerTime") {
+            XCTAssertTrue(again.label.contains("20:00"), "E1: după salvare, cina e „\(again.label)”")
+            step("reopened")
+        }
+    }
+
+    /// E2: Setări → „Deschide pe web” → QR-ul cu linkul de unică folosință, „Copiază linkul”, „Alt link”.
+    func testOpenWeb() {
+        launch("openWeb", role: .caregiver)
+        expect("meds.list", timeout: 10)
+        guard tap("settings.openButton") else { return }
+        guard let open = scrollTo("settings.openWebButton") else { return }
+        open.tap()
+        guard expect("web.qr", timeout: 10) != nil else {
+            expect("web.error", timeout: 1)
+            XCTFail("E2: QR-ul paginii web n-a apărut (POST /v1/patients/{id}/web-link)")
+            return step("noLink", audit: true)
+        }
+        expect("web.expiry", timeout: 1)
+        step("qr", audit: true)
+        if tap("web.copyButton") {
+            pause(0.5)
+            if !element("web.copyButton").label.contains("Copiat") { markAbsent("„Copiat” după Copiază linkul") }
+            step("copied")
+        }
+        if tap("web.newLinkButton", timeout: 2) {
+            expect("web.qr", timeout: 10)
+            step("newLink")
+        }
+        tap("web.doneButton")
+    }
+
+    /// Roata orelor are valorile „00”…„23”, iar a minutelor „00”…„59” (valoarea afișată, „19 o’clock”, e doar
+    /// eticheta). Se trimite direct numărul cu două cifre.
+    private func setWheel(_ wheel: XCUIElement, to number: String) {
+        guard wheel.waitForExistence(timeout: 2) else { return markAbsent("roata pentru \(number)") }
+        wheel.adjust(toPickerWheelValue: number)
+    }
 }
