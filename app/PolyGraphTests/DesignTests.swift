@@ -130,6 +130,19 @@ struct APIHelpersTests {
         #expect(APIError.http(status: 404, detail: nil).errorDescription != nil)
     }
 
+    /// J-1: -1009 către o adresă din rețeaua locală înseamnă de obicei permisiunea Rețea locală refuzată, nu „offline”.
+    @Test func offlineToLocalServerPointsToLocalNetworkPermission() throws {
+        #expect(APIError.isLocalHost(URL(string: "http://172.20.10.4:8000/health")))
+        #expect(APIError.isLocalHost(URL(string: "http://192.168.2.1:8000")))
+        #expect(APIError.isLocalHost(URL(string: "http://mac.local:8000")))
+        #expect(!APIError.isLocalHost(URL(string: "http://172.32.0.1:8000")))
+        #expect(!APIError.isLocalHost(URL(string: "https://example.com")))
+        let url = try #require(URL(string: "http://172.20.10.4:8000/health"))
+        let local = APIError.network(URLError(.notConnectedToInternet, userInfo: [NSURLErrorFailingURLErrorKey: url]))
+        #expect(local.errorDescription?.contains("Rețea locală") == true)
+        #expect(APIError.network(URLError(.notConnectedToInternet)).errorDescription == "Telefonul nu e conectat la rețea.")
+    }
+
     @Test func clockAndDayFormatsAreFixed() throws {
         let date = try #require(PgFormat.date(fromClock: "07:05"))
         #expect(PgFormat.clock(date) == "07:05")
