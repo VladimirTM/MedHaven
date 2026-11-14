@@ -1,0 +1,7 @@
+{# QA5.1: banda discretă când actualizarea automată nu reușește; textul e cel din aplicație (StaleBanner, Q3F4) #}
+{% macro live_stale() %}
+<div class="live-stale" role="status" hidden data-live-stale>
+  <p>Nu am putut actualiza.</p>
+  <button class="btn btn-secondary" type="button" data-live-retry>Încearcă din nou</button>
+</div>
+{% endmacro %}
