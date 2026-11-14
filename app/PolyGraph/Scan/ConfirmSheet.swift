@@ -97,6 +97,7 @@ struct ConfirmSheet: View {
                 if hasEdits && savedCount == 0 { confirmDiscard = true } else { finish() }
             }
             .disabled(isSaving)
+            .pgBarButton()
             .accessibilityIdentifier("confirm.cancelButton")
         }
         #if DEBUG

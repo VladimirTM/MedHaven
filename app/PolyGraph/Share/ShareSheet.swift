@@ -52,7 +52,8 @@ struct ShareSheet: View {
             .toolbar {
                 if audience == .caregiver {
                     ToolbarItem(placement: .confirmationAction) {
-                        Button { dismiss() } label: { BarConfirmLabel("Gata") }
+                        Button("Gata") { dismiss() }
+                            .pgBarButton()
                             .accessibilityIdentifier("share.doneButton")
                     }
                 }

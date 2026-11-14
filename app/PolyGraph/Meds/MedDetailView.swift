@@ -119,6 +119,7 @@ struct MedDetailView: View {
                         ocrLines: [],
                         datamatrix: nil)
                 }
+                .pgBarButton()
                 .accessibilityIdentifier("medDetail.editButton")
             }
         }

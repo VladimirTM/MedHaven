@@ -131,13 +131,12 @@ struct SettingsView: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .confirmationAction) {
-                    Button {
+                    Button("Gata") {
                         saveBaseURL()
                         if store.settings.role != pendingRole { store.settings.role = pendingRole }
                         dismiss()
-                    } label: {
-                        BarConfirmLabel("Gata")
                     }
+                    .pgBarButton()
                     .accessibilityIdentifier("settings.doneButton")
                 }
             }

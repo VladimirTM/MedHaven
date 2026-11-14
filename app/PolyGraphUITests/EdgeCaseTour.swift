@@ -2,10 +2,12 @@ import XCTest
 
 /// Turul agresiv (Q3): apăsări repetate, anulări la limită, scanări ciudate, ore la marginea zilei,
 /// backend oprit în timpul fluxului, check-in-uri limită, multe Noutăți, accesibilitate dură.
-/// Rulează cu infrastructura turului de review: `make review Q=Q3e TOUR=EdgeCaseTour CONFIGS="Light AX" NO_VIDEO=1`.
+/// Rulează cu infrastructura turului de review: `make review Q=Q3e TOUR=EdgeCaseTour CONFIGS="Light AX DarkAX" NO_VIDEO=1`.
 /// Ca `ReviewTour`, testele nu pică: ce nu apare e notat „absent”, iar judecata se face din capturi și JSON.
 @MainActor
 final class EdgeCaseTour: ReviewTestCase {
+    override class var darkAXTests: Set<String> { ["testSeniorHugeTextDark"] }
+
     // MARK: - Ajutătoare
 
     /// Apăsări rapide pe același punct (2–5 în < 300 ms): XCUITest le trimite ca un singur gest cu mai multe atingeri.
@@ -491,6 +493,59 @@ final class EdgeCaseTour: ReviewTestCase {
         step("afterTabStorm")
     }
 
+    // MARK: - Alerta „unverified” (QA-03)
+
+    /// Un medicament fără substanțe primește alerta `unverified` (moderate, doar pentru aparținător): stă în cardul
+    /// moderat, iar la pacient nu apare deloc, deci nici ca alarmă.
+    func testUnverifiedAlert() {
+        launch("unverified", role: .caregiver)
+        let (_, data) = api("GET", "/v1/patients/pat_demo/meds")
+        if var med = (try? JSONSerialization.jsonObject(with: data) as? [[String: Any]])?.first,
+           var product = med["product"] as? [String: Any] {
+            product["brand"] = "Necunoscutin"
+            med["product"] = product
+            med["id"] = "med_unverified"
+            med["substances"] = [Any]()
+            api("POST", "/v1/patients/pat_demo/meds", json: med)
+        }
+        // fără reset, ca medicamentul adăugat să rămână; analiza se încarcă la pornire
+        app.terminate()
+        launch("unverified", role: .caregiver, reset: false)
+        tapTab("Alerte")
+        pause(2)
+        step("list")
+        // rândurile din cardul restrâns poartă identificatorul cardului (`alerts.moderateGroup`), nu pe al lor
+        let row = app.descendants(matching: .any).matching(NSPredicate(
+            format: "identifier == %@ AND label BEGINSWITH %@", "alerts.moderateGroup", "Nu am putut verifica Necunoscutin"
+        )).firstMatch
+        // în AX, cardul moderat e sub ecran, iar LazyVStack nu-l creează până nu se derulează
+        for _ in 0..<8 where !element("alerts.moderateGroup").exists { app.swipeUp() }
+        if tap("alerts.moderateGroup", timeout: 10) {
+            pause(1)
+            if !row.waitForExistence(timeout: 5) {
+                markAbsent("„Nu am putut verifica Necunoscutin” în alerts.moderateGroup")
+            }
+            // deasupra tab bar-ului, ca rândul să se vadă în captură
+            let visible = app.windows.firstMatch.frame.insetBy(dx: 0, dy: 160)
+            for _ in 0..<6 where !visible.contains(row.frame) { app.swipeUp() }
+            step("moderateOpen", audit: true)
+            if row.exists {
+                tapElement(row, name: "unverified row")
+                expect("alertDetail")
+                pause(1)
+                step("detail", audit: true)
+            }
+        }
+        app.terminate()
+        launch("unverified", role: .senior, reset: false, now: Self.today(at: "07:05"))
+        pause(2)
+        // cardul liniștit din „Acum” vine de la interacțiunile grave ale pacientului demo; `unverified` nu ajunge la pacient
+        let leaked = app.descendants(matching: .any)
+            .matching(NSPredicate(format: "label CONTAINS %@", "Nu am putut verifica")).firstMatch
+        if leaked.exists { markAbsent("senior fără „Nu am putut verifica”") }
+        step("senior", audit: true)
+    }
+
     // MARK: - Partajare
 
     func testShareTwice() {
@@ -510,13 +565,10 @@ final class EdgeCaseTour: ReviewTestCase {
 
     // MARK: - Accesibilitate dură
 
+    /// Dark și textul maxim vin din configurația DarkAX (Dark prin `set_ui` din run.sh, Q3F6).
     func testSeniorHugeTextDark() {
-        XCUIDevice.shared.appearance = .dark
         launch("hugeDark", role: .senior, now: Self.today(at: "07:05"),
                env: [:], defaults: ["pg.remindersAsked": "NO"])
-        app.terminate()
-        app.launchArguments += ["-UIPreferredContentSizeCategoryName", "UICTContentSizeCategoryAccessibilityXXXL"]
-        app.launch()
         pause(3)
         step("now", audit: true)
         app.swipeUp()
@@ -534,7 +586,6 @@ final class EdgeCaseTour: ReviewTestCase {
                 step("share", audit: true)
             }
         }
-        XCUIDevice.shared.appearance = .light
     }
 
     // MARK: - Moduri și reset cu detaliul deschis

@@ -6,7 +6,7 @@ import XCTest
 /// „absent” în `<flux>-notes-<variantă>.json` și trec mai departe.
 @MainActor
 class ReviewTestCase: XCTestCase {
-    /// Configurația din Review.xctestplan: Light, Dark, AX, Motion, Contrast.
+    /// Configurația din Review.xctestplan: Light, Dark, AX, Motion, Contrast, DarkAX.
     static var variant: String {
         ProcessInfo.processInfo.environment["PG_REVIEW_VARIANT"] ?? "Light"
     }
@@ -26,11 +26,18 @@ class ReviewTestCase: XCTestCase {
     /// fluxurilor Motion ar repeta Light; mișcarea însăși se vede în frames/ (video).
     class var motionTests: Set<String> { [] }
 
+    /// Testele scrise pentru combinația Dark + text maxim: rulează doar în DarkAX, iar DarkAX rulează doar pe ele.
+    /// Aspectul nu se poate comuta din test (vezi `setUp`), deci combinația e o configurație, cu Dark din run.sh.
+    class var darkAXTests: Set<String> { [] }
+
     override func setUpWithError() throws {
         try super.setUpWithError()
         let method = name.split(separator: " ").last.map { String($0.dropLast()) } ?? name
         if Self.variant == "Motion" && !Self.motionTests.contains(method) {
             throw XCTSkip("Motion: fără tranziții proprii în acest flux")
+        }
+        if (Self.variant == "DarkAX") != Self.darkAXTests.contains(method) {
+            throw XCTSkip("DarkAX: doar testele pentru Dark + text maxim")
         }
     }
 
@@ -39,7 +46,7 @@ class ReviewTestCase: XCTestCase {
         continueAfterFailure = true
         XCUIDevice.shared.orientation = .portrait
         // Doar preferința: simulatorul nu redesenează fără reboot, deci Dark vine din run.sh (set_ui, Q3-I4)
-        XCUIDevice.shared.appearance = Self.variant == "Dark" ? .dark : .light
+        XCUIDevice.shared.appearance = Self.variant.hasPrefix("Dark") ? .dark : .light
         // permisiunile de sistem (notificări, cameră) apar peste aplicație în momente greu de prevăzut
         addUIInterruptionMonitor(withDescription: "permisiuni") { alert in
             Self.allow(alert)
@@ -282,6 +289,7 @@ class ReviewTestCase: XCTestCase {
         return switch variant {
         case "Dark", "Contrast": .contrast
         case "AX": [.dynamicType, .textClipped, .hitRegion]
+        case "DarkAX": [.contrast, .dynamicType, .textClipped, .hitRegion]
         case "Motion": nil
         default: .all
         }

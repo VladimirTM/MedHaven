@@ -24,7 +24,7 @@ import sys
 from collections import defaultdict
 from pathlib import Path
 
-VARIANTS = ["Light", "Dark", "AX", "Motion", "Contrast"]
+VARIANTS = ["Light", "Dark", "AX", "Motion", "Contrast", "DarkAX"]
 FRAME_OFFSETS_MS = [0, 100, 200, 300, 500, 800]
 UI_TARGET = "PolyGraphUITests"
 
@@ -246,7 +246,7 @@ def index(out_dir: str, q: str, seconds: str, *results: str) -> None:
         f"# {q} · turul de review pe simulator",
         "",
         f"- Durata: **{mins} min {secs:02d} s**",
-        f"- Capturi: **{shot_total}**, în {len(variants_seen)}/5 variante ({', '.join(variants_seen) or '—'})",
+        f"- Capturi: **{shot_total}**, în {len(variants_seen)}/{len(VARIANTS)} variante ({', '.join(variants_seen) or '—'})",
         f"- Erori de audit (performAccessibilityAudit): **{audit_total}**"
         + (
             " (" + ", ".join(f"{v} {audit_by_variant[v]}" for v in VARIANTS if v in audit_by_variant) + ")"

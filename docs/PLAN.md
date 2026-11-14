@@ -217,11 +217,12 @@ Cele două surse se completează: CNAS are lista oficială a rețetelor, PolyGra
 | Q3F2 vocea și scanarea pe backend | Dev B | ✅ | [#35](https://github.com/VladimirTM/PolyGraph/pull/35) | simptome în cuvinte obișnuite, rețete pe DCI |
 | Q3F1 modul senior | Dev A | ✅ | [#36](https://github.com/VladimirTM/PolyGraph/pull/36) | „Încearcă din nou”, `dayDone` adevărat, coada persistată |
 | Q3F3 robustețea API | Dev B | ✅ | [#37](https://github.com/VladimirTM/PolyGraph/pull/37) | `since` inclusiv, `POST /meds` concurent, erorile în română |
-| Q3F4 aparținătorul și consistența cu web-ul | Dev A (+ B) | ✅ | [#38](https://github.com/VladimirTM/PolyGraph/pull/38) | **rămâne T-Q3F4-03** (contrastul pe sticla barei) |
+| Q3F4 aparținătorul și consistența cu web-ul | Dev A (+ B) | ✅ | [#38](https://github.com/VladimirTM/PolyGraph/pull/38), [#48](https://github.com/VladimirTM/PolyGraph/pull/48) | T-Q3F4-03 închis în #48 (textul din bare în culoarea etichetelor; „Contrast failed” din audit pe sticlă acceptat ca fals pozitiv, 14.11) |
 | Q3F5 polish | Dev A | ✅ | [#39](https://github.com/VladimirTM/PolyGraph/pull/39) | **amânate Q3-36 și Q3-37; turul T-Q3F5-01 la final** |
-| Q3F6 regresia pentru Q4 | Dev A (agent) | ✅ | [#40](https://github.com/VladimirTM/PolyGraph/pull/40) | Dark stabil; **`testSeniorHugeTextDark` iese încă Light** |
+| Q3F6 regresia pentru Q4 | Dev A (agent) | ✅ | [#40](https://github.com/VladimirTM/PolyGraph/pull/40), [#48](https://github.com/VladimirTM/PolyGraph/pull/48) | Dark stabil; `testSeniorHugeTextDark` rulează în configurația `DarkAX` (#48) |
 | QA1 robustețea backend-ului | Dev B (+ A) | ✅ | [#43](https://github.com/VladimirTM/PolyGraph/pull/43) | backend gata: T-QA1-01…07 verzi (`backend/tests/test_qa1.py`); build-ul iOS și testele unitare verzi |
 | QA2 · QA3 · QA4 | Dev B (+ A) | ✅ | [#44](https://github.com/VladimirTM/PolyGraph/pull/44) | graful comun (`graph-core.js`), textele comune (`posology_words.json`), portalul UX |
+| Scanarea cutiilor + GTIN-uri românești | Dev A + B | ✅ | [#45](https://github.com/VladimirTM/PolyGraph/pull/45) | kb/ro_gtins.csv, BoxBarcode.swift |
 | QA5 funcționalitățile pentru demo | Dev B | ⬜ opțional | – | doar dacă rămâne timp până la S4 |
 | S4 + Q4 · D1 · D2 | amândoi | ⬜ | – | secțiunea 15 |
 
@@ -695,12 +696,12 @@ Ordinea ține cont de S4 (feature freeze, D 09:30): ce e marcat „înainte de S
 
 | # | Ce | Când | Durată | Status | Detalii |
 |---|---|---|---|---|---|
-| A-1 | partea din aplicație a QA1: afișarea alertei `unverified` lângă „moderate”, după ce Dev B adaugă kind-ul în contract | înainte de S4, după acordul pe contract | 20 min | ⬜ (kind-ul e în contract și în `Contracts.swift`; `AlertSections` îl pune deja în cardul moderat, fără `switch` exhaustiv: de confirmat pe simulator) | 14.1 |
+| A-1 | partea din aplicație a QA1: afișarea alertei `unverified` lângă „moderate”, după ce Dev B adaugă kind-ul în contract | înainte de S4, după acordul pe contract | 20 min | ✅ (`fix/s4-app-polish`: confirmat pe simulator cu `EdgeCaseTour.testUnverifiedAlert`, în cardul moderat, portocaliu; la pacient nu apare) | 14.1 |
 | A-2 | partea din aplicație a QA2: `graph-core.js` comun în bundle, graful identic cu portalul, zoom-ul pe alerta cea mai gravă (Q3-12) | înainte de S4 | ~1 h din 2,5 h | ✅ | 14.2 |
 | A-3 | partea din aplicație a QA3: XCTest pe `posology_words.json`, textele comune în Noutăți | înainte de S4 | 30 min | ✅ | 14.3 |
-| A-4 | T-Q3F4-03: re-auditul de contrast pe textul teal de pe sticla barei (`meds.shareButton`, `scan.closeButton`) | înainte de S4 | 30 min | ⬜ | Anexa C, Q3F4 |
-| A-5 | `EdgeCaseTour.testSeniorHugeTextDark` comută cu `XCUIDevice.appearance` în test, deci capturile ies Light | înainte de Q4 | 15 min | ⬜ | Anexa C, Q3F6 |
-| A-6 | comentariul din `FeedModel.isSerious` („doar când sunt escaladate”) nu mai e adevărat după X1: Noutăți primește și întrebările neescaladate; decizia rămâne notificarea pentru „fără date” sau `severity != nil` | înainte de S4 | 5 min | ⬜ | 5.2 |
+| A-4 | T-Q3F4-03: re-auditul de contrast pe textul teal de pe sticla barei (`meds.shareButton`, `scan.closeButton`) | înainte de S4 | 30 min | ✅ (`fix/s4-app-polish`: textul din bare în culoarea etichetelor; vezi Anexa C, Q3F4) | Anexa C, Q3F4 |
+| A-5 | `EdgeCaseTour.testSeniorHugeTextDark` comută cu `XCUIDevice.appearance` în test, deci capturile ies Light | înainte de Q4 | 15 min | ✅ (`fix/s4-app-polish`: configurația `DarkAX`) | Anexa C, Q3F6 |
+| A-6 | comentariul din `FeedModel.isSerious` („doar când sunt escaladate”) nu mai e adevărat după X1: Noutăți primește și întrebările neescaladate; decizia rămâne notificarea pentru „fără date” sau `severity != nil` | înainte de S4 | 5 min | ✅ (`fix/s4-app-polish`) | 5.2 |
 | A-7 | Q3-36 (tranziția „Am luat”, pe simulator cu capturile de cadre) și Q3-37 (ordinea dozelor; schimbarea fixture-ului atinge testele senior) | opțional | 1 h | ⬜ amânate din Q3F5 | Anexa C, Q3F5 |
 
 ### 12.2 Dev B (date, motor, backend, portal)
@@ -909,7 +910,7 @@ Restul ideilor din raport (simptome legate de medicamente, programul de lipit pe
 
 ## 15. S4, Q4, D1, D2 și materialele
 
-Q1 și Q2 n-au rulat (S1 și S2 trecute de facto), Q3 a rulat ziua (Anexa C). **Următorul e Q4**, la S4: turul de bază + `make review Q=Q4e TOUR=EdgeCaseTour CONFIGS="Light AX" NO_VIDEO=1` + turul T-Q3F5-01; `docs/reviews/Q4.md` are deja scheletul cu toate constatările din Q3.
+Q1 și Q2 n-au rulat (S1 și S2 trecute de facto), Q3 a rulat ziua (Anexa C). **Următorul e Q4**, la S4: turul de bază + `make review Q=Q4e TOUR=EdgeCaseTour CONFIGS="Light AX DarkAX" NO_VIDEO=1` + turul T-Q3F5-01; `docs/reviews/Q4.md` are deja scheletul cu toate constatările din Q3.
 
 ### 15.1 Q · Verificarea pe simulator, făcută de agent, după fiecare milestone (Q4 urmează)
 
@@ -1961,7 +1962,7 @@ Criterii de acceptare: aceeași doză ratată arată „joi, 12 nov., 14:00” �
 **Teste**
 - [x] T-Q3F4-01 `date_words.json` trece în pytest (`share/view.py`) și în XCTest (`PgFormat`).
 - [x] T-Q3F4-02 Backend oprit → `graph.retryButton`; revenit → graful se încarcă fără repornire.
-- [ ] T-Q3F4-03 Auditul de contrast în Dark și Contrast fără erori pe `meds.shareButton`, `settings.doneButton`, `scan.closeButton`, `share.doneButton`.
+- [x] T-Q3F4-03 Auditul de contrast în Dark și Contrast fără erori pe `meds.shareButton`, `settings.doneButton`, `scan.closeButton`, `share.doneButton`. *(`fix/s4-app-polish`, A-4: pe iOS 27 și „Gata” stă pe sticlă, deci eticheta `onAccent` (`BarConfirmLabel`, scos) ieșea închis pe închis; butoanele cu text din bare iau culoarea etichetelor (`pgBarButton()`), pictogramele rămân în accent. Măsurat pe capturile din `make review Q=a4 … CONFIGS="Dark Contrast"`: 11,3–19,6:1. `performAccessibilityAudit` pe iOS 27.2 raportează totuși „Contrast failed” pe orice text dintr-o capsulă de sticlă din bară, indiferent de culoare (alb pe gri închis inclusiv); doar `.buttonStyle(.plain)` trece, dar strică capsula de sistem, deci e acceptat ca fals pozitiv (decizia echipei, 14.11.2026); la Q4, erorile de contrast pe butoanele cu text din bare nu se mai raportează. `meds.shareButton` (pictogramă) trece. Varianta de contrast mare a accentului exista deja, cu valorile din `@media (prefers-contrast: more)` din `share.css`: `#074c4a` / `#8fe0da`.)*
 - [x] T-Q3F4-04 Alerte: primul card e o alertă gravă; ACB portocaliu.
 - [x] T-Q3F4-05 „Adaugă rețeta ORL” × 4 → statusul de succes rămâne; un singur Fromilid.
 - [x] T-Q3F4-06 Manual: aceeași doză ratată și același check-in, unul lângă altul în aplicație și în portal (dată, ora, severitatea, cuvintele). *(14.11.2026: portalul pe `make demo` arată „marți, 10 nov., 10:05” în listă și în fișă, „Actualizată azi, 16:08”, iar tipărirea „14.11.2026, 16:08”; Noutăți în aplicație în același format)*
@@ -1985,13 +1986,13 @@ Criterii de acceptare: aceeași doză ratată arată „joi, 12 nov., 14:00” �
 
 1. Varianta Dark stabilă: în `run.sh`, Dark rulează separat, după `xcrun simctl ui <udid> appearance dark` (ca la Contrast), nu doar cu `XCUIDevice.appearance` în `setUp`.
 2. `testDeleteUndoAndDeleteAll`: auditul după „Anulează”, nu înainte, ca fereastra de 5 s să nu expire.
-3. La Q4: turul de bază + `make review Q=Q4e TOUR=EdgeCaseTour CONFIGS="Light AX" NO_VIDEO=1`; fiecare constatare din Q3 primește starea închisă / deschisă / regresie în `docs/reviews/Q4.md`.
+3. La Q4: turul de bază + `make review Q=Q4e TOUR=EdgeCaseTour CONFIGS="Light AX DarkAX" NO_VIDEO=1`; fiecare constatare din Q3 primește starea închisă / deschisă / regresie în `docs/reviews/Q4.md`.
 
 **Teste**
 - [x] T-Q3F6-01 `make review Q=dbg CONFIGS=Dark ONLY="testSeniorNowMorning testCaregiverAlertsAndDetail testGraph"`: toate capturile sunt dark.
 - [x] T-Q3F6-02 `testDeleteUndoAndDeleteAll`: „Anulează” readuce Sintrom (`meds.row.med_01` după undo).
 
-> Verificat pe 14.11.2026 (`test/q3f6-review-tour`, Xcode 27.2, iPhone 18 Pro, iOS 27.2, `SIMS=1`). T-Q3F6-02: `make review Q=q3f6-delete TOUR=EdgeCaseTour ONLY="testDeleteUndoAndDeleteAll" CONFIGS=Light NO_VIDEO=1 SIMS=1`, 9 capturi, nimic absent; `med_01` lipsește la „deleted” și revine la „undone”, auditat după „Anulează”. T-Q3F6-01: cu `Q=q3f6-dark` în loc de `dbg`; prima rulare (Dark separat după `simctl ui appearance dark`) a dat tot 8 capturi Light. Diagnosticul: simulatorul salvează aspectul fără să redeseneze interfața (Settings rămâne light până la reboot), deci `run.sh` repornește simulatorul după fiecare schimbare de aspect / contrast (`set_ui`). A doua rulare: 8 / 8 capturi dark (luminozitate medie 29–97 din 255, față de 221–244), 2 probleme de contrast în loc de 17. Rămâne: `EdgeCaseTour.testSeniorHugeTextDark` comută cu `XCUIDevice.appearance` în test, deci capturile lui ies Light. Turul Q4 (punctul 3) rulează la testarea finală; `docs/reviews/Q4.md` are scheletul cu toate constatările din Q3.
+> Verificat pe 14.11.2026 (`test/q3f6-review-tour`, Xcode 27.2, iPhone 18 Pro, iOS 27.2, `SIMS=1`). T-Q3F6-02: `make review Q=q3f6-delete TOUR=EdgeCaseTour ONLY="testDeleteUndoAndDeleteAll" CONFIGS=Light NO_VIDEO=1 SIMS=1`, 9 capturi, nimic absent; `med_01` lipsește la „deleted” și revine la „undone”, auditat după „Anulează”. T-Q3F6-01: cu `Q=q3f6-dark` în loc de `dbg`; prima rulare (Dark separat după `simctl ui appearance dark`) a dat tot 8 capturi Light. Diagnosticul: simulatorul salvează aspectul fără să redeseneze interfața (Settings rămâne light până la reboot), deci `run.sh` repornește simulatorul după fiecare schimbare de aspect / contrast (`set_ui`). A doua rulare: 8 / 8 capturi dark (luminozitate medie 29–97 din 255, față de 221–244), 2 probleme de contrast în loc de 17. ~~Rămâne: `EdgeCaseTour.testSeniorHugeTextDark` comută cu `XCUIDevice.appearance` în test, deci capturile lui ies Light.~~ Închis în `fix/s4-app-polish` (A-5): Dark + textul maxim e configurația `DarkAX` (Dark prin `set_ui`, XXXL din test plan), cerută explicit: `make review Q=Q4e TOUR=EdgeCaseTour CONFIGS="Light AX DarkAX" NO_VIDEO=1`; 6 / 6 capturi dark (luminozitate medie 47–99 din 255). Turul Q4 (punctul 3) rulează la testarea finală; `docs/reviews/Q4.md` are scheletul cu toate constatările din Q3.
 
 ---
 

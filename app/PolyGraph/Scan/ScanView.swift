@@ -55,6 +55,7 @@ struct ScanView: View {
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Închide") { dismiss() }
+                        .pgBarButton()
                         .accessibilityIdentifier("scan.closeButton")
                 }
                 ToolbarItem(placement: .principal) {
