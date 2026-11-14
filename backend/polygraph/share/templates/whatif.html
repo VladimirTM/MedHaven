@@ -1,0 +1,17 @@
+{# QA5.2: răspunsul „Dacă prescriu…”, inserat de whatif.js sub câmp; cardurile sunt cele din fișă, fără decizie #}
+{% from "alerts.html" import alert_card %}
+{% if state == "empty" %}
+<p class="whatif-note" data-whatif-state="empty">Scrieți numele medicamentului.</p>
+{% else %}
+<div class="whatif-answer" data-whatif-state="{{ state }}">
+  {% if state != "unknown" %}
+  <p class="whatif-med"><strong>{{ name }}</strong>{% if dci %}<span class="muted"> · {{ dci }}</span>{% endif %}</p>
+  {% endif %}
+  {% if state == "none" %}
+  <p class="whatif-note">{{ none_text }}</p>
+  {% else %}
+  {% if count %}<p class="whatif-count">{{ count }}</p>{% endif %}
+  {% for a in alerts %}{{ alert_card(a, review=False, prefix="whatif-") }}{% endfor %}
+  {% endif %}
+</div>
+{% endif %}

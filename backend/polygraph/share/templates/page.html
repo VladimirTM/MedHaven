@@ -70,6 +70,20 @@
     {% endif %}
   </section>
 
+  <section aria-labelledby="h-whatif" class="whatif no-print">
+    <h2 id="h-whatif">Dacă prescriu…</h2>
+    <p class="section-lead">Verificați un medicament nou față de lista actuală, înainte de rețetă. Rezultatul nu se salvează și familia nu îl vede.</p>
+    <form class="whatif-form" method="post" action="{{ base }}/what-if" novalidate data-whatif>
+      <label class="visually-hidden" for="whatif-query">Numele medicamentului</label>
+      <input class="whatif-input" id="whatif-query" name="query" type="search" maxlength="200" autocomplete="off" autocapitalize="words" spellcheck="false" enterkeyhint="search" placeholder="ex. Fromilid" required>
+      <button class="btn" type="submit">Verifică</button>
+    </form>
+    <div class="whatif-result" aria-live="polite" data-whatif-result></div>
+    <template data-whatif-loading><p class="whatif-note whatif-loading" data-whatif-state="loading">Se verifică…</p></template>
+    <template data-whatif-error="network"><div class="whatif-error" role="alert" data-whatif-state="error"><p>Nu s-a putut verifica. Verificați conexiunea.</p><button class="btn btn-secondary" type="button" data-whatif-retry>Încearcă din nou</button></div></template>
+    <template data-whatif-error="server"><div class="whatif-error" role="alert" data-whatif-state="error"><p>Nu s-a putut verifica. Încercați din nou.</p><button class="btn btn-secondary" type="button" data-whatif-retry>Încearcă din nou</button></div></template>
+  </section>
+
   <section aria-labelledby="h-schedule" id="live-schedule" data-live-part>
     <h2 id="h-schedule">Programul de azi <span class="count">{{ schedule.date }}</span></h2>
     {% if schedule.moments %}
@@ -139,4 +153,5 @@
 {% endif %}
 <script src="/static/share/share.js" defer></script>
 <script src="/static/share/live.js" defer></script>
+<script src="/static/share/whatif.js" defer></script>
 {% endblock %}
