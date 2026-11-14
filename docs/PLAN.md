@@ -714,7 +714,7 @@ Ordinea ține cont de S4 (feature freeze, D 09:30): ce e marcat „înainte de S
 | B-5 | QA5: portalul care se actualizează singur, „Dacă prescriu X?”, „Ce s-a schimbat” | opțional | 2–4 h | ⬜ | 14.5 |
 | B-6 | **Pitch-ul:** slide-ul 5 („Cum e construit”: diagrama din 8.1, „LLM doar la margini”, o captură cu logurile `SCAN` / `ALERTĂ` din `make demo`); cifrele de pe slide-ul 1 verificate în sursele originale; câte 2 fraze pentru fiecare întrebare probabilă a juriului, inclusiv CNAS (6.4) | înainte de D2 | 1 h | ⬜ | 17 |
 | B-7 | **Materialele:** Nurofen se cumpără fără rețetă; Sintrom e pe rețetă, deci se tipărește cutia de test `demo/datamatrix/test_sintrom.png`; rețeta ORL tipărită (`demo/rx/reteta_demo_fromilid.pdf`, A4, scala 100%) | înainte de D1 | 30 min | ⬜ | 15.4 |
-| B-8 | Pregătirea pentru Q4 (rulează pe Mac-ul lui Dev B): `make check-ios` verde pe Mac-ul lui, laptopul la priză și fără sleep (`caffeinate`) | înainte de S4 | 15 min | ⬜ | 15.1 |
+| B-8 | Pregătirea pentru Q4 (rulează pe Mac-ul lui Dev B): `make check-ios` verde pe Mac-ul lui, laptopul la priză și fără sleep (`caffeinate`) | înainte de S4 | 15 min | ✅ | 15.1 |
 
 ### 12.3 Împreună
 
@@ -723,7 +723,7 @@ Ordinea ține cont de S4 (feature freeze, D 09:30): ce e marcat „înainte de S
 | J-1 | Al doilea iPhone nu se conectează din aplicație (`-1009`, „offline”), deși Safari ajunge la `/health` și Local Network e pornit: de aflat cauza din linia completă `unsatisfied (…)` din consola Xcode; rezerva sigură pentru scenă e hotspot-ul Mac-ului (`make demo` afișează primul `bridge100`) | înainte de D1 | ⬜ | 18 |
 | J-2 | **S4** feature freeze: toate feature-urile MVP rulează în scenariul demo de 3 ori la rând; Q4 fără blocker deschis | D 09:30 | ⬜ | 10.2 |
 | J-3 | **Q4**: turul de bază + `EdgeCaseTour` + turul T-Q3F5-01; fiecare constatare din Q3 primește starea închisă / deschisă / regresie în `docs/reviews/Q4.md` | primele 45 min din D1 | ⬜ | 15.1 |
-| J-4 | `make demo-check` cu `URL=` pe serverul din `make demo`, pe Mac-ul de demo (repetarea T-Q3F0-02) | înainte de D1 | ⬜ | Anexa C, Q3F0 |
+| J-4 | `make demo-check` cu `URL=` pe serverul din `make demo`, pe Mac-ul de demo (repetarea T-Q3F0-02) | înainte de D1 | ✅ | Anexa C, Q3F0 |
 | J-5 | **D1** integrare, repetiții, video de rezervă | W24.5–W27.5 | ⬜ | 15.2 |
 | J-6 | **D2** pitch și submit | W27.5–W30 | ⬜ | 15.3 |
 | J-7 | Materialele fizice: cutiile pentru cele 9 medicamente (și T-A2-03 în lumina sălii), rețeta demo tipărită, check-in-ul dictat de 3 ori, prelungitor, cabluri, încărcătoare | înainte de D1 | ⬜ | 15.4 |
