@@ -19,7 +19,7 @@ from pathlib import Path
 import zxingcpp
 from PIL import Image
 
-from polygraph.net import local_ips
+from polygraph.net import local_addresses
 
 ROOT = Path(__file__).resolve().parents[3]
 PHOTO = re.compile(r"med_0[1-8]\.jpg")  # numele din demo_patient.json (photo_url = /media/med_0N.jpg)
@@ -87,6 +87,30 @@ def readiness() -> list[str]:
     return notes
 
 
+def banner(usable: list[str], unusable: list[str], port: int, code: str) -> list[str]:
+    """Capul de afișaj din `make demo`: QR-ul și adresele, cea bună prima; fără QR dacă nu e nicio adresă folosibilă."""
+    lines = ["", "PolyGraph · demo", ""]
+    if usable:
+        url = f"http://{usable[0]}:{port}"
+        lines += ["   " + line for line in qr_lines(url)]
+        lines += ["", f"  Aplicația (Setări → adresa serverului): {url}"]
+        lines += [f"                              sau: http://{ip}:{port}" for ip in usable[1:]]
+    else:
+        url = f"http://127.0.0.1:{port}"
+        lines += [
+            "  ⚠ Laptopul nu are nicio adresă la care să ajungă telefoanele, deci nu afișăm un QR.",
+            "    Porniți Wi-Fi-ul sau hotspot-ul (de exemplu Personal Hotspot de pe un iPhone, la care se conectează",
+            "    laptopul și celălalt telefon), apoi reporniți make demo ca să apară adresa bună.",
+        ]
+    lines += [f"  nefolosibilă (link-local, telefoanele nu ajung la ea): {ip}" for ip in unusable]
+    lines += [
+        f"  Portalul medicului:  {url}/portal   (cod: {code})",
+        f"  Verificare:          make demo-check URL=http://127.0.0.1:{port}",
+        "",
+    ]
+    return lines
+
+
 def main() -> None:
     port = int(os.environ.get("PORT") or 8000)
     if not port_free(port):
@@ -96,23 +120,8 @@ def main() -> None:
             f"make demo PORT={port + 1}.\nCe îl ține: lsof -nP -iTCP:{port} -sTCP:LISTEN"
         )
     os.environ["DEMO_MODE"] = "1"
-    ips = local_ips()
-    url = f"http://{ips[0]}:{port}"
     code = os.environ.get("PG_DOCTOR_CODE") or "medic-demo"
-    print("\nPolyGraph · demo\n")
-    for line in qr_lines(url):
-        print("   " + line)
-    if ips == ["127.0.0.1"]:
-        print(
-            "\n  ⚠ Laptopul nu e în nicio rețea: telefoanele nu pot ajunge la 127.0.0.1.\n"
-            "    Porniți Wi-Fi-ul sau hotspot-ul (de exemplu Personal Hotspot de pe un iPhone, la care se conectează\n"
-            "    laptopul și celălalt telefon), apoi reporniți make demo ca să apară adresa bună."
-        )
-    print(f"\n  Aplicația (Setări → adresa serverului): {url}")
-    for ip in ips[1:]:
-        print(f"                              sau: http://{ip}:{port}")
-    print(f"  Portalul medicului:  {url}/portal   (cod: {code})")
-    print(f"  Verificare:          make demo-check URL=http://127.0.0.1:{port}\n")
+    print("\n".join(banner(*local_addresses(), port, code)))
     for note in readiness():
         print("  " + note)
     print("\n  Logurile de mai jos arată fiecare scanare, alertă nouă și check-in (ce a decis și din ce sursă).\n")
