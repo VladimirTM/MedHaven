@@ -191,7 +191,7 @@ a { color: var(--accent); text-underline-offset: 0.15em; }
   .topbar-inner { flex-wrap: nowrap; align-items: flex-start; gap: 0.75rem; }
   .topbar .page-title { font-size: 1.375rem; }
   .topbar .disclaimer { font-size: 0.75rem; line-height: 1.35; margin-top: 0.125rem; }
-  .topbar .btn { min-height: 2.25rem; padding: 0.375rem 0.75rem; font-size: 0.875rem; }
+  .topbar .btn { min-height: 2.75rem; padding: 0.5rem 0.75rem; font-size: 0.875rem; }
   .label-long { display: none; }
   .label-short { display: inline; }
 }
@@ -258,26 +258,32 @@ a { color: var(--accent); text-underline-offset: 0.15em; }
 .info > summary.info-btn {
   list-style: none;
   position: absolute;
-  top: 0.875rem;
-  right: 0.875rem;
+  top: 0.375rem;
+  right: 0.375rem;
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  color: var(--accent);
+  font: italic 700 1rem/1 ui-serif, Georgia, "Times New Roman", serif;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: transform 160ms var(--ease);
+}
+
+.info > summary.info-btn::-webkit-details-marker { display: none; }
+.info > summary.info-btn > span {
   width: 1.75rem;
   height: 1.75rem;
   border-radius: 50%;
   display: grid;
   place-items: center;
   background: var(--fill);
-  color: var(--accent);
-  font: italic 700 1rem/1 ui-serif, Georgia, "Times New Roman", serif;
-  cursor: pointer;
-  -webkit-tap-highlight-color: transparent;
-  transition: transform 160ms var(--ease), background-color 160ms var(--ease), color 160ms var(--ease);
+  transition: background-color 160ms var(--ease), color 160ms var(--ease);
 }
-
-.info > summary.info-btn::-webkit-details-marker { display: none; }
-/* ținta de atingere de 44 px, cu cercul vizibil mai mic */
-.info > summary.info-btn::before { content: ""; position: absolute; inset: -0.5rem; border-radius: 50%; }
 .info > summary.info-btn:active { transform: scale(0.92); transition-duration: 0s; }
-.info[open] > summary.info-btn { background: var(--accent); color: var(--on-accent); }
+.info[open] > summary.info-btn > span { background: var(--accent); color: var(--on-accent); }
 
 .info-panel {
   margin-top: 0.75rem;
@@ -341,7 +347,7 @@ a { color: var(--accent); text-underline-offset: 0.15em; }
 .alert.sev-moderate { border-left-color: var(--sev-moderate); }
 .alert.sev-info { border-left-color: var(--sev-info); }
 .alert.is-reviewed { border-left-color: var(--ok); }
-.alert.is-highlighted { box-shadow: 0 0 0 2px var(--accent); }
+.alert.is-highlighted, .med.is-highlighted { box-shadow: 0 0 0 2px var(--accent); }
 
 .alert .info-panel, .alert .review { margin-right: -2rem; }
 .alert-head { display: flex; gap: 0.5rem; align-items: center; margin-bottom: 0.375rem; flex-wrap: wrap; }
@@ -379,9 +385,10 @@ a { color: var(--accent); text-underline-offset: 0.15em; }
 .review { margin-top: 0.875rem; padding-top: 0.875rem; border-top: 1px solid var(--line); }
 .review-form { display: grid; gap: 0.625rem; }
 
-.note-toggle > summary { cursor: pointer; color: var(--accent); font-weight: 500; font-size: 0.9375rem; padding: 0.25rem 0; width: fit-content; }
+.note-toggle > summary { cursor: pointer; color: var(--accent); font-weight: 500; font-size: 0.9375rem; padding: 0.5rem 0; min-height: 2.75rem; display: inline-flex; align-items: center; width: fit-content; }
 .note-toggle[open] > summary { margin-bottom: 0.375rem; }
 .note-toggle .note-input { width: 100%; }
+.note-hint { color: var(--sev-text-moderate); font-size: 0.875rem; font-weight: 500; }
 
 /* celelalte alerte: strânse sub un singur buton, ca fișa să înceapă cu ce e important */
 .more > summary { list-style: none; width: 100%; }
@@ -389,8 +396,45 @@ a { color: var(--accent); text-underline-offset: 0.15em; }
 .more .when-open, .more[open] .when-closed { display: none; }
 .more[open] .when-open { display: inline; }
 .more-body { margin-top: 0.75rem; }
-.decisions { display: flex; gap: 0.5rem; flex-wrap: wrap; }
-.decisions .btn { flex: 1 1 auto; }
+.decisions { display: flex; gap: 0.5rem; flex-wrap: nowrap; }
+.decisions .btn { flex: 1 1 0; }
+.decisions .btn.is-selected { box-shadow: inset 0 0 0 2px var(--accent); }
+.decision-mobile { display: none; }
+
+@media (max-width: 37.5rem) {
+  .decisions { display: none; }
+  .decision-mobile { display: grid; gap: 0.5rem; }
+  .decision-segment {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.25rem;
+    padding: 0.25rem;
+    border-radius: 0.625rem;
+    background: var(--fill);
+  }
+  .segment-option {
+    appearance: none;
+    border: 0;
+    border-radius: 0.5rem;
+    min-height: 2.75rem;
+    padding: 0.375rem 0.5rem;
+    font: inherit;
+    font-size: 0.875rem;
+    font-weight: 600;
+    background: transparent;
+    color: var(--text);
+    cursor: pointer;
+    text-align: center;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .segment-option.is-selected,
+  .segment-option[aria-checked="true"] {
+    background: var(--surface);
+    color: var(--accent);
+    box-shadow: 0 1px 3px rgb(0 0 0 / 0.12), 0 0 0 1px var(--line);
+  }
+  .decision-submit { width: 100%; }
+}
 
 .note-input {
   flex: 1 1 12rem;
@@ -404,8 +448,9 @@ a { color: var(--accent); text-underline-offset: 0.15em; }
 }
 
 .review-error { flex-basis: 100%; color: var(--sev-text-major); font-size: 0.875rem; }
-.reviewed-state { color: var(--ok); font-weight: 600; animation: appear 240ms var(--ease); }
-.reviewed-state .note { color: var(--text); font-weight: 400; }
+.reviewed-state { color: var(--ok); font-weight: 600; animation: appear 240ms var(--ease); display: flex; flex-wrap: wrap; align-items: center; gap: 0.375rem 0.75rem; }
+.reviewed-state .note { color: var(--text); font-weight: 400; flex-basis: 100%; }
+.change-decision { min-height: 2.75rem; padding: 0.375rem 0.75rem; font-size: 0.875rem; }
 
 @keyframes appear { from { opacity: 0; transform: translateY(0.25rem); } to { opacity: 1; transform: none; } }
 
@@ -457,13 +502,21 @@ caption { text-align: left; color: var(--text-2); padding: 0.5rem 0 0.25rem; cap
 /* ---------------------------------------------------------------- graf */
 
 .graph-frame { background: var(--surface); border-radius: var(--radius); box-shadow: 0 0 0 1px var(--line); overflow: hidden; }
+/* Cytoscape își pune canvas-urile cu position: absolute în container (QA-12) */
+#graph { position: relative; }
 .graph { width: 100%; height: 26rem; }
-.graph-link { margin-top: 0.5rem; }
+.graph-actions { margin-top: 0.5rem; display: flex; gap: 0.5rem 1rem; align-items: center; flex-wrap: wrap; }
 
 .graph-page { margin: 0; height: 100vh; height: 100dvh; display: flex; flex-direction: column; }
 .graph-page .graph.fill { flex: 1; height: auto; min-height: 0; }
 .graph-page.embed { background: transparent; font-family: -apple-system, system-ui, sans-serif; }
-.graph-bar { padding: max(0.75rem, env(safe-area-inset-top)) 1rem 0.75rem; }
+.graph-bar { padding: max(0.75rem, env(safe-area-inset-top)) 1rem 0.75rem; display: flex; gap: 1rem; align-items: center; justify-content: space-between; flex-wrap: wrap; }
+
+/* pe telefon graful din fișă ia toată lățimea și cel puțin 70% din înălțimea ecranului */
+@media (max-width: 37.5rem) {
+  .graph-frame { margin-inline: calc(-1 * max(1rem, env(safe-area-inset-left))); border-radius: 0; }
+  .graph { height: 70vh; height: 70dvh; min-height: 22rem; }
+}
 
 /* ---------------------------------------------------------------- check-in și program */
 
@@ -513,6 +566,11 @@ caption { text-align: left; color: var(--text-2); padding: 0.5rem 0 0.25rem; cap
 .patient-card:active { transform: scale(0.99); transition-duration: 0s; }
 .patient-card.is-escalated, .patient-card.is-pending { border-left-color: var(--sev-major); }
 .patient-avatar { display: grid; place-items: center; width: 2.75rem; height: 2.75rem; border-radius: 50%; background: color-mix(in srgb, var(--accent) 14%, transparent); color: var(--accent); font-weight: 700; font-size: 1.125rem; align-self: start; }
+.patient-avatar[data-tone="1"] { background: color-mix(in srgb, var(--sev-info) 14%, transparent); color: var(--sev-info); }
+.patient-avatar[data-tone="2"] { background: color-mix(in srgb, var(--ok) 15%, transparent); color: var(--ok); }
+.patient-avatar[data-tone="3"] { background: color-mix(in srgb, var(--sev-moderate) 16%, transparent); color: var(--sev-text-moderate); }
+.patient-avatar[data-tone="4"] { background: color-mix(in srgb, #5856d6 14%, transparent); color: #5856d6; }
+.patient-avatar[data-tone="5"] { background: color-mix(in srgb, #af52de 14%, transparent); color: #af52de; }
 .patient-name { font-size: 1.125rem; font-weight: 650; letter-spacing: -0.01em; }
 .patient-meta { color: var(--text-2); font-size: 0.875rem; margin-top: 0.0625rem; }
 .patient-why { list-style: none; padding: 0; margin-top: 0.5rem; display: grid; gap: 0.25rem; font-size: 0.9375rem; }
@@ -658,14 +716,15 @@ caption { text-align: left; color: var(--text-2); padding: 0.5rem 0 0.25rem; cap
 .connect { display: grid; grid-template-columns: 1fr 1fr; gap: 3rem; align-items: center; }
 .connect > div > p:last-child { color: var(--text-2); margin-top: -1rem; }
 .address-card { background: var(--surface); border-radius: 1.25rem; padding: 1.5rem; box-shadow: 0 0 0 1px var(--line); display: grid; gap: 1.25rem; }
+.address-copy { display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; flex-wrap: wrap; }
 .address-label { font-size: 0.8125rem; font-weight: 600; color: var(--text-2); }
 .address { font-size: 1.375rem; font-weight: 650; line-height: 1.3; letter-spacing: -0.01em; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; margin-top: 0.125rem; }
-.address a { text-decoration: none; }
+.address a { text-decoration: none; display: inline-flex; align-items: center; min-height: 2.75rem; }
 
 .home-footer { padding: 2rem 0 3rem; border-top: 1px solid var(--line); font-size: 0.9375rem; }
 .home-footer .muted { margin-top: 0.25rem; max-width: 44rem; }
 
-@media (max-width: 60rem) {
+@media (max-width: 56.25rem) {
   .hero-grid, .principle, .connect { grid-template-columns: 1fr; gap: 2rem; }
   .hero { padding-top: 2rem; }
   .hero-visual { max-width: 32rem; width: 100%; margin: 0 auto; }
@@ -682,7 +741,24 @@ caption { text-align: left; color: var(--text-2); padding: 0.5rem 0 0.25rem; cap
   /* pe telefon cardurile ar acoperi graful: stau sub el, în flux */
   .float-card { position: static; max-width: none; margin-top: 0.75rem; box-shadow: 0 0 0 1px var(--line); }
   .hero-visual { padding-bottom: 1rem; }
-  .home-bar .btn { min-height: 2.25rem; padding: 0.375rem 0.75rem; font-size: 0.875rem; }
+  .home-bar .btn { min-height: 2.75rem; padding: 0.5rem 0.75rem; font-size: 0.875rem; }
+}
+
+@media (pointer: coarse) {
+  .crumb a,
+  .graph-bar a,
+  .print-bar a,
+  .graph-actions a,
+  .login-foot a,
+  .center a,
+  .facts a,
+  .wordmark,
+  .note-toggle > summary {
+    min-height: 2.75rem;
+    min-width: 2.75rem;
+    display: inline-flex;
+    align-items: center;
+  }
 }
 
 /* ---------------------------------------------------------------- preferințele de accesibilitate */

@@ -10,7 +10,7 @@ from zoneinfo import ZoneInfo
 
 from polygraph.engine.analyze import is_active
 from polygraph.engine.context import brand
-from polygraph.engine.texts_ro import ro_name
+from polygraph.engine.texts_ro import doctor_review_title, ro_name
 from polygraph.kb import SEV_RANK
 
 Json = dict[str, Any]
@@ -41,6 +41,12 @@ SOURCE_LABEL = {
     "app": "PolyGraph",
 }
 DECISION_LABEL = {"keep": "Menține", "change_at_visit": "Modific la consultație", "refer_specialist": "Trimit la specialist"}
+# aceleași etichete la persoana a III-a ca DoctorDecision.label din app/PolyGraph/Alerts/AlertSections.swift (QA3)
+DECISION_LABEL_FAMILY = {
+    "keep": "Menține tratamentul",
+    "change_at_visit": "Îl modifică la consultație",
+    "refer_specialist": "Trimite la specialist",
+}
 # întrebări pentru consultație; niciuna nu spune „opriți” sau o doză
 QUESTION = {
     "ddi": "{meds}: se menține asocierea și ce monitorizare propuneți?",
@@ -135,28 +141,81 @@ def prescriber(med: Json) -> str | None:
     return p.get("name") or p.get("specialty")
 
 
-def plain_posology(raw: str) -> str:
+def plain_posology(raw: str, *, as_needed: bool = False) -> str:
     """Posologia în cuvinte: „1-0-1, după masă” → „1 dimineața, 1 seara · după masă”; „cp” scris întreg.
-    Ce nu e în schema dimineață-prânz-seară rămâne cum l-a scris medicul."""
-    text = raw
-    m = _SCHEME.match(raw)
+    Ce nu e în schema dimineață-prânz-seară rămâne cum l-a scris medicul. Perechile comune cu `PgFormat.dosageWords`
+    sunt în contracts/fixtures/posology_words.json (QA3)."""
+    text = re.sub(r"(?<![\d/])1/2(?![\d/])", "½", raw)
+    m = _SCHEME.match(text)
     if m:
-        qty = [q.strip() for q in m.group(1).split("-")]
+        qty = [q.strip().replace(".", ",") for q in m.group(1).split("-")]
         parts = [f"{q} {SLOTS[i]}" for i, q in enumerate(qty) if q.strip("0.,") != ""]
         if parts:
             rest = m.group(2).lstrip(",; ").strip()
             text = ", ".join(parts) + (f" · {rest}" if rest else "")
+        else:
+            text = ""
     text = re.sub(r"\bcp\b", "comprimat", text)
-    return re.sub(r"(?<![\d/])1/2(?![\d/])", "½", text)
+    if as_needed:
+        return f"{text}, la nevoie" if text else "La nevoie"
+    return text
+
+
+def clean_source_ref(ref: str | None) -> str | None:
+    """Scoate căile interne (`kb/curated_ddi.csv: …`, `, kb/rules/acb.yaml`) din referința sursei (QA3)."""
+    if not ref:
+        return None
+    cleaned = re.sub(r"^\s*kb/[^:\s]+:\s*", "", ref)
+    cleaned = re.sub(r",?\s*kb/\S+", "", cleaned).strip()
+    return cleaned or None
+
+
+def source_label(source: Json) -> str:
+    base = SOURCE_LABEL.get(source["db"], source["db"])
+    if source["db"] == "curated" and "DDInter" in (source.get("ref") or ""):
+        return f"{base} (din DDInter 2.0)"
+    return base
+
+
+def doctor_recommendation(alert: Json) -> str:
+    """Textul `recommendation` din contract e scris pentru familie („Discutați cu medicul de familie…”); în portal
+    medicul de familie citește o variantă adresată lui, din aceleași câmpuri (QA3)."""
+    rec = alert["recommendation"]
+    m = re.match(r"^Discutați cu (medicul [^.]+?) înainte de următoarea doză de ([^.]+)\.(.*)$", rec)
+    if m:
+        who, med, rest = m.group(1), m.group(2), m.group(3).strip()
+        target = "dumneavoastră" if who == "medicul de familie" else who
+        head = f"Pacientul a fost sfătuit să discute cu {target} înainte de următoarea doză de {med}."
+        return f"{head} {rest}" if rest else head
+    if rec.startswith("Discutați cu medicul care a prescris "):
+        tail = rec.removeprefix("Discutați cu ").split(";", 1)[0].rstrip(".")
+        return f"Pacientul a fost sfătuit să discute cu {tail}."
+    for prefix, replacement in (
+        ("Discutați cu medicul de familie la următoarea vizită", "De revizuit la această consultație"),
+        ("Discutați cu medicul de familie ", "Pacientul a fost sfătuit să discute cu dumneavoastră "),
+        ("Întrebați medicul de familie ", "Pacientul a fost sfătuit să vă întrebe "),
+        ("Cereți o revizuire a tratamentului la medicul de familie.", "De revizuit întregul tratament la această consultație."),
+        ("Arătați ambele cutii medicului de familie ", "Pacientul a fost sfătuit să vă arate ambele cutii "),
+        (
+            "Arătați programul medicului de familie și întrebați-l ",
+            "Pacientul a fost sfătuit să vă arate programul și să vă întrebe ",
+        ),
+    ):
+        if rec.startswith(prefix):
+            return replacement + rec[len(prefix) :]
+    return rec
 
 
 def med_row(med: Json) -> Json:
     dosage = med.get("dosage") or {}
-    posology = dosage.get("raw") or ""
-    how = plain_posology(posology)
-    if dosage.get("as_needed"):
-        posology = f"{posology} (la nevoie)" if posology else "la nevoie"
-        how = f"{how} (la nevoie)" if how else "la nevoie"
+    raw = (dosage.get("raw") or "").strip()
+    as_needed = bool(dosage.get("as_needed"))
+    how = plain_posology(raw, as_needed=as_needed)
+    posology = f"{raw} (la nevoie)" if (raw and as_needed) else (raw or ("la nevoie" if as_needed else ""))
+    if raw and how and how.lower() != raw.lower():
+        print_posology = f"{how} ({raw})"
+    else:
+        print_posology = how or posology or "–"
     subs = med.get("substances") or []
     return {
         "id": med["id"],
@@ -164,6 +223,7 @@ def med_row(med: Json) -> Json:
         "dci": ", ".join(ro_name(s.get("inn"), s.get("dci")) for s in subs) or "–",
         "atc": ", ".join(s.get("atc") or "–" for s in subs) or "–",
         "posology": posology or "–",
+        "print_posology": print_posology,
         "how": how or "–",
         "prescriber": prescriber(med) or "fără rețetă / nespecificat",
         "who": f"Prescris de: {prescriber(med)}" if prescriber(med) else "Fără rețetă (sau prescriptor nespecificat)",
@@ -174,15 +234,20 @@ def med_row(med: Json) -> Json:
 def alert_view(alert: Json, names: dict[str, str], today: date) -> Json:
     source = alert["source"]
     res = alert.get("resolution")
+    decision = (res or {}).get("decision") or ""
     return {
         **alert,
+        "source": {**source, "ref": clean_source_ref(source.get("ref"))},
+        "recommendation": doctor_recommendation(alert),
+        "family_recommendation": alert["recommendation"],
         "severity_label": SEVERITY_LABEL[alert["severity"]],
         "kind_label": KIND_LABEL.get(alert["kind"], alert["kind"]),
         "meds": [names.get(m, m) for m in alert["med_ids"]],
-        "source_label": SOURCE_LABEL.get(source["db"], source["db"]),
+        "source_label": source_label(source),
         "grave": alert["severity"] in GRAVE,
         "reviewed": alert["status"] == "reviewed_by_doctor",
-        "decision_label": DECISION_LABEL.get((res or {}).get("decision") or "", None),
+        "decision_label": DECISION_LABEL.get(decision, None),
+        "family_decision_label": DECISION_LABEL_FAMILY.get(decision, None),
         "resolution_at": relative_day(res["at"], today) if res else None,
     }
 
@@ -355,6 +420,11 @@ def page_context(
     }
 
 
+def avatar_tone(pid: str) -> int:
+    """Culoare stabilă per pacient din paleta de accente (0..5), după id (QA4)."""
+    return sum((i + 1) * b for i, b in enumerate(pid.encode("utf-8"))) % 6
+
+
 def patient_card(patient: Json, meds: list[Json], analysis: Json, checkins: list[Json], today: date) -> Json:
     """Rândul unui pacient din lista medicului: cele nerevizuite și semnalele familiei îl urcă în listă."""
     active = [m for m in meds if is_active(m, today)]
@@ -364,6 +434,7 @@ def patient_card(patient: Json, meds: list[Json], analysis: Json, checkins: list
     escalated = [c for c in recent if c.get("escalate")]
     return {
         "patient": patient,
+        "avatar_tone": avatar_tone(patient["id"]),
         "age": today.year - patient["birth_year"] if patient.get("birth_year") else None,
         "meds": len(active),
         "grave": len(grave),
@@ -422,15 +493,15 @@ def portal_summary(cards: list[Json], today: date) -> Json:
     }
 
 
-def review_event(alert: Json, decision: str, note: str, at: str, suffix: str) -> Json:
-    """Evenimentul din Noutăți (A5) pentru o alertă revizuită de medicul de familie."""
-    label = DECISION_LABEL[decision]
+def review_event(alert: Json, decision: str, note: str, at: str, suffix: str, *, changed: bool = False) -> Json:
+    """Evenimentul din Noutăți (A5) pentru o alertă revizuită de medicul de familie (persoana a III-a, QA3/QA4)."""
+    label = DECISION_LABEL_FAMILY[decision]
     return {
         "id": f"ev_review_{suffix}",
         "at": at,
         "type": "doctor_reviewed",
         "severity": alert["severity"],
-        "title": f"Medicul de familie a revizuit: {alert['title']}",
+        "title": doctor_review_title(alert["title"], changed=changed),
         "body": f"Decizie: {label}." + (f" {note}" if note else ""),
         "med_ids": alert["med_ids"],
         "alert_id": alert["id"],

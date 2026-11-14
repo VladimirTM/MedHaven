@@ -2,13 +2,16 @@
 {% block title %}Graful terapeutic · {{ patient.name }}{% endblock %}
 {% block body_class %}graph-page{% if embed %} embed{% endif %}{% endblock %}
 {% block body %}
+<h1 class="visually-hidden">Graful terapeutic · {{ patient.name }}</h1>
 {% if back %}
 <header class="graph-bar">
   <a href="{{ back }}">← Fișa lui {{ patient.name }}</a>
+  <button class="btn btn-secondary" type="button" data-graph-reset>Arată tot graful</button>
 </header>
 {% endif %}
 <div id="graph" class="graph fill" role="img" aria-label="Graful terapeutic al pacientului {{ patient.name }}"></div>
 <script id="graph-data" type="application/json">{{ graph | tojson }}</script>
 <script src="/static/share/cytoscape.min.js" defer></script>
+<script src="/static/share/graph-core.js" defer></script>
 <script src="/static/share/graph.js" defer></script>
 {% endblock %}

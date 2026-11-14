@@ -18,6 +18,23 @@ struct CaregiverConsistencyTests {
     }
 
     @MainActor
+    private struct PosologyWords: Decodable {
+        struct Case: Decodable {
+            let raw: String
+            let pattern: Pattern
+            let asNeeded: Bool
+            let words: String
+
+            enum CodingKeys: String, CodingKey {
+                case raw, pattern, words
+                case asNeeded = "as_needed"
+            }
+        }
+
+        let cases: [Case]
+    }
+
+    @MainActor
     private struct ExpectedAlerts: Decodable {
         let withoutMed09: [Alert]
         let addedWithMed09: [Alert]
@@ -41,6 +58,17 @@ struct CaregiverConsistencyTests {
         #expect(fixture.cases.count >= 5)
         for item in fixture.cases {
             #expect(PgFormat.relativeDay(item.at, now: fixture.now, calendar: calendar) == item.text)
+        }
+    }
+
+    // T-QA3-02: aceleași perechi de posologie le verifică și pytest pe `plain_posology`
+    @Test func posologyWordsMatchThePortal() throws {
+        let fixture = try JSONCoding.decoder.decode(
+            PosologyWords.self, from: ContractFiles.data("fixtures/posology_words.json"))
+        #expect(fixture.cases.count >= 5)
+        for item in fixture.cases {
+            let dosage = Dosage(asNeeded: item.asNeeded, pattern: item.pattern, raw: item.raw, withFood: .any)
+            #expect(PgFormat.dosageWords(dosage) == item.words)
         }
     }
 

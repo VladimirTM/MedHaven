@@ -1,10 +1,16 @@
 {% extends "base.html" %}
-{% block title %}Linkul a expirat · PolyGraph{% endblock %}
+{% block title %}{% if not_in_list %}Pacientul nu e în lista dumneavoastră{% else %}Linkul a expirat{% endif %} · PolyGraph{% endblock %}
 {% block body_class %}expired{% endblock %}
 {% block body %}
 <main class="center">
+  {% if not_in_list %}
+  <h1 class="page-title">Pacientul nu e în lista dumneavoastră</h1>
+  <p>Ca să adăugați un pacient nou în portal, scanați codul QR din „Arată medicului” în aplicația familiei sau a pacientului.</p>
+  <p><a class="btn btn-secondary" href="/portal">← Pacienții mei</a></p>
+  {% else %}
   <h1 class="page-title">Linkul a expirat</h1>
   <p>Codurile QR din PolyGraph sunt valabile 72 de ore, ca datele pacientului să nu rămână accesibile oricui are linkul.</p>
   <p class="muted">Rugați familia să genereze un cod QR nou din aplicație.</p>
+  {% endif %}
 </main>
 {% endblock %}
