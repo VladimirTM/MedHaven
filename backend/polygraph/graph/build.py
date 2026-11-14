@@ -32,6 +32,22 @@ def _checkin_date(ci: Json) -> date | None:
         return None
 
 
+def food_of(ctx: Ctx, alert: Json) -> tuple[str, str]:
+    """Cheia și eticheta alimentului unei alerte food, din rândurile dfi ale medicamentelor ei. Id-ul alertei se termină
+    cu cheia, dar cheia poate avea „_” („vitamin_k”), deci nu se taie după ultimul „_” (QA-04)."""
+    rows = {}
+    for c in ctx.components:
+        if c.sub and c.med_id in alert["med_ids"]:
+            for row in ctx.kb.dfi(c.sub.id):
+                rows.setdefault(row["food"], row)
+    keys = sorted((k for k in rows if alert["id"].endswith(f"_{k}")), key=len, reverse=True)
+    if not keys:
+        food = alert["id"].rsplit("_", 1)[-1]
+        return food, ctx.kb.foods.get(food, {}).get("label_ro") or food
+    food = keys[0]
+    return food, ctx.kb.foods.get(food, {}).get("label_ro") or rows[food]["food_ro"] or food
+
+
 def build(ctx: Ctx, alerts: list[Json], checkins: list[Json]) -> Json:
     nodes: dict[str, Json] = {"p": {"id": "p", "type": "patient", "label": ctx.patient.get("name") or "Pacient"}}
     edges: list[Json] = []
@@ -95,9 +111,8 @@ def build(ctx: Ctx, alerts: list[Json], checkins: list[Json]) -> Json:
                 mark(pn[0], a["severity"])
                 mark(pn[1], a["severity"])
         elif a["kind"] == "food":
-            food = a["id"].rsplit("_", 1)[-1]
+            food, label = food_of(ctx, a)
             fid = f"f:{food}"
-            label = ctx.kb.foods.get(food, {}).get("label_ro", food)
             nodes.setdefault(fid, {"id": fid, "type": "food", "label": label})
             for mid in a["med_ids"]:
                 for sid in sub_nodes_of_med.get(mid, [])[:1]:

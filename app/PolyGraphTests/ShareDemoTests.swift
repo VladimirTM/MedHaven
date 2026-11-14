@@ -42,6 +42,13 @@ struct DemoDataTests {
         #expect(med.product.brand == "Fromilid")
     }
 
+    @Test func bundledGraphCoreMatchesThePortalCopy() throws {
+        let bundled = Self.appFolder.appending(path: "PolyGraph/Graph/graph-core.js")
+        let portal = Self.appFolder.deletingLastPathComponent()
+            .appending(path: "backend/polygraph/share/static/graph-core.js")
+        #expect(try Data(contentsOf: bundled) == Data(contentsOf: portal))
+    }
+
     /// Backend-ul real validează schema: câmpurile obligatorii trebuie trimise și când sunt null.
     @Test(arguments: ["fixtures/med_09_fromilid.json", "fixtures/demo_patient.json"])
     func medicationBodySendsEveryNullTheSchemaRequires(_ path: String) throws {
