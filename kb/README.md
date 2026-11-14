@@ -25,3 +25,12 @@ Interogări utile: `ddi_sym` (view) caută o pereche în ambele sensuri (`WHERE 
 | pacientul demo (inclusiv med_09) | **100 %** (brand și DCI) |
 
 Ținta din plan (≥ 90 % la produsele cu o singură substanță) **nu e atinsă din cauza datelor, nu a potrivirii**: DDInter 2.0 descărcabil acoperă doar grupele ATC A, B, D, H, L, P, R, V, iar multe substanțe uzuale în România nu apar deloc în cele 1.939 (candesartan, dabigatran, vildagliptină, metamizol, etoricoxib, betahistină, piracetam, lercanidipină, nimesulid, trimetazidină …), plus produsele biologice (factori de coagulare, vaccinuri, imunoglobuline). Aceste substanțe primesc totuși un rând în `substance` (fără `ddinter_id`), deci sunt găsite după brand și DCI, doar fără interacțiuni. Lista completă: `python kb/build.py` (secțiunea „Nelegate la DDInter”).
+
+
+## GTIN pe ambalaj
+
+`ro_gtins.csv` conține asocieri verificate din pagini publice ale farmaciilor. Fiecare rând păstrează GTIN-ul
+pe 14 cifre, denumirea și forma din catalog, numărul de unități dacă este aplicabil și sursa. Backend-ul folosește
+asocierea dacă denumirea și forma identifică un singur produs în baza locală. Pentru o asociere nouă, verificați
+concentrația, forma și dimensiunea ambalajului pe pagina produsului și în catalog. Expirarea și lotul provin din
+codul scanat de pe cutie.
