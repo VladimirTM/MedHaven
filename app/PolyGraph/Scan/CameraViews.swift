@@ -41,7 +41,7 @@ struct BoxScannerView: UIViewControllerRepresentable {
         let scanner = DataScannerViewController(
             recognizedDataTypes: [.barcode(symbologies: [.dataMatrix])],
             qualityLevel: .accurate,
-            recognizesMultipleItems: false,
+            recognizesMultipleItems: true,
             // urmărirea la frecvență mare încarcă sesiunea și face `capturePhoto()` să eșueze
             isHighFrameRateTrackingEnabled: false,
             isPinchToZoomEnabled: true,
@@ -94,10 +94,11 @@ struct BoxScannerView: UIViewControllerRepresentable {
 
         private func report(_ items: [RecognizedItem]) {
             for item in items {
-                guard case .barcode(let barcode) = item, let payload = barcode.payloadStringValue else { continue }
+                guard case .barcode(let barcode) = item,
+                      let payload = BoxBarcode.dataMatrixPayload(barcode.observation, text: barcode.payloadStringValue)
+                else { continue }
                 let b = barcode.bounds
                 onCode(payload, [b.topLeft, b.topRight, b.bottomRight, b.bottomLeft])
-                return
             }
         }
     }
