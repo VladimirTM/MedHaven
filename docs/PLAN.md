@@ -223,7 +223,7 @@ Cele două surse se completează: CNAS are lista oficială a rețetelor, PolyGra
 | QA1 robustețea backend-ului | Dev B (+ A) | ✅ | [#43](https://github.com/VladimirTM/PolyGraph/pull/43) | backend gata: T-QA1-01…07 verzi (`backend/tests/test_qa1.py`); build-ul iOS și testele unitare verzi |
 | QA2 · QA3 · QA4 | Dev B (+ A) | ✅ | [#44](https://github.com/VladimirTM/PolyGraph/pull/44) | graful comun (`graph-core.js`), textele comune (`posology_words.json`), portalul UX |
 | Scanarea cutiilor + GTIN-uri românești | Dev A + B | ✅ | [#45](https://github.com/VladimirTM/PolyGraph/pull/45) | kb/ro_gtins.csv, BoxBarcode.swift |
-| QA5 funcționalitățile pentru demo | Dev B | ✅ 5.1, 5.2 | branch-urile `feature/qa5-live-portal` și `feature/qa5-what-if-portal` (PR-uri de deschis) | portalul se actualizează singur (`GET /portal/events`, SSE + polling la 5 s), „Dacă prescriu…” pe fișă; T-QA5-01/02 verzi; QA5.3 („Ce s-a schimbat”) mutat în secțiunea 19 |
+| QA5 funcționalitățile pentru demo | Dev B | ✅ 5.1, 5.2 | [#49](https://github.com/VladimirTM/PolyGraph/pull/49), [#50](https://github.com/VladimirTM/PolyGraph/pull/50) | portalul se actualizează singur (`GET /portal/events`, SSE + polling la 5 s), „Dacă prescriu…” pe fișă; T-QA5-01/02 verzi; QA5.3 („Ce s-a schimbat”) mutat în secțiunea 19 |
 | S4 + Q4 · D1 · D2 | amândoi | ⬜ | – | secțiunea 15 |
 
 ### 7.2 Livrate în afara etapelor (14.11.2026, [PR #33](https://github.com/VladimirTM/PolyGraph/pull/33))
@@ -712,7 +712,7 @@ Ordinea ține cont de S4 (feature freeze, D 09:30): ce e marcat „înainte de S
 | B-2 | **QA2** graful comun (QA-01, 04, 05, 12, Q3-12), împreună cu Dev A | înainte de S4 | 2,5 h | ✅ ([#44](https://github.com/VladimirTM/PolyGraph/pull/44)) | 14.2 |
 | B-3 | **QA3** textele comune (severitatea, decizia, recomandarea pentru medic, posologia, stările goale, sursele fără căi, pacientul care nu e în listă) | înainte de S4 | 1,5 h | ✅ ([#44](https://github.com/VladimirTM/PolyGraph/pull/44)) | 14.3 |
 | B-4 | **QA4** portalul: deciziile fără stil primar, „Schimbă decizia”, mesajele de eroare, IP-ul din rețea pe `/`, țintele de 44 px | înainte de S4 | 2,5 h | ✅ ([#44](https://github.com/VladimirTM/PolyGraph/pull/44)) | 14.4 |
-| B-5 | QA5: portalul care se actualizează singur (5.1), „Dacă prescriu…” (5.2); „Ce s-a schimbat” (5.3) mutat în secțiunea 19 | opțional | 2,5 h | ✅ (`feature/qa5-live-portal`, `feature/qa5-what-if-portal`; PR-uri de deschis) | 14.5 |
+| B-5 | QA5: portalul care se actualizează singur (5.1), „Dacă prescriu…” (5.2); „Ce s-a schimbat” (5.3) mutat în secțiunea 19 | opțional | 2,5 h | ✅ ([#49](https://github.com/VladimirTM/PolyGraph/pull/49), [#50](https://github.com/VladimirTM/PolyGraph/pull/50)) | 14.5 |
 | B-6 | **Pitch-ul:** slide-ul 5 („Cum e construit”: diagrama din 8.1, „LLM doar la margini”, o captură cu logurile `SCAN` / `ALERTĂ` din `make demo`); cifrele de pe slide-ul 1 verificate în sursele originale; câte 2 fraze pentru fiecare întrebare probabilă a juriului, inclusiv CNAS (6.4) | înainte de D2 | 1 h | ✅ ([#46](https://github.com/VladimirTM/PolyGraph/pull/46)) | 17 |
 | B-7 | **Materialele:** Nurofen se cumpără fără rețetă; Sintrom e pe rețetă, deci se tipărește cutia de test `demo/datamatrix/test_sintrom.png`; rețeta ORL tipărită (`demo/rx/reteta_demo_fromilid.pdf`, A4, scala 100%) | înainte de D1 | 30 min | ⬜ | 15.4 |
 | B-8 | Pregătirea pentru Q4 (rulează pe Mac-ul lui Dev B): `make check-ios` verde pe Mac-ul lui, laptopul la priză și fără sleep (`caffeinate`) | înainte de S4 | 15 min | ✅ | 15.1 |
@@ -778,7 +778,7 @@ Constatările QA-nn și Q3-nn citate în prompturi sunt în Anexa C. QA0 e gata 
 | QA4 | portalul: decizii, mesaje, accesibilitate, QA-14, 16 | Dev B | 2,5 h | ✅ `fix/qa2-shared-graph` |
 | QA5 | funcționalitățile pentru demo (opțional) | Dev B | 2–4 h | `feature/qa5-…` |
 
-Status la 14.11.2026: QA0 ✅ (#33); QA1 ✅ (#43); QA2–QA4 ✅ (#44); QA5.1 și QA5.2 ✅ (`feature/qa5-live-portal`, `feature/qa5-what-if-portal`; PR-uri de deschis), QA5.3 mutat în secțiunea 19. Dependențele: QA2 și QA3 după QA1, QA4 după QA3, QA5 după QA2 și QA4.
+Status la 14.11.2026: QA0 ✅ (#33); QA1 ✅ (#43); QA2–QA4 ✅ (#44); QA5.1 și QA5.2 ✅ ([#49](https://github.com/VladimirTM/PolyGraph/pull/49), [#50](https://github.com/VladimirTM/PolyGraph/pull/50)), QA5.3 mutat în secțiunea 19. Dependențele: QA2 și QA3 după QA1, QA4 după QA3, QA5 după QA2 și QA4.
 
 ### 14.1 QA1 · Robustețea backend-ului
 
