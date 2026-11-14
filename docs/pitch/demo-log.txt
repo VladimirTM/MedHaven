@@ -1,0 +1,8 @@
+SCAN      route=ocr_match   încredere 0.98 → Sintrom 4 mg
+SCAN      route=ocr_match   încredere 0.98 → Nurofen 400 mg
+ALERTĂ    nouă major    Sintrom și Nurofen: interacțiune gravă (Sintrom + Nurofen) · sursa: curated
+ALERTĂ    nouă major    Antiinflamator (AINS) luat de mult timp la vârstnic (Nurofen) · sursa: beers
+SCAN      route=gtin_cache  încredere 1.00 → Nurofen 400 mg
+SCAN      route=ocr_match   încredere 0.98 → Fromilid 500 mg
+ALERTĂ    nouă critical Simvastatin LPH și Fromilid: interacțiune critică (Simvastatin LPH + Fromilid) · sursa: curated
+ALERTĂ    nouă major    Sintrom și Fromilid: interacțiune gravă (Sintrom + Fromilid) · sursa: curated
