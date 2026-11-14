@@ -226,6 +226,12 @@ UNVERIFIED_RECOMMENDATION = (
 )
 
 
+# ---------------------------------------------------------------- „Dacă prescriu…” în portal (QA5.2)
+
+# lipsa unei alerte nu înseamnă că medicamentul e sigur (5.2, X1): textul spune doar ce s-a verificat
+WHATIF_NONE_FOUND = "Nicio interacțiune cunoscută cu lista actuală."
+
+
 # ---------------------------------------------------------------- timing (B4)
 
 

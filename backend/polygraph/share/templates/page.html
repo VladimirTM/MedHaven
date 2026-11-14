@@ -1,70 +1,9 @@
 {% extends "base.html" %}
 {% from "live.html" import live_stale %}
+{% from "alerts.html" import info, alert_card with context %}
 {% block title %}{{ patient.name }} · Portalul medicului de familie{% endblock %}
 {% block body_class %}page{% endblock %}
 
-{# butonul „i”: detaliile tehnice stau un nivel mai jos, sub elementul pe care îl explică #}
-{% macro info(label) %}
-<details class="info">
-  <summary class="info-btn" aria-label="{{ label }}" title="Mai multe informații"><span aria-hidden="true">i</span></summary>
-  <div class="info-panel">{{ caller() }}</div>
-</details>
-{% endmacro %}
-
-{% macro alert_card(a) %}
-<article class="alert sev-{{ a.severity }}{% if a.reviewed %} is-reviewed{% endif %}" id="alert-{{ a.id }}" data-alert-id="{{ a.id }}">
-  <header class="alert-head">
-    <span class="badge sev-{{ a.severity }}">{{ a.severity_label }}</span>
-    <span class="kind">{{ a.kind_label }}</span>
-  </header>
-  <h3 class="alert-title">{{ a.title }}</h3>
-  <p class="alert-meds">{{ a.meds | join(" · ") }}</p>
-  <p class="alert-rec">{{ a.recommendation }}</p>
-  {% call info("Mai multe despre: " ~ a.title) %}
-    <dl class="facts">
-      <dt>De ce</dt><dd>{{ a.detail }}</dd>
-      <dt>Sursa</dt>
-      <dd>{% if a.source.url %}<a href="{{ a.source.url }}" rel="noopener noreferrer" target="_blank">{{ a.source_label }}</a>{% else %}{{ a.source_label }}{% endif %}{% if a.source.ref %}<br><span class="small muted">{{ a.source.ref }}</span>{% endif %}</dd>
-      {% if a.basis == "class_analogy" %}<dt>De confirmat</dt><dd>Dedusă prin analogie de clasă{% if a.analogy %} ({{ a.analogy.via }}, {{ a.analogy.atc4 }}){% endif %}, nu dintr-o sursă despre exact aceste medicamente.</dd>{% endif %}
-      <dt>Cod alertă</dt><dd class="mono">{{ a.id }}</dd>
-    </dl>
-  {% endcall %}
-  <p class="alert-source">Sursa: {{ a.source_label }}{% if a.basis == "class_analogy" %} · <span class="tag">de confirmat</span>{% endif %}</p>
-  <div class="review">
-    {% set current_decision = a.resolution.decision if a.reviewed and a.resolution else "" %}
-    {% set current_note = a.resolution.note if a.reviewed and a.resolution and a.resolution.note else "" %}
-    <div class="reviewed-wrap"{% if not a.reviewed %} hidden{% endif %}>
-      <p class="reviewed-state" role="status">
-        <span class="reviewed-summary">{{ a.decision_label or "Revizuit" }} · {{ a.resolution_at }}</span>
-        <button class="btn btn-secondary change-decision" type="button" data-change-review>Schimbă</button>
-        {% if current_note %}<br><span class="note">„{{ current_note }}”</span>{% endif %}
-      </p>
-    </div>
-    <form class="review-form" method="post" action="{{ base }}/alerts/{{ a.id }}/review" data-current-decision="{{ current_decision }}" novalidate{% if a.reviewed %} hidden{% endif %}>
-      <details class="note-toggle"{% if current_note %} open{% endif %}>
-        <summary>Adaugă o notă pentru familie</summary>
-        <label class="visually-hidden" for="note-{{ a.id }}">Notă pentru familie (opțional)</label>
-        <input class="note-input" id="note-{{ a.id }}" name="note" type="text" maxlength="1000" autocomplete="off" value="{{ current_note }}" placeholder="Notă pentru familie (opțional)">
-      </details>
-      <p class="note-hint" role="status" hidden>Alegeți o decizie mai jos</p>
-      <div class="decisions" role="group" aria-label="Decizia dumneavoastră">
-        <button class="btn btn-secondary{% if current_decision == 'keep' %} is-selected{% endif %}" type="submit" name="decision" value="keep">Menține</button>
-        <button class="btn btn-secondary{% if current_decision == 'change_at_visit' %} is-selected{% endif %}" type="submit" name="decision" value="change_at_visit">Modific la consultație</button>
-        <button class="btn btn-secondary{% if current_decision == 'refer_specialist' %} is-selected{% endif %}" type="submit" name="decision" value="refer_specialist">Trimit la specialist</button>
-      </div>
-      <div class="decision-mobile">
-        <div class="decision-segment" role="radiogroup" aria-label="Decizia dumneavoastră">
-          <button class="segment-option{% if current_decision == 'keep' %} is-selected{% endif %}" type="button" role="radio" aria-checked="{{ 'true' if current_decision == 'keep' else 'false' }}" data-decision="keep">Menține</button>
-          <button class="segment-option{% if current_decision == 'change_at_visit' %} is-selected{% endif %}" type="button" role="radio" aria-checked="{{ 'true' if current_decision == 'change_at_visit' else 'false' }}" data-decision="change_at_visit">Modific</button>
-          <button class="segment-option{% if current_decision == 'refer_specialist' %} is-selected{% endif %}" type="button" role="radio" aria-checked="{{ 'true' if current_decision == 'refer_specialist' else 'false' }}" data-decision="refer_specialist">Specialist</button>
-        </div>
-        <button class="btn btn-secondary decision-submit" type="submit" data-submit-segment>Trimite</button>
-      </div>
-      <p class="review-error" role="alert" hidden></p>
-    </form>
-  </div>
-</article>
-{% endmacro %}
 
 {% block body %}
 <div class="scroll-sentinel" aria-hidden="true"></div>
@@ -129,6 +68,20 @@
     {% else %}
     <p class="muted">Familia n-a adăugat încă medicamente.</p>
     {% endif %}
+  </section>
+
+  <section aria-labelledby="h-whatif" class="whatif no-print">
+    <h2 id="h-whatif">Dacă prescriu…</h2>
+    <p class="section-lead">Verificați un medicament nou față de lista actuală, înainte de rețetă. Rezultatul nu se salvează și familia nu îl vede.</p>
+    <form class="whatif-form" method="post" action="{{ base }}/what-if" novalidate data-whatif>
+      <label class="visually-hidden" for="whatif-query">Numele medicamentului</label>
+      <input class="whatif-input" id="whatif-query" name="query" type="search" maxlength="200" autocomplete="off" autocapitalize="words" spellcheck="false" enterkeyhint="search" placeholder="ex. Fromilid" required>
+      <button class="btn" type="submit">Verifică</button>
+    </form>
+    <div class="whatif-result" aria-live="polite" data-whatif-result></div>
+    <template data-whatif-loading><p class="whatif-note whatif-loading" data-whatif-state="loading">Se verifică…</p></template>
+    <template data-whatif-error="network"><div class="whatif-error" role="alert" data-whatif-state="error"><p>Nu s-a putut verifica. Verificați conexiunea.</p><button class="btn btn-secondary" type="button" data-whatif-retry>Încearcă din nou</button></div></template>
+    <template data-whatif-error="server"><div class="whatif-error" role="alert" data-whatif-state="error"><p>Nu s-a putut verifica. Încercați din nou.</p><button class="btn btn-secondary" type="button" data-whatif-retry>Încearcă din nou</button></div></template>
   </section>
 
   <section aria-labelledby="h-schedule" id="live-schedule" data-live-part>
@@ -200,4 +153,5 @@
 {% endif %}
 <script src="/static/share/share.js" defer></script>
 <script src="/static/share/live.js" defer></script>
+<script src="/static/share/whatif.js" defer></script>
 {% endblock %}
