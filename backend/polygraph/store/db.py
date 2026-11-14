@@ -253,6 +253,27 @@ class Store:
             for aid, status, res in self._q("SELECT alert_id, status, resolution FROM alert_state WHERE patient_id = ?", (pid,))
         }
 
+    def review_alert(self, pid: str, alert_id: str, resolution: Json, event: Json) -> tuple[Json, bool]:
+        """QA-07: decizia medicului și evenimentul din Noutăți, sub același lock. Aceeași decizie cu aceeași notă
+        (dublu-click, reîncercare, 10 cereri în paralel) nu mai adaugă nimic: întoarce rezoluția salvată și False."""
+        with self._lock, self._conn:
+            row = self._conn.execute(
+                "SELECT status, resolution FROM alert_state WHERE patient_id = ? AND alert_id = ?", (pid, alert_id)
+            ).fetchone()
+            if row and row[0] == "reviewed_by_doctor" and row[1]:
+                saved = json.loads(row[1])
+                if (saved.get("decision"), saved.get("note", "")) == (resolution["decision"], resolution["note"]):
+                    return saved, False
+            self._conn.execute(
+                "INSERT OR REPLACE INTO alert_state(patient_id, alert_id, status, resolution) VALUES (?, ?, ?, ?)",
+                (pid, alert_id, "reviewed_by_doctor", _dump(resolution)),
+            )
+            self._conn.execute(
+                "INSERT OR REPLACE INTO feed_events(patient_id, id, at, data) VALUES (?, ?, ?, ?)",
+                (pid, event["id"], event["at"], _dump(event)),
+            )
+        return resolution, True
+
     def set_alert_state(self, pid: str, alert_id: str, status: str, resolution: Json | None = None) -> None:
         self._x(
             "INSERT OR REPLACE INTO alert_state(patient_id, alert_id, status, resolution) VALUES (?, ?, ?, ?)",

@@ -5,11 +5,17 @@ lexicografic: (0) constrângeri dure încălcate, (1) numărul de momente distin
 (3) suma distanțelor față de ancora fiecărei doze. Constrângerile dure sunt penalizate, nu interzise: când nu există
 program care să le respecte pe toate, iese cel mai bun program relaxat, iar încălcările ajung în `unsatisfied`.
 Singura limită care nu se relaxează e maximum 5 momente (contract); 4 sunt mereu posibile, câte unul per fereastră.
+
+Căutarea are un buget (QA-02): la zeci de medicamente, branch-and-bound crește exploziv (37 de medicamente = 29 s), iar
+serverul are un singur proces. La buget atins iese cel mai bun program găsit până atunci; fără niciunul, un program
+greedy. Răspunsul o spune în `solver.version` („…+budget”); la regimurile obișnuite bugetul nu se atinge.
 """
 
 from __future__ import annotations
 
+import logging
 import re
+import time
 from dataclasses import dataclass, field
 from datetime import date
 from typing import Any
@@ -18,6 +24,9 @@ from polygraph.kb import Kb, norm
 
 Json = dict[str, Any]
 VERSION = "1.0.0"
+BUDGET_MS = 200  # timpul maxim de căutare per program
+BUDGET_NODES = 200_000  # și numărul maxim de noduri vizitate, ca rezultatul să nu depindă doar de viteza mașinii
+LOG = logging.getLogger("uvicorn.error")
 MAX_MOMENTS = 5
 SLOTS = ("morning", "noon", "evening", "bedtime")
 MEALS = ("breakfast", "lunch", "dinner")
@@ -291,6 +300,7 @@ class Problem:
     hard: list[list[int]] = field(default_factory=list)  # per doză, per candidat
     soft: list[list[int]] = field(default_factory=list)
     dist: list[list[int]] = field(default_factory=list)
+    budget_hit: bool = False  # căutarea s-a oprit la buget (QA-02)
 
 
 def prepare(doses: list[Dose], anchors: dict[str, int]) -> Problem:
@@ -326,8 +336,13 @@ def sep_broken(s: Sep, ti: int, tj: int) -> bool:
     return ti == tj
 
 
-def solve(p: Problem) -> list[int]:
-    """Indicele orei alese pentru fiecare doză (în p.doses[k].candidates)."""
+class _BudgetHit(Exception):
+    pass
+
+
+def solve(p: Problem, budget_ms: int | None = None, budget_nodes: int | None = None) -> list[int]:
+    """Indicele orei alese pentru fiecare doză (în p.doses[k].candidates).
+    La buget atins: cel mai bun program găsit până atunci sau, fără niciunul, cel greedy; `p.budget_hit` devine True."""
     n = len(p.doses)
     if n == 0:
         return []
@@ -348,6 +363,10 @@ def solve(p: Problem) -> list[int]:
     choice: list[int | None] = [None] * n
     used: dict[int, int] = {}
     best: list[Any] = [None, None]  # (cost, alegere)
+    budget_ms = BUDGET_MS if budget_ms is None else budget_ms
+    budget_nodes = BUDGET_NODES if budget_nodes is None else budget_nodes
+    deadline = time.monotonic() + budget_ms / 1000
+    nodes = [0]
 
     def delta(k: int, c: int) -> tuple[int, int]:
         t = p.doses[k].candidates[c]
@@ -364,6 +383,9 @@ def solve(p: Problem) -> list[int]:
         return hard, soft
 
     def rec(pos: int, hard: int, soft: int, dist: int) -> None:
+        nodes[0] += 1
+        if nodes[0] > budget_nodes or (nodes[0] % 256 == 0 and time.monotonic() > deadline):
+            raise _BudgetHit
         moments = len(used)
         if pos == n:
             cost = (hard, moments, soft, dist)
@@ -402,7 +424,34 @@ def solve(p: Problem) -> list[int]:
                 del used[t]
             choice[k], time_of[k] = None, None
 
-    rec(0, 0, 0, 0)
+    try:
+        rec(0, 0, 0, 0)
+    except _BudgetHit:
+        p.budget_hit = True
+        LOG.warning("PROGRAM   buget atins (%d doze)%s", n, "" if best[1] else ": program greedy")
+        if best[1] is None:
+            for k in range(n):  # starea căutării întrerupte nu contează: greedy pornește de la zero
+                time_of[k] = choice[k] = None
+            used.clear()
+            for k in order:
+                d = p.doses[k]
+                opts = []
+                for c, t in enumerate(d.candidates):
+                    opens = t not in used
+                    dh, ds = delta(k, c)
+                    opts.append((opens and len(used) >= MAX_MOMENTS, dh, opens, ds, p.dist[k][c], c))
+                over, *_, c = min(opts)
+                if over:  # toate orele din fereastră ar deschide al 6-lea moment: doza merge la cel mai apropiat moment existent
+                    t = min(used, key=lambda u: abs(u - d.anchor))
+                    d.candidates.append(t)
+                    p.hard[k].append(len(unary_hard(d, t, p.anchors)))
+                    p.soft[k].append(unary_soft(d, t, p.anchors))
+                    p.dist[k].append(abs(t - d.anchor))
+                    c = len(d.candidates) - 1
+                t = d.candidates[c]
+                choice[k], time_of[k] = c, t
+                used[t] = used.get(t, 0) + 1
+            return list(choice)
     return best[1]
 
 
@@ -529,5 +578,5 @@ def build_schedule(patient: Json, meds: list[Json], day: date, kb: Kb) -> Json:
         "anchors": dict(anchors_raw),
         "moments": moments,
         "unsatisfied": unsatisfied(p, times),
-        "solver": {"moments_count": len(moments), "version": VERSION},
+        "solver": {"moments_count": len(moments), "version": VERSION + ("+budget" if p.budget_hit else "")},
     }

@@ -204,6 +204,28 @@ EXPIRED_RECOMMENDATION = (
 )
 
 
+# ---------------------------------------------------------------- unverified (QA-03)
+
+
+def unverified_title(brand: str) -> str:
+    return f"Nu am putut verifica {brand}"
+
+
+def unverified_patient_text(brand: str) -> str:
+    return f"Nu am putut verifica {brand}. Arătați cutia medicului de familie."
+
+
+def unverified_detail(brand: str, names: list[str]) -> str:
+    what = f"substanța activă ({', '.join(names)}) nu e în baza de date PolyGraph" if names else "substanța activă nu e cunoscută"
+    return f"Nu am putut verifica {brand}: {what}. Interacțiunile lui nu sunt incluse."
+
+
+UNVERIFIED_RECOMMENDATION = (
+    "Completați substanța activă de pe cutie sau din prospect, ca interacțiunile să poată fi verificate; "
+    "până atunci, arătați medicamentul medicului de familie sau farmacistului."
+)
+
+
 # ---------------------------------------------------------------- timing (B4)
 
 

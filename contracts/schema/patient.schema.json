@@ -18,7 +18,8 @@
     },
     "name": {
       "type": "string",
-      "minLength": 1
+      "minLength": 1,
+      "maxLength": 80
     },
     "birth_year": {
       "type": "integer",
@@ -30,6 +31,7 @@
         "string",
         "null"
       ],
+      "maxLength": 80,
       "description": "numele aparținătorului, folosit în texte („Am anunțat-o pe Ana”)"
     },
     "anchors": {

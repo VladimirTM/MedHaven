@@ -1,5 +1,6 @@
 import Foundation
 import Testing
+import Vision
 @testable import PolyGraph
 
 /// T-A2-01: aceleași cazuri ca parserul Python (T-B3-04), din `contracts/fixtures/gs1_cases.json`.
@@ -29,6 +30,15 @@ struct GS1Tests {
 
     @Test func unknownApplicationIdentifierIsNotGS1() {
         #expect(throws: GS1Error.notGS1) { try GS1.parse("0105949000000014" + "99XYZ") }
+    }
+
+    @Test func linearBarcodesProvideOnlyAValidatedGTIN() throws {
+        let ean13 = try #require(BoxBarcode.linearPayload("5901234123457", symbology: .ean13))
+        let ean8 = try #require(BoxBarcode.linearPayload("96385074", symbology: .ean8))
+        #expect(try GS1.parse(ean13) == GS1Data(gtin: "05901234123457"))
+        #expect(try GS1.parse(ean8) == GS1Data(gtin: "00000096385074"))
+        #expect(BoxBarcode.linearPayload("5901234123450", symbology: .ean13) == nil)
+        #expect(BoxBarcode.linearPayload("5901234123457", symbology: .dataMatrix) == nil)
     }
 
     @Test func monthThirteenIsInvalidExpiry() {

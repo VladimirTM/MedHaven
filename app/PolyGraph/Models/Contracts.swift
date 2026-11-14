@@ -245,6 +245,7 @@ enum Kind: String, Codable {
     case food = "food"
     case symptom = "symptom"
     case timing = "timing"
+    case unverified = "unverified"
 }
 
 // MARK: - Resolution

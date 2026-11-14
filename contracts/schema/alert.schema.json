@@ -36,7 +36,8 @@
         "anticholinergic",
         "timing",
         "expired",
-        "symptom"
+        "symptom",
+        "unverified"
       ]
     },
     "severity": {

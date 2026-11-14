@@ -79,8 +79,8 @@ def test_share_expires_in_72_hours(client):
 def test_portal_asks_for_the_access_code(client):
     r = client.get("/portal")
     assert r.status_code == 200 and "Codul de acces" in r.text and "Maria" not in r.text
-    r = client.post("/portal/login", data={"code": "gresit"})
-    assert r.status_code == 401 and "nu e corect" in r.text
+    r = client.post("/portal/login", data={"code": "gresit"})  # QA-15: 303 la /portal?eroare=1, apoi pagina cu mesajul
+    assert r.status_code == 200 and "nu e corect" in r.text and r.url.path == "/portal"
     assert client.get(PORTAL).status_code == 200 and "Maria" not in client.get(PORTAL).text
 
 

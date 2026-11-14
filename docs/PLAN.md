@@ -220,8 +220,8 @@ Cele două surse se completează: CNAS are lista oficială a rețetelor, PolyGra
 | Q3F4 aparținătorul și consistența cu web-ul | Dev A (+ B) | ✅ | [#38](https://github.com/VladimirTM/PolyGraph/pull/38) | **rămâne T-Q3F4-03** (contrastul pe sticla barei) |
 | Q3F5 polish | Dev A | ✅ | [#39](https://github.com/VladimirTM/PolyGraph/pull/39) | **amânate Q3-36 și Q3-37; turul T-Q3F5-01 la final** |
 | Q3F6 regresia pentru Q4 | Dev A (agent) | ✅ | [#40](https://github.com/VladimirTM/PolyGraph/pull/40) | Dark stabil; **`testSeniorHugeTextDark` iese încă Light** |
-| QA1 robustețea backend-ului | Dev B (+ A) | 🔄 | – | doar T-QA1-03 și T-QA1-05; restul deschis |
-| QA2 · QA3 · QA4 | Dev B (+ A) | ✅ | – | graful comun (`graph-core.js`), textele comune (`posology_words.json`), portalul UX |
+| QA1 robustețea backend-ului | Dev B (+ A) | ✅ | [#43](https://github.com/VladimirTM/PolyGraph/pull/43) | backend gata: T-QA1-01…07 verzi (`backend/tests/test_qa1.py`); build-ul iOS și testele unitare verzi |
+| QA2 · QA3 · QA4 | Dev B (+ A) | ✅ | [#44](https://github.com/VladimirTM/PolyGraph/pull/44) | graful comun (`graph-core.js`), textele comune (`posology_words.json`), portalul UX |
 | QA5 funcționalitățile pentru demo | Dev B | ⬜ opțional | – | doar dacă rămâne timp până la S4 |
 | S4 + Q4 · D1 · D2 | amândoi | ⬜ | – | secțiunea 15 |
 
@@ -695,7 +695,7 @@ Ordinea ține cont de S4 (feature freeze, D 09:30): ce e marcat „înainte de S
 
 | # | Ce | Când | Durată | Status | Detalii |
 |---|---|---|---|---|---|
-| A-1 | partea din aplicație a QA1: afișarea alertei `unverified` lângă „moderate”, după ce Dev B adaugă kind-ul în contract | înainte de S4, după acordul pe contract | 20 min | ⬜ | 14.1 |
+| A-1 | partea din aplicație a QA1: afișarea alertei `unverified` lângă „moderate”, după ce Dev B adaugă kind-ul în contract | înainte de S4, după acordul pe contract | 20 min | ⬜ (kind-ul e în contract și în `Contracts.swift`; `AlertSections` îl pune deja în cardul moderat, fără `switch` exhaustiv: de confirmat pe simulator) | 14.1 |
 | A-2 | partea din aplicație a QA2: `graph-core.js` comun în bundle, graful identic cu portalul, zoom-ul pe alerta cea mai gravă (Q3-12) | înainte de S4 | ~1 h din 2,5 h | ✅ | 14.2 |
 | A-3 | partea din aplicație a QA3: XCTest pe `posology_words.json`, textele comune în Noutăți | înainte de S4 | 30 min | ✅ | 14.3 |
 | A-4 | T-Q3F4-03: re-auditul de contrast pe textul teal de pe sticla barei (`meds.shareButton`, `scan.closeButton`) | înainte de S4 | 30 min | ⬜ | Anexa C, Q3F4 |
@@ -707,10 +707,10 @@ Ordinea ține cont de S4 (feature freeze, D 09:30): ce e marcat „înainte de S
 
 | # | Ce | Când | Durată | Status | Detalii |
 |---|---|---|---|---|---|
-| B-1 | **QA1** robustețea backend-ului: bugetul solverului (QA-02), alerta `unverified` (QA-03), decizia idempotentă (QA-07), validările (QA-08, QA-09), `maxLength` pe nume (QA-11), login-ul cu 303 (QA-15) | înainte de S4, primul | ~1,5 h (T-QA1-05 e gata) | 🔄 | 14.1 |
-| B-2 | **QA2** graful comun (QA-01, 04, 05, 12, Q3-12), împreună cu Dev A | înainte de S4 | 2,5 h | ✅ | 14.2 |
-| B-3 | **QA3** textele comune (severitatea, decizia, recomandarea pentru medic, posologia, stările goale, sursele fără căi, pacientul care nu e în listă) | înainte de S4 | 1,5 h | ✅ | 14.3 |
-| B-4 | **QA4** portalul: deciziile fără stil primar, „Schimbă decizia”, mesajele de eroare, IP-ul din rețea pe `/`, țintele de 44 px | înainte de S4 | 2,5 h | ✅ | 14.4 |
+| B-1 | **QA1** robustețea backend-ului: bugetul solverului (QA-02), alerta `unverified` (QA-03), decizia idempotentă (QA-07), validările (QA-08, QA-09), `maxLength` pe nume (QA-11), login-ul cu 303 (QA-15) | înainte de S4, primul | ~1,5 h (T-QA1-05 e gata) | ✅ ([#43](https://github.com/VladimirTM/PolyGraph/pull/43)) | 14.1 |
+| B-2 | **QA2** graful comun (QA-01, 04, 05, 12, Q3-12), împreună cu Dev A | înainte de S4 | 2,5 h | ✅ ([#44](https://github.com/VladimirTM/PolyGraph/pull/44)) | 14.2 |
+| B-3 | **QA3** textele comune (severitatea, decizia, recomandarea pentru medic, posologia, stările goale, sursele fără căi, pacientul care nu e în listă) | înainte de S4 | 1,5 h | ✅ ([#44](https://github.com/VladimirTM/PolyGraph/pull/44)) | 14.3 |
+| B-4 | **QA4** portalul: deciziile fără stil primar, „Schimbă decizia”, mesajele de eroare, IP-ul din rețea pe `/`, țintele de 44 px | înainte de S4 | 2,5 h | ✅ ([#44](https://github.com/VladimirTM/PolyGraph/pull/44)) | 14.4 |
 | B-5 | QA5: portalul care se actualizează singur, „Dacă prescriu X?”, „Ce s-a schimbat” | opțional | 2–4 h | ⬜ | 14.5 |
 | B-6 | **Pitch-ul:** slide-ul 5 („Cum e construit”: diagrama din 8.1, „LLM doar la margini”, o captură cu logurile `SCAN` / `ALERTĂ` din `make demo`); cifrele de pe slide-ul 1 verificate în sursele originale; câte 2 fraze pentru fiecare întrebare probabilă a juriului, inclusiv CNAS (6.4) | înainte de D2 | 1 h | ⬜ | 17 |
 | B-7 | **Materialele:** Nurofen se cumpără fără rețetă; Sintrom e pe rețetă, deci se tipărește cutia de test `demo/datamatrix/test_sintrom.png`; rețeta ORL tipărită (`demo/rx/reteta_demo_fromilid.pdf`, A4, scala 100%) | înainte de D1 | 30 min | ⬜ | 15.4 |
@@ -777,7 +777,7 @@ Constatările QA-nn și Q3-nn citate în prompturi sunt în Anexa C. QA0 e gata 
 | QA4 | portalul: decizii, mesaje, accesibilitate, QA-14, 16 | Dev B | 2,5 h | ✅ `fix/qa2-shared-graph` |
 | QA5 | funcționalitățile pentru demo (opțional) | Dev B | 2–4 h | `feature/qa5-…` |
 
-Status la 14.11.2026: QA0 ✅ (#33); QA1 🔄 (T-QA1-03 și T-QA1-05); QA2–QA4 ✅; QA5 ⬜. Dependențele: QA2 și QA3 după QA1, QA4 după QA3, QA5 după QA2 și QA4.
+Status la 14.11.2026: QA0 ✅ (#33); QA1 ✅ (#43); QA2–QA4 ✅ (#44); QA5 ⬜. Dependențele: QA2 și QA3 după QA1, QA4 după QA3, QA5 după QA2 și QA4.
 
 ### 14.1 QA1 · Robustețea backend-ului
 
@@ -800,13 +800,13 @@ Criterii de acceptare: un pacient cu 40 de medicamente primește /analysis și /
 ~~~
 
 **Teste**
-- [ ] T-QA1-01 40 de medicamente (copii ale celor demo): `/analysis` și `/schedule` < 1 s fiecare; programul Mariei = `expected_schedule.json`.
-- [ ] T-QA1-02 Medicament cu `substances: []` → alerta `unverified` „Nu am putut verifica…”, validă după contract, vizibilă pe fișă și în aplicație.
-- [x] T-QA1-03 Aceeași decizie de 10 ori în paralel → un singur eveniment `doctor_reviewed`; o decizie diferită → al doilea eveniment. *(14.11.2026, cu QA4: `backend/tests/test_qa4_portal.py`)*
-- [ ] T-QA1-04 422 pentru `end_date < start_date`, 0-0-0-0 fără „la nevoie”, 100 de comprimate, doză în 2030, `what-if` cu spații.
+- [x] T-QA1-01 40 de medicamente (copii ale celor demo): `/analysis` și `/schedule` < 1 s fiecare; programul Mariei = `expected_schedule.json`. *(14.11.2026: buget 200 ms / 200 000 de noduri, fallback greedy, `solver.version` „1.0.0+budget”)*
+- [x] T-QA1-02 Medicament cu `substances: []` → alerta `unverified` „Nu am putut verifica…”, validă după contract, vizibilă pe fișă și în aplicație. *(14.11.2026: și pentru substanțe necunoscute în kb, `engine/unverified.py`; în aplicație intră în cardul moderat; `xcodebuild build` și testele unitare verzi pe iPhone 17)*
+- [x] T-QA1-03 Aceeași decizie de 10 ori în paralel → un singur eveniment `doctor_reviewed`; o decizie diferită → al doilea eveniment. *(14.11.2026, `Store.review_alert` sub lock + `test_qa4_portal.py`)*
+- [x] T-QA1-04 422 pentru `end_date < start_date`, 0-0-0-0 fără „la nevoie”, 100 de comprimate, doză în 2030, `what-if` cu spații. *(14.11.2026; abatere: 0-0-0-0 fără „la nevoie” rămâne 201, pentru că e starea „Posologie necompletată” din aplicație, `MedSections.swift`, după o cutie scanată)*
 - [x] T-QA1-05 `POST /meds` repetat identic → 200 și un singur medicament; corp diferit cu același id → 409. *(14.11.2026, cu Q3F3: `backend/tests/test_q3f3.py`; aplicația trimite în continuare id-uri noi, `MedDraft.swift`)*
-- [ ] T-QA1-06 Nume de 81 de caractere → 422; aplicația compilează după `make models`.
-- [ ] T-QA1-07 Cod greșit → 303 la `/portal?eroare=1`, mesajul pe pagină, refresh fără retrimitere.
+- [x] T-QA1-06 Nume de 81 de caractere → 422; aplicația compilează după `make models`. *(14.11.2026: și `caregiver_name`, și la PATCH; `make models` schimbă doar `case unverified`; `xcodebuild build` și testele unitare verzi pe iPhone 17)*
+- [x] T-QA1-07 Cod greșit → 303 la `/portal?eroare=1`, mesajul pe pagină, refresh fără retrimitere. *(14.11.2026, ținta `next` se păstrează)*
 
 ### 14.2 QA2 · Graful comun, pe aplicație și pe web
 
