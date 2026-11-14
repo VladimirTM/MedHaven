@@ -155,7 +155,10 @@
       <div class="address-card">
         <div class="address-row">
           <p class="address-label">Aplicația</p>
-          <p class="address">{{ base }}</p>
+          <div class="address-copy">
+            <p class="address" id="server-address">{{ base }}</p>
+            <button class="btn btn-secondary copy-btn" type="button" data-copy="{{ base }}">Copiază</button>
+          </div>
         </div>
         <div class="address-row">
           <p class="address-label">Portalul medicului de familie</p>

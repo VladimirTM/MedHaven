@@ -5,7 +5,7 @@
 {% macro patient(c) %}
 <li>
   <a class="patient-card{% if c.escalated %} is-escalated{% elif c.open_grave %} is-pending{% endif %}" href="/portal/patients/{{ c.patient.id }}">
-    <span class="patient-avatar" aria-hidden="true">{{ c.patient.name[:1] }}</span>
+    <span class="patient-avatar tone-{{ c.avatar_tone }}" data-tone="{{ c.avatar_tone }}" aria-hidden="true">{{ c.patient.name[:1] }}</span>
     <div class="patient-main">
       <p class="patient-name">{{ c.patient.name }}{% if c.age %}, {{ c.age }} de ani{% endif %}</p>
       <p class="patient-meta">{{ c.meds }} medicamente · scor ACB {{ c.acb }}{% if c.last_checkin %} · ultimul check-in {{ c.last_checkin | lower }}{% endif %}</p>

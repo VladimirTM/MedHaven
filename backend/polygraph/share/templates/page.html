@@ -30,23 +30,37 @@
   {% endcall %}
   <p class="alert-source">Sursa: {{ a.source_label }}{% if a.basis == "class_analogy" %} · <span class="tag">de confirmat</span>{% endif %}</p>
   <div class="review">
-    {% if a.reviewed %}
-    <p class="reviewed-state" role="status">{{ a.decision_label or "Revizuit" }} · {{ a.resolution_at }}{% if a.resolution.note %}<br><span class="note">„{{ a.resolution.note }}”</span>{% endif %}</p>
-    {% else %}
-    <form class="review-form" method="post" action="{{ base }}/alerts/{{ a.id }}/review" novalidate>
-      <details class="note-toggle">
+    {% set current_decision = a.resolution.decision if a.reviewed and a.resolution else "" %}
+    {% set current_note = a.resolution.note if a.reviewed and a.resolution and a.resolution.note else "" %}
+    <div class="reviewed-wrap"{% if not a.reviewed %} hidden{% endif %}>
+      <p class="reviewed-state" role="status">
+        <span class="reviewed-summary">{{ a.decision_label or "Revizuit" }} · {{ a.resolution_at }}</span>
+        <button class="btn btn-secondary change-decision" type="button" data-change-review>Schimbă</button>
+        {% if current_note %}<br><span class="note">„{{ current_note }}”</span>{% endif %}
+      </p>
+    </div>
+    <form class="review-form" method="post" action="{{ base }}/alerts/{{ a.id }}/review" data-current-decision="{{ current_decision }}" novalidate{% if a.reviewed %} hidden{% endif %}>
+      <details class="note-toggle"{% if current_note %} open{% endif %}>
         <summary>Adaugă o notă pentru familie</summary>
         <label class="visually-hidden" for="note-{{ a.id }}">Notă pentru familie (opțional)</label>
-        <input class="note-input" id="note-{{ a.id }}" name="note" type="text" maxlength="1000" autocomplete="off" placeholder="Notă pentru familie (opțional)">
+        <input class="note-input" id="note-{{ a.id }}" name="note" type="text" maxlength="1000" autocomplete="off" value="{{ current_note }}" placeholder="Notă pentru familie (opțional)">
       </details>
+      <p class="note-hint" role="status" hidden>Alegeți o decizie mai jos</p>
       <div class="decisions" role="group" aria-label="Decizia dumneavoastră">
-        <button class="btn" type="submit" name="decision" value="keep">Menține</button>
-        <button class="btn btn-secondary" type="submit" name="decision" value="change_at_visit">Modific la consultație</button>
-        <button class="btn btn-secondary" type="submit" name="decision" value="refer_specialist">Trimit la specialist</button>
+        <button class="btn btn-secondary{% if current_decision == 'keep' %} is-selected{% endif %}" type="submit" name="decision" value="keep">Menține</button>
+        <button class="btn btn-secondary{% if current_decision == 'change_at_visit' %} is-selected{% endif %}" type="submit" name="decision" value="change_at_visit">Modific la consultație</button>
+        <button class="btn btn-secondary{% if current_decision == 'refer_specialist' %} is-selected{% endif %}" type="submit" name="decision" value="refer_specialist">Trimit la specialist</button>
+      </div>
+      <div class="decision-mobile">
+        <div class="decision-segment" role="radiogroup" aria-label="Decizia dumneavoastră">
+          <button class="segment-option{% if current_decision == 'keep' %} is-selected{% endif %}" type="button" role="radio" aria-checked="{{ 'true' if current_decision == 'keep' else 'false' }}" data-decision="keep">Menține</button>
+          <button class="segment-option{% if current_decision == 'change_at_visit' %} is-selected{% endif %}" type="button" role="radio" aria-checked="{{ 'true' if current_decision == 'change_at_visit' else 'false' }}" data-decision="change_at_visit">Modific</button>
+          <button class="segment-option{% if current_decision == 'refer_specialist' %} is-selected{% endif %}" type="button" role="radio" aria-checked="{{ 'true' if current_decision == 'refer_specialist' else 'false' }}" data-decision="refer_specialist">Specialist</button>
+        </div>
+        <button class="btn btn-secondary decision-submit" type="submit" data-submit-segment>Trimite</button>
       </div>
       <p class="review-error" role="alert" hidden></p>
     </form>
-    {% endif %}
   </div>
 </article>
 {% endmacro %}
@@ -60,7 +74,10 @@
       <h1 class="page-title">{{ patient.name }}{% if age %}, {{ age }} de ani{% endif %}</h1>
       <p class="disclaimer">Fișă generată de PolyGraph; nu înlocuiește evaluarea clinică.</p>
     </div>
-    <a class="btn btn-secondary" href="{{ base }}/print"><span class="label-long">Reconcilierea de tipărit</span><span class="label-short">Tipărire</span></a>
+    <div class="bar-actions">
+      <a class="btn btn-secondary" href="{{ base }}/print"><span class="label-long">Reconcilierea de tipărit</span><span class="label-short">Tipărire</span></a>
+      <form method="post" action="/portal/logout"><button class="btn btn-secondary" type="submit">Ieșire</button></form>
+    </div>
   </div>
 </header>
 
@@ -88,6 +105,7 @@
 
   <section aria-labelledby="h-meds">
     <h2 id="h-meds">Medicamente</h2>
+    {% if meds %}
     <p class="section-lead">Ce ia acum și cum. Substanța activă și codul ATC sunt la „i”.</p>
     <ul class="med-list">
       {% for m in meds %}
@@ -106,10 +124,14 @@
       </li>
       {% endfor %}
     </ul>
+    {% else %}
+    <p class="muted">Familia n-a adăugat încă medicamente.</p>
+    {% endif %}
   </section>
 
   <section aria-labelledby="h-schedule">
     <h2 id="h-schedule">Programul de azi <span class="count">{{ schedule.date }}</span></h2>
+    {% if schedule.moments %}
     <ol class="schedule">
       {% for m in schedule.moments %}
       <li>
@@ -118,6 +140,9 @@
       </li>
       {% endfor %}
     </ol>
+    {% else %}
+    <p class="muted">Nu sunt doze în program astăzi.</p>
+    {% endif %}
     {% for u in schedule.unsatisfied %}<p class="small">Nu s-a putut respecta: {{ u.meds | join(" + ") }}: {{ u.reason }}</p>{% endfor %}
   </section>
 
@@ -148,18 +173,26 @@
   </section>
   {% endif %}
 
+  {% if meds %}
   <section aria-labelledby="h-graph" class="no-print">
     <h2 id="h-graph">Graful terapeutic</h2>
     <p class="section-lead">Medicamentele și legăturile dintre ele; liniile colorate sunt alerte. Atingeți o linie ca să ajungeți la alertă.</p>
     <div class="graph-frame">
       <div id="graph" class="graph" role="img" aria-label="Graful terapeutic: {{ meds | length }} medicamente și interacțiunile dintre ele; lista alertelor de mai sus conține aceleași informații."></div>
     </div>
-    <p class="graph-link"><a href="{{ base }}/graph">Deschideți graful pe tot ecranul</a></p>
+    <p class="graph-actions">
+      <button class="btn btn-secondary" type="button" data-graph-reset>Arată tot graful</button>
+      <a href="{{ base }}/graph">Deschideți graful pe tot ecranul</a>
+    </p>
   </section>
+  {% endif %}
 </main>
 
+{% if meds %}
 <script id="graph-data" type="application/json">{{ graph | tojson }}</script>
 <script src="/static/share/cytoscape.min.js" defer></script>
+<script src="/static/share/graph-core.js" defer></script>
 <script src="/static/share/graph.js" defer></script>
+{% endif %}
 <script src="/static/share/share.js" defer></script>
 {% endblock %}

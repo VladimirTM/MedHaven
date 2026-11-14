@@ -12,7 +12,6 @@ import os
 import re
 import socket
 import sqlite3
-import subprocess
 import sys
 from datetime import UTC, datetime
 from pathlib import Path
@@ -20,41 +19,12 @@ from pathlib import Path
 import zxingcpp
 from PIL import Image
 
+from polygraph.net import local_ips
+
 ROOT = Path(__file__).resolve().parents[3]
 PHOTO = re.compile(r"med_0[1-8]\.jpg")  # numele din demo_patient.json (photo_url = /media/med_0N.jpg)
 # Sursele scrise de mână din care `make kb` construiește kb.sqlite; kb/raw/ se schimbă doar la o descărcare nouă.
 KB_SOURCES = ("ro_products_extra.csv", "curated_ddi.csv", "curated_dfi.csv", "overrides.csv", "rules/*.yaml")
-
-
-def local_ips() -> list[str]:
-    """Adresele IPv4 ale laptopului; întâi hotspot-ul (bridge*), apoi Wi-Fi / Ethernet (en*), apoi restul."""
-    found: list[tuple[int, str]] = []
-    try:
-        out = subprocess.run(["ifconfig"], capture_output=True, text=True, timeout=3).stdout
-        iface = ""
-        for line in out.splitlines():
-            if line and not line[0].isspace():
-                iface = line.split(":")[0]
-            m = re.search(r"\binet (\d+\.\d+\.\d+\.\d+)", line)
-            if m and not m[1].startswith("127."):
-                found.append((0 if iface.startswith("bridge") else 1 if iface.startswith("en") else 2, m[1]))
-    except (OSError, subprocess.SubprocessError):
-        pass
-    if not found:
-        try:
-            out = subprocess.run(["hostname", "-I"], capture_output=True, text=True, timeout=3).stdout
-            found = [(1, ip) for ip in out.split() if re.fullmatch(r"\d+\.\d+\.\d+\.\d+", ip) and not ip.startswith("127.")]
-        except (OSError, subprocess.SubprocessError):
-            pass
-    if not found:
-        # fără nicio interfață parsabilă: adresa pe care ar ieși un pachet (merge și fără internet, nu trimite nimic)
-        with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
-            try:
-                s.connect(("10.255.255.255", 1))
-                found = [(1, s.getsockname()[0])]
-            except OSError:
-                pass
-    return [ip for _, ip in sorted(dict.fromkeys(found))] or ["127.0.0.1"]
 
 
 def port_free(port: int) -> bool:

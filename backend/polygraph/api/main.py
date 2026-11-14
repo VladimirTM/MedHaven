@@ -45,6 +45,7 @@ from polygraph.extract.display import display_brand, display_form, display_stren
 from polygraph.extract.match import confirmed_product, scan  # noqa: E402
 from polygraph.extract.ocr_match import OcrLine  # noqa: E402
 from polygraph.kb import Kb, KbMissing, default_kb  # noqa: E402
+from polygraph.net import lan_base_url  # noqa: E402
 from polygraph.schedule import build_schedule  # noqa: E402
 from polygraph.share import STATIC_DIR, render  # noqa: E402
 from polygraph.share.view import page_context, patient_card, portal_summary, review_event  # noqa: E402
@@ -169,7 +170,7 @@ def auth(pid: str, token: str | None) -> dict[str, Any]:
 def root(request: Request) -> HTMLResponse:
     # pagina de prezentare; QR-ul din `make demo` deschis cu camera telefonului ajunge tot aici,
     # deci adresa de pus în aplicație rămâne pe pagină (secțiunea „Conectați aplicația”)
-    return page("home.html", base=str(request.base_url).rstrip("/"))
+    return page("home.html", base=lan_base_url(str(request.base_url)))
 
 
 @app.get("/health")
@@ -586,8 +587,8 @@ def page(template: str, status: int = 200, **ctx: Any) -> HTMLResponse:
     return HTMLResponse(render(template, **ctx), status_code=status, headers=PAGE_HEADERS)
 
 
-def expired_page() -> HTMLResponse:
-    return page("expired.html", status=404)
+def expired_page(*, not_in_list: bool = False) -> HTMLResponse:
+    return page("expired.html", status=404, not_in_list=not_in_list)
 
 
 def current_doctor(request: Request) -> dict[str, Any] | None:
@@ -697,21 +698,21 @@ def portal_logout(request: Request) -> Response:
 @app.get("/portal/patients/{pid}", response_class=HTMLResponse)
 def portal_patient(pid: str, request: Request) -> HTMLResponse:
     if doctor_patient(request, pid) is None:
-        return expired_page() if current_doctor(request) else login_page(f"/portal/patients/{pid}")
+        return expired_page(not_in_list=True) if current_doctor(request) else login_page(f"/portal/patients/{pid}")
     return page("page.html", base=f"/portal/patients/{pid}", **patient_context(pid))
 
 
 @app.get("/portal/patients/{pid}/print", response_class=HTMLResponse)
 def portal_print(pid: str, request: Request) -> HTMLResponse:
     if doctor_patient(request, pid) is None:
-        return expired_page() if current_doctor(request) else login_page(f"/portal/patients/{pid}/print")
+        return expired_page(not_in_list=True) if current_doctor(request) else login_page(f"/portal/patients/{pid}/print")
     return page("print.html", base=f"/portal/patients/{pid}", **patient_context(pid))
 
 
 @app.get("/portal/patients/{pid}/graph", response_class=HTMLResponse)
 def portal_graph(pid: str, request: Request) -> HTMLResponse:
     if doctor_patient(request, pid) is None:
-        return expired_page() if current_doctor(request) else login_page(f"/portal/patients/{pid}/graph")
+        return expired_page(not_in_list=True) if current_doctor(request) else login_page(f"/portal/patients/{pid}/graph")
     patient = store().get_patient(pid)
     graph = run_analysis(pid, patient, store().list_meds(pid))["graph"]
     return page("graph.html", patient=patient, graph=graph, embed=False, back=f"/portal/patients/{pid}")
@@ -737,9 +738,13 @@ def review_alert(pid: str, alert_id: str, body: ReviewBody, request: Request) ->
     # ora locală, ca în check-in-uri: Noutățile se ordonează după acest câmp
     at = datetime.now(TZ).replace(microsecond=0).isoformat()
     note = body.note.strip()
+    prev = alert.get("resolution") if alert.get("status") == "reviewed_by_doctor" else None
+    if prev and prev.get("decision") == body.decision and (prev.get("note") or "") == note:
+        return alert
+    changed = prev is not None
     resolution = {"by": "doctor", "decision": body.decision, "note": note, "at": at}
     store().set_alert_state(pid, alert_id, "reviewed_by_doctor", resolution)
-    store().add_event(pid, review_event(alert, body.decision, note, at, secrets.token_hex(4)))
+    store().add_event(pid, review_event(alert, body.decision, note, at, secrets.token_hex(4), changed=changed))
     return {**alert, "status": "reviewed_by_doctor", "resolution": resolution}
 
 
