@@ -2,10 +2,12 @@ import XCTest
 
 /// Turul agresiv (Q3): apăsări repetate, anulări la limită, scanări ciudate, ore la marginea zilei,
 /// backend oprit în timpul fluxului, check-in-uri limită, multe Noutăți, accesibilitate dură.
-/// Rulează cu infrastructura turului de review: `make review Q=Q3e TOUR=EdgeCaseTour CONFIGS="Light AX" NO_VIDEO=1`.
+/// Rulează cu infrastructura turului de review: `make review Q=Q3e TOUR=EdgeCaseTour CONFIGS="Light AX DarkAX" NO_VIDEO=1`.
 /// Ca `ReviewTour`, testele nu pică: ce nu apare e notat „absent”, iar judecata se face din capturi și JSON.
 @MainActor
 final class EdgeCaseTour: ReviewTestCase {
+    override class var darkAXTests: Set<String> { ["testSeniorHugeTextDark"] }
+
     // MARK: - Ajutătoare
 
     /// Apăsări rapide pe același punct (2–5 în < 300 ms): XCUITest le trimite ca un singur gest cu mai multe atingeri.
@@ -510,13 +512,10 @@ final class EdgeCaseTour: ReviewTestCase {
 
     // MARK: - Accesibilitate dură
 
+    /// Dark și textul maxim vin din configurația DarkAX (Dark prin `set_ui` din run.sh, Q3F6).
     func testSeniorHugeTextDark() {
-        XCUIDevice.shared.appearance = .dark
         launch("hugeDark", role: .senior, now: Self.today(at: "07:05"),
                env: [:], defaults: ["pg.remindersAsked": "NO"])
-        app.terminate()
-        app.launchArguments += ["-UIPreferredContentSizeCategoryName", "UICTContentSizeCategoryAccessibilityXXXL"]
-        app.launch()
         pause(3)
         step("now", audit: true)
         app.swipeUp()
@@ -534,7 +533,6 @@ final class EdgeCaseTour: ReviewTestCase {
                 step("share", audit: true)
             }
         }
-        XCUIDevice.shared.appearance = .light
     }
 
     // MARK: - Moduri și reset cu detaliul deschis

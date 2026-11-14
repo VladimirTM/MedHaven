@@ -7,7 +7,8 @@
 # date proprie), ca testele să nu-și strice datele între ele.
 # Variabile opționale:
 #   SIMS=3                                  câte simulatoare în paralel (1 = secvențial)
-#   CONFIGS="Light Dark AX Motion Contrast" doar câteva variante
+#   CONFIGS="Light Dark AX Motion Contrast" doar câteva variante (DarkAX, doar pentru testele din darkAXTests,
+#                                           se cere explicit: CONFIGS="Light AX DarkAX")
 #   ONLY="testDay testFeed"                 doar câteva teste din tur
 #   TOUR=ReviewTour                         clasa de teste (EdgeCaseTour = turul agresiv de la Q3)
 #   NO_VIDEO=1                              fără video și cadre pentru „Am luat” / microfon
@@ -159,13 +160,15 @@ run_video() {  # <shard>: „Am luat” și inelul microfonului, filmate în Lig
 run_shard() {
     local i="$1" tests="${SHARD_TESTS[$1]}" plain=() c
     [[ -n "$tests" ]] || return
-    for c in "${CONFIG_LIST[@]}"; do [[ "$c" != Contrast && "$c" != Dark ]] && plain+=("$c"); done
+    for c in "${CONFIG_LIST[@]}"; do [[ "$c" != Contrast && "$c" != Dark && "$c" != DarkAX ]] && plain+=("$c"); done
     [[ ${#plain[@]} -gt 0 ]] && run_tests "$i" "$((i + 1))-main" "$tests" "${plain[@]}"
-    # Dark și Contrast sunt setări ale simulatorului (cu reboot, vezi set_ui), deci rulează separat (Q3-I4)
-    local ui=light
-    if [[ " ${CONFIG_LIST[*]} " == *" Dark "* ]]; then
+    # Dark și Contrast sunt setări ale simulatorului (cu reboot, vezi set_ui), deci rulează separat (Q3-I4);
+    # DarkAX = Dark + textul maxim din test plan, pe același reboot ca Dark
+    local ui=light dark=()
+    for c in Dark DarkAX; do [[ " ${CONFIG_LIST[*]} " == *" $c "* ]] && dark+=("$c"); done
+    if [[ ${#dark[@]} -gt 0 ]]; then
         set_ui "${UDIDS[$i]}" dark disabled; ui=dark
-        run_tests "$i" "$((i + 1))-dark" "$tests" Dark
+        run_tests "$i" "$((i + 1))-dark" "$tests" "${dark[@]}"
     fi
     if [[ " ${CONFIG_LIST[*]} " == *" Contrast "* ]]; then
         set_ui "${UDIDS[$i]}" light enabled; ui=contrast

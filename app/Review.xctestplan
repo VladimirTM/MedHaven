@@ -68,6 +68,23 @@
           }
         ]
       }
+    },
+    {
+      "id": "7C2E9B41-5D8A-4F63-A1B0-3E6D2C9F8A17",
+      "name": "DarkAX",
+      "options": {
+        "commandLineArgumentEntries": [
+          {
+            "argument": "-UIPreferredContentSizeCategoryName UICTContentSizeCategoryAccessibilityXXXL"
+          }
+        ],
+        "environmentVariableEntries": [
+          {
+            "key": "PG_REVIEW_VARIANT",
+            "value": "DarkAX"
+          }
+        ]
+      }
     }
   ],
   "defaultOptions": {
