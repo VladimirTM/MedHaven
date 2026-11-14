@@ -152,6 +152,38 @@ def test_unreadable_posology_is_warned(client):
     assert any(w.startswith("Nu am înțeles posologia «D.S. 9999-0-0»") for w in body["warnings"]), body["warnings"]
 
 
+# Q4-01: OCR-ul lipește durata de ultima cifră („1-0-1,7 zile”), care devenea seara 1,7 comprimate
+@pytest.mark.parametrize(
+    ("raw", "pattern"),
+    [
+        ("1-0-1,7 zile", (1, 0, 1, 0)),
+        ("1-0-1, 7 zile", (1, 0, 1, 0)),
+        ("1-0-1 ,7 zile", (1, 0, 1, 0)),
+        ("(1-0-1), timp de 7 zile", (1, 0, 1, 0)),
+        ("1-0-1;7 zile", (1, 0, 1, 0)),
+        ("1-1-1,5 zile", (1, 1, 1, 0)),
+        ("1-0-1,10 de zile", (1, 0, 1, 0)),
+        ("0,5-0-0", (0.5, 0, 0, 0)),
+        ("1-0-1,5", (1, 0, 1.5, 0)),
+        ("1-0-1/2", (1, 0, 0.5, 0)),
+    ],
+)
+def test_duration_after_a_comma_is_not_a_decimal(raw, pattern):
+    dosage, review = parse_posology(raw)
+    assert tuple(dosage["pattern"].values()) == pattern and not review
+
+
+@pytest.mark.parametrize("raw", ["1-0-1,7", "1,3-0-0", "0-0-2,2"])
+def test_dose_that_is_not_a_quarter_is_left_empty(raw):
+    dosage, review = parse_posology(raw)
+    assert review and not any(dosage["pattern"].values())
+
+
+def test_rx_with_glued_duration_keeps_the_prescribed_dose(client):
+    (c,) = scan_rx(client, "Rp./", "Fromilid 500 mg", "comprimate filmate, 14 buc.", "1-0-1,7 zile")["candidates"]
+    assert c["dosage"]["pattern"] == {"morning": 1, "noon": 0, "evening": 1, "bedtime": 0}
+
+
 # ---------------------------------------------------------------- T-Q3F2-04 (A-6) și T-Q3F2-05 (A-7)
 
 
