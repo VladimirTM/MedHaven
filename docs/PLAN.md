@@ -217,9 +217,9 @@ Cele două surse se completează: CNAS are lista oficială a rețetelor, PolyGra
 | Q3F2 vocea și scanarea pe backend | Dev B | ✅ | [#35](https://github.com/VladimirTM/PolyGraph/pull/35) | simptome în cuvinte obișnuite, rețete pe DCI |
 | Q3F1 modul senior | Dev A | ✅ | [#36](https://github.com/VladimirTM/PolyGraph/pull/36) | „Încearcă din nou”, `dayDone` adevărat, coada persistată |
 | Q3F3 robustețea API | Dev B | ✅ | [#37](https://github.com/VladimirTM/PolyGraph/pull/37) | `since` inclusiv, `POST /meds` concurent, erorile în română |
-| Q3F4 aparținătorul și consistența cu web-ul | Dev A (+ B) | ✅ | [#38](https://github.com/VladimirTM/PolyGraph/pull/38) | **rămâne T-Q3F4-03** (contrastul pe sticla barei) |
+| Q3F4 aparținătorul și consistența cu web-ul | Dev A (+ B) | ✅ | [#38](https://github.com/VladimirTM/PolyGraph/pull/38), [#48](https://github.com/VladimirTM/PolyGraph/pull/48) | T-Q3F4-03 închis în #48 (textul din bare în culoarea etichetelor; auditul rămâne fals pozitiv pe sticlă, de confirmat pe iPhone) |
 | Q3F5 polish | Dev A | ✅ | [#39](https://github.com/VladimirTM/PolyGraph/pull/39) | **amânate Q3-36 și Q3-37; turul T-Q3F5-01 la final** |
-| Q3F6 regresia pentru Q4 | Dev A (agent) | ✅ | [#40](https://github.com/VladimirTM/PolyGraph/pull/40) | Dark stabil; **`testSeniorHugeTextDark` iese încă Light** |
+| Q3F6 regresia pentru Q4 | Dev A (agent) | ✅ | [#40](https://github.com/VladimirTM/PolyGraph/pull/40), [#48](https://github.com/VladimirTM/PolyGraph/pull/48) | Dark stabil; `testSeniorHugeTextDark` rulează în configurația `DarkAX` (#48) |
 | QA1 robustețea backend-ului | Dev B (+ A) | ✅ | [#43](https://github.com/VladimirTM/PolyGraph/pull/43) | backend gata: T-QA1-01…07 verzi (`backend/tests/test_qa1.py`); build-ul iOS și testele unitare verzi |
 | QA2 · QA3 · QA4 | Dev B (+ A) | ✅ | [#44](https://github.com/VladimirTM/PolyGraph/pull/44) | graful comun (`graph-core.js`), textele comune (`posology_words.json`), portalul UX |
 | Scanarea cutiilor + GTIN-uri românești | Dev A + B | ✅ | [#45](https://github.com/VladimirTM/PolyGraph/pull/45) | kb/ro_gtins.csv, BoxBarcode.swift |
@@ -910,7 +910,7 @@ Restul ideilor din raport (simptome legate de medicamente, programul de lipit pe
 
 ## 15. S4, Q4, D1, D2 și materialele
 
-Q1 și Q2 n-au rulat (S1 și S2 trecute de facto), Q3 a rulat ziua (Anexa C). **Următorul e Q4**, la S4: turul de bază + `make review Q=Q4e TOUR=EdgeCaseTour CONFIGS="Light AX" NO_VIDEO=1` + turul T-Q3F5-01; `docs/reviews/Q4.md` are deja scheletul cu toate constatările din Q3.
+Q1 și Q2 n-au rulat (S1 și S2 trecute de facto), Q3 a rulat ziua (Anexa C). **Următorul e Q4**, la S4: turul de bază + `make review Q=Q4e TOUR=EdgeCaseTour CONFIGS="Light AX DarkAX" NO_VIDEO=1` + turul T-Q3F5-01; `docs/reviews/Q4.md` are deja scheletul cu toate constatările din Q3.
 
 ### 15.1 Q · Verificarea pe simulator, făcută de agent, după fiecare milestone (Q4 urmează)
 
@@ -1986,7 +1986,7 @@ Criterii de acceptare: aceeași doză ratată arată „joi, 12 nov., 14:00” �
 
 1. Varianta Dark stabilă: în `run.sh`, Dark rulează separat, după `xcrun simctl ui <udid> appearance dark` (ca la Contrast), nu doar cu `XCUIDevice.appearance` în `setUp`.
 2. `testDeleteUndoAndDeleteAll`: auditul după „Anulează”, nu înainte, ca fereastra de 5 s să nu expire.
-3. La Q4: turul de bază + `make review Q=Q4e TOUR=EdgeCaseTour CONFIGS="Light AX" NO_VIDEO=1`; fiecare constatare din Q3 primește starea închisă / deschisă / regresie în `docs/reviews/Q4.md`.
+3. La Q4: turul de bază + `make review Q=Q4e TOUR=EdgeCaseTour CONFIGS="Light AX DarkAX" NO_VIDEO=1`; fiecare constatare din Q3 primește starea închisă / deschisă / regresie în `docs/reviews/Q4.md`.
 
 **Teste**
 - [x] T-Q3F6-01 `make review Q=dbg CONFIGS=Dark ONLY="testSeniorNowMorning testCaregiverAlertsAndDetail testGraph"`: toate capturile sunt dark.
