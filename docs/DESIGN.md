@@ -1,6 +1,6 @@
 # Designul PolyGraph: skill-ul `apple-design`, aplicat în SwiftUI
 
-> Extras din `docs/PLAN.md`, secțiunea 2.4 (numerotarea e păstrată, ca trimiterile din prompturi să funcționeze). Dacă se schimbă ceva, se schimbă în ambele locuri.
+> Sursa unică pentru design: `docs/PLAN.md` (secțiunea 8.4) trimite aici. Numerotarea 2.4.x e păstrată, ca trimiterile din plan și din prompturi să funcționeze.
 
 
 **Unde stă skill-ul.** `.claude/skills/apple-design/SKILL.md`, copiat neschimbat din [emilkowalski/skills](https://github.com/emilkowalski/skills/blob/main/skills/apple-design/SKILL.md) (commit `4061b67`, licență MIT, cu fișierul `LICENSE` lângă el). `AGENTS.md` și `CLAUDE.md` cer ca **orice etapă care atinge UI-ul** să citească întâi skill-ul și apoi `docs/DESIGN.md` (secțiunea aceasta).

@@ -27,7 +27,7 @@ Potrivirea OCR și DataMatrix funcționează local. Pentru rezerva Gemini, confi
 
 ```bash
 make demo                                   # DEMO_MODE=1 pe 0.0.0.0:8000, fără reload; IP-ul local + QR cu baseURL
-make demo-check                             # R4: scenariul din PLAN.md §7 în proces, cu Gemini oprit
+make demo-check                             # R4: scenariul din PLAN.md §16 în proces, cu Gemini oprit
 make demo-check URL=http://127.0.0.1:8000   # același scenariu pe serverul din make demo (la final îl resetează)
 make demo-warm                              # cu internet, înainte de scenă: cache-ul Gemini (poze + transcrieri)
 ```

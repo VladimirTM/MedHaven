@@ -1,6 +1,6 @@
 # Cum lucrăm (varianta de hackathon)
 
-Planul complet e în [`docs/PLAN.md`](docs/PLAN.md); fazele și sync point-urile sunt chiar la începutul lui.
+Planul complet e în [`docs/PLAN.md`](docs/PLAN.md); statusul e chiar la începutul lui, iar ce are de făcut fiecare e în Partea III.
 
 ## Pornire
 

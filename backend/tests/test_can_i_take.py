@@ -1,5 +1,5 @@
 """X1, „Pot să iau…?”: what-if pe regimul pacientului, cu răspunsul pe severități decis pe 14.11.2026 (docs/PLAN.md,
-1.3). Grav și „fără date” ajung în Noutăți; moderat și „nimic găsit” rămân doar în răspuns și în check-in.
+5.2). Grav și „fără date” ajung în Noutăți; moderat și „nimic găsit” rămân doar în răspuns și în check-in.
 Niciun răspuns nu spune „puteți lua” și nu trimite la farmacist. Testele cu kb-ul real se sar dacă kb/kb.sqlite nu e
 construit (CI)."""
 
