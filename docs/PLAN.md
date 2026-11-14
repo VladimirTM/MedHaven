@@ -4,7 +4,7 @@
 **Platformă:** aplicație **iOS nativă (SwiftUI)**, backend Python. Fără Android: echipa are două MacBook-uri și două iPhone-uri, iar demo-ul se face pe iPhone.
 **Repo:** [github.com/VladimirTM/PolyGraph](https://github.com/VladimirTM/PolyGraph) (local: `~/Git/PolyGraph`)
 
-> **Pe scurt (14.11.2026, `main` la [PR #40](https://github.com/VladimirTM/PolyGraph/pull/40)):** tot MVP-ul (F1–F10) și bonusurile X1 și X2 sunt în `main`, la fel ca reparațiile din review-ul Q3 (Q3F0–Q3F6). **Urmează:** QA1–QA4 (robustețea backend-ului, graful comun, textele comune, portalul), apoi S4 (feature freeze, D 09:30), Q4, D1 și D2. Statusul complet e în [secțiunea 7](#7-statusul-pe-scurt), iar ce are de făcut fiecare în [Partea III](#partea-iii--ce-e-de-făcut).
+> **Pe scurt (14.11.2026 seara, `main` la [PR #53](https://github.com/VladimirTM/PolyGraph/pull/53)):** tot MVP-ul (F1–F10), bonusurile X1 și X2, reparațiile din Q3 (Q3F0–Q3F6), QA1–QA4, QA5.1–QA5.2 și J-1 (rețeaua locală, #52, #53) sunt în `main`. **Urmează:** E0 (bug: editarea unui medicament dă 422), apoi ideile din seara de 14.11 (E1–E6: orele zilei, pagina familiei pe web, cutiuța, stocul, poza pastilei, mai mulți pacienți; [14.6](#146-e--ideile-din-14112026-seara-pagina-familiei-pe-web-orele-stocul-poza-pastilei)), ce intră până la D 08:30; apoi S4 (feature freeze, D 09:30), Q4, D1 și D2. Statusul complet e în [secțiunea 7](#7-statusul-pe-scurt), iar ce are de făcut fiecare în [Partea III](#partea-iii--ce-e-de-făcut).
 
 ## Cum e organizat documentul
 
@@ -15,7 +15,7 @@
 | **III · Ce e de făcut** | lista pe persoane, regulile comune aplicație–web, etapele deschise cu prompturile lor, demo, pitch, riscuri | 12–19 |
 | **Anexe** | pregătirea dinainte de start, etapele livrate cu prompturile lor, rapoartele QA și Q3 | A–C |
 
-Etapele au prefixele **P** (împreună), **A** (Dev A: aplicația iOS), **B** (Dev B: date, motor, backend), **X** (bonusuri), **Q** (review-ul pe simulator), **QA** (testarea web și backend), **Q3F** (reparațiile din Q3), **D** (împreună, demo). Legendă status: ⬜ neînceput · 🔄 în lucru · ✅ gata · ⚠️ blocat / tăiat / sărit.
+Etapele au prefixele **P** (împreună), **A** (Dev A: aplicația iOS), **B** (Dev B: date, motor, backend), **X** (bonusuri), **Q** (review-ul pe simulator), **QA** (testarea web și backend), **Q3F** (reparațiile din Q3), **E** (ideile din 14.11 seara: pagina familiei, orele, stocul), **D** (împreună, demo). Legendă status: ⬜ neînceput · 🔄 în lucru · ✅ gata · ⚠️ blocat / tăiat / sărit.
 
 ---
 
@@ -186,7 +186,7 @@ Cele două surse se completează: CNAS are lista oficială a rețetelor, PolyGra
 
 ## 7. Statusul pe scurt
 
-**14.11.2026, `main` la [PR #40](https://github.com/VladimirTM/PolyGraph/pull/40).** S0–S3 sunt trecute (S1–S3 de facto, fără review Q, pentru că Q0 nu era gata). `make check` are 353 de teste după Q3F4, `make demo-check` e verde cu pasul X1, iar `PolyGraphTests` sunt verzi pe simulator. Detaliile fiecărei etape (checklist, prompt, teste) sunt în Anexa B (etapele A / B) și Anexa C (QA și Q3).
+**14.11.2026 seara, `main` la [PR #53](https://github.com/VladimirTM/PolyGraph/pull/53).** S0–S3 sunt trecute (S1–S3 de facto, fără review Q, pentru că Q0 nu era gata). `make check` are 353 de teste după Q3F4, `make demo-check` e verde cu pasul X1, iar `PolyGraphTests` sunt verzi pe simulator. Detaliile fiecărei etape (checklist, prompt, teste) sunt în Anexa B (etapele A / B) și Anexa C (QA și Q3).
 
 ### 7.1 Etapele, pe rând
 
@@ -224,6 +224,9 @@ Cele două surse se completează: CNAS are lista oficială a rețetelor, PolyGra
 | QA2 · QA3 · QA4 | Dev B (+ A) | ✅ | [#44](https://github.com/VladimirTM/PolyGraph/pull/44) | graful comun (`graph-core.js`), textele comune (`posology_words.json`), portalul UX |
 | Scanarea cutiilor + GTIN-uri românești | Dev A + B | ✅ | [#45](https://github.com/VladimirTM/PolyGraph/pull/45) | kb/ro_gtins.csv, BoxBarcode.swift |
 | QA5 funcționalitățile pentru demo | Dev B | ✅ 5.1, 5.2 | [#49](https://github.com/VladimirTM/PolyGraph/pull/49), [#51](https://github.com/VladimirTM/PolyGraph/pull/51) | portalul se actualizează singur (`GET /portal/events`, SSE + polling la 5 s), „Dacă prescriu…” pe fișă; T-QA5-01/02 verzi; QA5.3 („Ce s-a schimbat”) mutat în secțiunea 19 |
+| J-1 rețeaua locală pe al doilea iPhone | Dev A + B | ✅ | [#52](https://github.com/VladimirTM/PolyGraph/pull/52), [#53](https://github.com/VladimirTM/PolyGraph/pull/53) | mesajul „Rețea locală” în loc de „offline”; IP-urile ordonate după rețea (`bridge100` primul) |
+| E0 bug: editarea unui medicament → 422 | Dev A + B | ⬜ | – | înainte de S4, primul (14.6) |
+| E1–E6 ideile din 14.11 seara | amândoi | ⬜ | – | E1–E2 înainte de S4, E3–E6 opționale; ce nu e în `main` la D 08:30 trece în 19 (14.6) |
 | S4 + Q4 · D1 · D2 | amândoi | ⬜ | – | secțiunea 15 |
 
 ### 7.2 Livrate în afara etapelor (14.11.2026, [PR #33](https://github.com/VladimirTM/PolyGraph/pull/33))
@@ -690,7 +693,7 @@ Check-in-ul demo (`checkin_demo.json`): „Dimineața, când mă ridic din pat, 
 
 Ordinea ține cont de S4 (feature freeze, D 09:30): ce e marcat „înainte de S4” intră acum, „opțional” doar dacă rămâne timp, iar ce nu intră până la S4 trece la secțiunea 19. Fiecare etapă de cod e un PR mic, cu testele ei; la final `make check`, `make demo-check` și, unde e atinsă aplicația, `make check-ios`.
 
-**Ordinea etapelor de cod:** QA1 → QA2 și QA3 în paralel → QA4 → (QA5, opțional) → **S4** → Q4 → D1 → D2.
+**Ordinea etapelor de cod:** QA1 → QA2 și QA3 în paralel → QA4 → (QA5, opțional) → **E0** → E1 și E2 în paralel → (E4 + E5, E3, E6, opționale) → **S4** → Q4 → D1 → D2. Calendarul pe ore pentru etapele E e în 14.6.
 
 ### 12.1 Dev A (aplicația iOS)
 
@@ -703,6 +706,10 @@ Ordinea ține cont de S4 (feature freeze, D 09:30): ce e marcat „înainte de S
 | A-5 | `EdgeCaseTour.testSeniorHugeTextDark` comută cu `XCUIDevice.appearance` în test, deci capturile ies Light | înainte de Q4 | 15 min | ✅ (`fix/s4-app-polish`: configurația `DarkAX`) | Anexa C, Q3F6 |
 | A-6 | comentariul din `FeedModel.isSerious` („doar când sunt escaladate”) nu mai e adevărat după X1: Noutăți primește și întrebările neescaladate; decizia rămâne notificarea pentru „fără date” sau `severity != nil` | înainte de S4 | 5 min | ✅ (`fix/s4-app-polish`) | 5.2 |
 | A-7 | Q3-36 (tranziția „Am luat”, pe simulator cu capturile de cadre) și Q3-37 (ordinea dozelor; schimbarea fixture-ului atinge testele senior) | opțional | 1 h | ⬜ amânate din Q3F5 | Anexa C, Q3F5 |
+| A-8 | **E0** editarea unui medicament: corpul `PATCH /meds` cu `null` (`JSONCoding`), ca la `POST` | înainte de S4, primul | 15 min | ⬜ | 14.6, E0 |
+| A-9 | **E1** „Orele zilei” în Setări (rândurile din onboarding), notificările reprogramate | înainte de S4 | 45 min | ⬜ | 14.6, E1 |
+| A-10 | **E4** stocul în aplicație: „Comprimate într-o cutie”, „Câte cutii aveți acasă?”, „Mai aveți pentru N zile”, „Am cumpărat o cutie”, `stock_low` în Noutăți (+ PR-ul de contract, împreună cu Dev B) | opțional | 1,5 h | ⬜ | 14.6, E4 |
+| A-11 | **E5** poza pastilei: fotografierea și afișarea lângă cutie pe „Acum” și „Ziua de azi”; butonul „Deschide pe web” din E2 (15 min) | opțional | 1 h | ⬜ | 14.6, E2 și E5 |
 
 ### 12.2 Dev B (date, motor, backend, portal)
 
@@ -716,6 +723,12 @@ Ordinea ține cont de S4 (feature freeze, D 09:30): ce e marcat „înainte de S
 | B-6 | **Pitch-ul:** slide-ul 5 („Cum e construit”: diagrama din 8.1, „LLM doar la margini”, o captură cu logurile `SCAN` / `ALERTĂ` din `make demo`); cifrele de pe slide-ul 1 verificate în sursele originale; câte 2 fraze pentru fiecare întrebare probabilă a juriului, inclusiv CNAS (6.4) | înainte de D2 | 1 h | ✅ ([#46](https://github.com/VladimirTM/PolyGraph/pull/46)) | 17 |
 | B-7 | **Materialele:** Nurofen se cumpără fără rețetă; Sintrom e pe rețetă, deci se tipărește cutia de test `demo/datamatrix/test_sintrom.png`; rețeta ORL tipărită (`demo/rx/reteta_demo_fromilid.pdf`, A4, scala 100%) | înainte de D1 | 30 min | ⬜ | 15.4 |
 | B-8 | Pregătirea pentru Q4 (rulează pe Mac-ul lui Dev B): `make check-ios` verde pe Mac-ul lui, laptopul la priză și fără sleep (`caffeinate`) | înainte de S4 | 15 min | ✅ | 15.1 |
+| B-9 | **E0** `PATCH /meds` combină obiectele de nivel doi; mesajul 422 tradus | înainte de S4, primul | 20 min | ⬜ | 14.6, E0 |
+| B-10 | **E1** ordinea orelor validată, dozele de azi mutate la orele noi, `/acasa/ore` | înainte de S4 | 45 min | ⬜ | 14.6, E1 |
+| B-11 | **E2** pagina familiei pe web: intrarea cu link din aplicație, „Azi” cu „Am luat”, „Medicamentele mele” cu „i”, „De verificat” cu „De ce văd asta?” | înainte de S4 | 3 h | ⬜ | 14.6, E2 |
+| B-12 | **E3** „Calendar săptămânal” și „Pregătesc cutiuța” | opțional | 1,5 h | ⬜ | 14.6, E3 |
+| B-13 | **E4** PR-ul de contract (cu Dev A), calculul stocului, `stock_low`, „am rămas fără…” la check-in; **E5** ruta `pill-photo`, pozele pe web, pozele demo | opțional | 2 h + 45 min | ⬜ | 14.6, E4 și E5 |
+| B-14 | **E6** mai mulți pacienți în același browser | opțional | 1 h | ⬜ | 14.6, E6 |
 
 ### 12.3 Împreună
 
@@ -765,7 +778,7 @@ Regula pentru toate etapele din Partea III: **un lucru pe care îl văd și fami
 | Țintele de atingere | senior 72 pt (în afară de înapoi, Q3-25); aparținător 50 pt (în afară de „Anulează” 34 pt) | QA4: 44 px pe `pointer: coarse` | senior ≥ 72 pt, aparținător ≥ 44 pt (HIG), web tactil ≥ 44 px |
 | Suprafețele | senior: bara translucidă (Q3-26) | opace | modul senior și portalul: opace; materialele translucide doar în chrome-ul aparținătorului |
 
-## 14. Etapele deschise de cod (QA1–QA5)
+## 14. Etapele deschise de cod (QA1–QA5, E0–E6)
 
 Constatările QA-nn și Q3-nn citate în prompturi sunt în Anexa C. QA0 e gata (#33). Fiecare etapă e un PR mic, cu testele ei; `make check` și `make demo-check` verzi la final, iar cele cu „ambele” în coloana „Platforme” se încheie cu `make check-ios` pe Mac.
 
@@ -777,8 +790,9 @@ Constatările QA-nn și Q3-nn citate în prompturi sunt în Anexa C. QA0 e gata 
 | QA3 | textele comune și QA-13 | Dev B (+ Dev A pentru Noutăți) | 1,5 h | ✅ `fix/qa2-shared-graph` |
 | QA4 | portalul: decizii, mesaje, accesibilitate, QA-14, 16 | Dev B | 2,5 h | ✅ `fix/qa2-shared-graph` |
 | QA5 | funcționalitățile pentru demo (opțional) | Dev B | 2–4 h | `feature/qa5-…` |
+| E0–E6 | ideile din 14.11 seara: bug-ul de editare, orele zilei, pagina familiei, cutiuța, stocul, poza pastilei, mai mulți pacienți | Dev A + Dev B | 30 min – 3,5 h fiecare | `fix/e0-…`, `feature/e1-…` … (14.6) |
 
-Status la 14.11.2026: QA0 ✅ (#33); QA1 ✅ (#43); QA2–QA4 ✅ (#44); QA5.1 și QA5.2 ✅ ([#49](https://github.com/VladimirTM/PolyGraph/pull/49), [#51](https://github.com/VladimirTM/PolyGraph/pull/51)), QA5.3 mutat în secțiunea 19. Dependențele: QA2 și QA3 după QA1, QA4 după QA3, QA5 după QA2 și QA4.
+Status la 14.11.2026: QA0 ✅ (#33); QA1 ✅ (#43); QA2–QA4 ✅ (#44); QA5.1 și QA5.2 ✅ ([#49](https://github.com/VladimirTM/PolyGraph/pull/49), [#51](https://github.com/VladimirTM/PolyGraph/pull/51)), QA5.3 mutat în secțiunea 19; E0–E6 ⬜ (adăugate în seara de 14.11, 14.6). Dependențele: QA2 și QA3 după QA1, QA4 după QA3, QA5 după QA2 și QA4; E1, E2 și E4 după E0, E3 și E6 după E2, E5 după contractul din E4.
 
 ### 14.1 QA1 · Robustețea backend-ului
 
@@ -907,6 +921,217 @@ Restul ideilor din raport (simptome legate de medicamente, programul de lipit pe
 - [x] T-QA5-01 Funcționalitatea 1: un medicament adăugat prin API apare în portal în < 5 s, fără reîncărcare (`backend/tests/test_qa5_live.py`).
 - [x] T-QA5-02 Funcționalitatea 2: „Fromilid” în câmp dă aceleași alerte ca `POST /what-if` și ca scenariul 2:10 (`backend/tests/test_qa5_whatif.py`).
 - [ ] T-QA5-03 Funcționalitatea 3: după o decizie, „Ce s-a schimbat” se golește; un medicament nou îl umple (cu 5.3, în secțiunea 19).
+
+### 14.6 E · Ideile din 14.11.2026 seara: pagina familiei pe web, orele, stocul, poza pastilei
+
+Lista vine din testarea de sâmbătă seara (web și aplicație). Etapele sunt gândite pentru doi oameni care lucrează în paralel: **Dev B** face backend-ul și paginile web (Jinja + JS mic, ca portalul), **Dev A** face partea din aplicație. Singurul punct în care se așteaptă unul pe altul e contractul de la E4 (un singur PR de contract, la începutul lui E4, ca `make models` să ruleze o dată).
+
+**Ce intră înainte de S4 și ce nu.** E0 e un bug și intră primul, oricum. E1 și E2 intră dacă sunt în `main` până la D 08:30; E3–E5 sunt opționale, în ordinea din tabel; ce nu e în `main` la D 08:30 trece în secțiunea 19, iar scenariul demo (16) nu se schimbă din cauza lor. Pagina familiei nu intră în cele 3 minute de demo; o arătăm doar dacă juriul întreabă „și cine n-are iPhone?”.
+
+| Etapa | Ce rezolvă | Cine | Durată | Când | Contract | Branch |
+|---|---|---|---|---|---|---|
+| E0 | editarea unui medicament dă 422 (`dosage.raw`, `prescriber.name/specialty` lipsă) | A + B | 30 min | înainte de S4, primul | nu | `fix/e0-edit-med-422` |
+| E1 | orele zilei (trezire, mese, culcare) se pot schimba după onboarding, în aplicație și pe web | A + B | 1,5 h (45 min fiecare) | înainte de S4 | nu (`anchors` e deja în `PATCH /patients`) | `feature/e1-orele-zilei` |
+| E2 | pagina familiei pe web: „Azi”, „Medicamentele mele”, „De verificat” | B | 3 h | înainte de S4 | da, doar ruta `web-link` în `openapi.yaml` | `feature/e2-pagina-familiei` |
+| E3 | „Calendar săptămânal” și modul „Pregătesc cutiuța” | B | 1,5 h | opțional | nu (rute HTML) | `feature/e3-cutiuta` |
+| E4 | stocul: comprimate în cutie, „Mai aveți pentru N zile”, alerta la aparținător (din stoc și din check-in: „am rămas fără…”) | B 2 h + A 1,5 h | 3,5 h | opțional | da (`stock`, `stock_low`, `out_of_stock`, `pill_photo_url`) | `feature/e4-stoc` |
+| E5 | poza pastilei lângă poza cutiei | A 1 h + B 45 min | 2 h | opțional, după E4 (folosește contractul lui) | da (în PR-ul de contract din E4) | `feature/e5-poza-pastilei` |
+| E6 | mai mulți pacienți pe același browser (Maria și Ion); în aplicație, în secțiunea 19 | B | 1 h | opțional | nu | `feature/e6-mai-multi-pacienti` |
+
+**Calendarul pentru doi oameni (orientativ, de sâmbătă 22:30):**
+
+| Ceas | Dev A (aplicația) | Dev B (backend, web) |
+|---|---|---|
+| S 22:30–23:00 | E0 în aplicație (corpul PATCH cu `null`) | E0 în backend (combinarea pe nivelul doi + test) |
+| S 23:00–23:45 | E1: „Orele zilei” în Setări | E1: mutarea dozelor de azi la orele noi + pagina web `/acasa/ore` (după E2, se leagă în tab-uri) |
+| S 23:45–00:15 | **împreună:** PR-ul de contract E4 + E5, `make models`, `make check-contracts` | **împreună** |
+| D 00:15–02:00 | E4 în aplicație (stocul în confirmare și în listă), apoi E5 (poza pastilei) | E2 pagina familiei (3 tab-uri) |
+| D 08:00–08:30 | ce a rămas din E5; `make check-ios` | E3 sau backend-ul E4, ce e mai aproape de gata; `make check`, `make demo-check` |
+| D 08:30 | **ce nu e în `main` trece în 19** | |
+
+Dacă la 00:15 E0–E1 nu sunt în `main`, contractul E4 nu se mai face, iar Dev A trece direct la T-Q3F5-01 și la pregătirea Q4.
+
+#### Răspunsul la „lista cu toți pacienții: se poate doar cu o bază de date?”
+
+Baza de date există deja: backend-ul ține totul în SQLite (`backend/app.sqlite`, `store/db.py`: pacienți, medicamente, doze, check-in-uri, Noutăți, medici, `doctor_patients`). **Medicul are deja lista** („Pacienții mei”, `/portal`), alimentată de QR-ul „Arată medicului”. Ce lipsește e lista **pentru familie** (o Ana care are grijă și de mama, și de tatăl ei): pe web e E6 (sesiunea browserului ține mai mulți pacienți, fără conturi), în aplicație e o schimbare în `AppStore` (azi un singur `(id, token)` pe telefon) și merge în secțiunea 19.
+
+#### E0 · Editarea unui medicament dă 422
+
+**Responsabil:** Dev A (aplicația) + Dev B (backend) · **Depinde de:** nimic · **Durată:** 30 min · **Branch:** `fix/e0-edit-med-422`
+
+**Cauza** (găsită la scrierea planului): `POST /meds` trimite corpul prin `JSONCoding.medicationBody`, care pune `null` în câmpurile opționale (encoderul sintetizat Swift le omite, iar schema le cere prezente). `PATCH /meds/{mid}` (`APIClient.updateMed`, din `ConfirmSheet.save` cu `editingID`) encodează `MedicationUpdate` direct, deci `dosage.raw` = `nil` și `prescriber.name/specialty` = `nil` (Nurofen, fără rețetă) dispar din JSON. Backend-ul (`update_med` în `api/main.py`) face `{**med, **body}`: obiectul `dosage` primit înlocuiește întreg obiectul salvat, iar validarea schemei pică.
+
+~~~text
+[WORKFLOW] Branch: fix/e0-edit-med-422. Nicio schimbare de contract în afară de descrierea rutei PATCH din contracts/api/openapi.yaml. xcodebuild build după modificarea din aplicație.
+
+Obiectiv: un medicament adăugat se poate edita (posologia, medicul, produsul) fără eroare, inclusiv unul fără rețetă și unul fără textul de pe rețetă.
+
+1. Aplicația (Dev A): în app/PolyGraph/API/JSONCoding.swift, o funcție medicationUpdateBody(_ changes: MedicationUpdate) care face același fillNulls ca medicationBody, doar pentru obiectele prezente (product, dosage, prescriber, substances); APIClient.updateMed trimite corpul prin ea (ca addMed, cu request(..., json:)). Un XCTest: MedicationUpdate cu dosage.raw = nil și prescriber (nil, nil) produce JSON cu "raw": null, "name": null, "specialty": null.
+2. Backend-ul (Dev B): în update_med, obiectele de nivel doi din corp (product, dosage, prescriber) se combină cu cele salvate ({**med[k], **body[k]}), iar substances și câmpurile simple se înlocuiesc întregi. Un câmp trimis explicit cu null rămâne null. Descrierea PATCH din openapi.yaml spune asta. Mesajul 422 din RequestValidationError / invalid() rămâne în română, dar fără „Campul <<dosage/row>>”: numele câmpului e tradus („Lipsește textul de pe rețetă”), ca restul erorilor din Q3F3.
+3. Test pytest: Nurofen salvat cu POST, apoi PATCH cu {"dosage": {"as_needed": true, "pattern": {...}, "with_food": "with"}} și {"prescriber": {}} → 200, raw și numele medicului păstrate; PATCH cu "raw": null → raw devine null.
+
+Criterii de acceptare: pe iPhone, Nurofen adăugat și apoi editat (posologia schimbată) se salvează din prima; logul serverului nu mai are WARNING 422 pentru medication_item; make check și make check-ios verzi.
+~~~
+
+**Teste**
+- [ ] T-E0-01 XCTest: corpul PATCH conține cheile `raw`, `name`, `specialty` cu `null`.
+- [ ] T-E0-02 pytest: PATCH parțial pe `dosage` / `prescriber` păstrează câmpurile nesetate; `null` explicit se salvează.
+- [ ] T-E0-03 Manual, pe iPhone: Nurofen (fără rețetă) și Sintrom (cu rețetă) editate, salvate, alertele recalculate.
+
+#### E1 · Orele zilei se pot schimba
+
+**Responsabil:** Dev A (Setări) + Dev B (backend, web) · **Depinde de:** E0 · **Durată:** 1,5 h · **Branch:** `feature/e1-orele-zilei`
+
+**Cum funcționează azi.** „Dimineața / prânzul / seara / culcarea” nu sunt ore scrise pe medicament: solverul (B4) pune dozele relativ la cele 5 ore ale pacientului (`anchors`: trezire, mic dejun, prânz, cină, culcare), alese la onboarding. De aceea par fixe: după onboarding nu există niciun ecran care să le schimbe, deși `PATCH /v1/patients/{id}` acceptă deja `anchors`. Schimbarea unei ore (ex. cina la 20:00) mută toate dozele legate de ea, cu aceleași reguli (Euthyrox singur dimineața, calciul la 4 ore etc.). **O oră fixă pe un singur medicament** („Euthyrox la 06:30, indiferent de trezire”) cere un câmp nou în `dosage` și o constrângere nouă în solver: secțiunea 19.
+
+~~~text
+[WORKFLOW] Branch: feature/e1-orele-zilei. Citește .claude/skills/apple-design/SKILL.md și docs/DESIGN.md. Nu edita project.pbxproj. Nicio schimbare de contract.
+
+Obiectiv: familia (în aplicație) și pacientul / familia (pe web) pot schimba orele zilei; programul și notificările se refac imediat, iar ce s-a bifat azi rămâne bifat.
+
+1. Aplicația (Dev A): în Settings/SettingsView.swift, secțiunea „Orele zilei”, cu aceleași rânduri ca la onboarding (componenta din OnboardingView.swift, „Micul dejun · 08:00” cu roata dedesubt, extrasă într-un fișier comun, nu copiată). „Salvează” trimite PATCH /patients cu anchors; după răspuns, AppStore reîncarcă /schedule, iar Reminders reprogramează notificările locale. Sub listă, o frază: „Pastilele se mută odată cu orele. Regulile dintre ele rămân aceleași.” În modul senior nu se schimbă nimic (doar se vede programul nou).
+2. Backend-ul (Dev B): update_patient validează ordinea (trezire < mic dejun < prânz < cină < culcare, altfel 422 „Orele trebuie să fie în ordinea zilei”). Când anchors se schimbă, dozele de azi deja înregistrate se mută la noile ore: pentru fiecare doză de azi, momentul vechi se găsește în programul calculat cu anchors vechi (med_id + ora), iar scheduled_at devine ora aceluiași moment din programul nou (aceeași poziție în zi). Totul într-o tranzacție în store/db.py. Dozele din zilele trecute nu se ating.
+3. Web (Dev B): pagina /acasa/ore din pagina familiei (E2; dacă E2 nu e gata, ruta există și e legată din E2 când apare): cinci câmpuri <input type="time">, ținte de 44 px, aceeași frază, „Salvează” → aceeași funcție ca PATCH-ul.
+4. Logul: PROGRAM  orele zilei schimbate (cina 19:00 → 20:00), N doze de azi mutate.
+
+Criterii de acceptare: cina mutată de la 19:00 la 20:00 → dozele de seară apar la noua oră în aplicație (aparținător și senior), pe web și în portal; „Am luat” de dimineață rămâne bifat; o notificare locală veche nu mai sună la 19:00; make check, make check-ios și make demo-check verzi (pacientul demo nu e atins).
+~~~
+
+**Teste**
+- [ ] T-E1-01 pytest: anchors în altă ordine → 422; anchors schimbați → `/schedule` are orele noi, programul Mariei cu anchors inițiali = `expected_schedule.json`.
+- [ ] T-E1-02 pytest: doză de dimineață bifată, apoi cina mutată → doza rămâne `taken` în ziua de azi; dozele de ieri neschimbate.
+- [ ] T-E1-03 XCTest: după salvare, `Reminders` primește programul nou (nicio notificare la ora veche).
+- [ ] T-E1-04 Manual: ora schimbată în aplicație se vede pe web fără reîncărcarea serverului, și invers.
+
+#### E2 · Pagina familiei pe web: „Azi”, „Medicamentele mele”, „De verificat”
+
+**Responsabil:** Dev B · **Depinde de:** E0 · **Durată:** 3 h · **Branch:** `feature/e2-pagina-familiei`
+
+Pentru familia sau pacientul care n-are aplicația la îndemână (alt telefon, tabletă, laptop). Aceleași date ca aplicația, din aceleași funcții (`page_context`, `build_schedule`, `plain_posology`, textele din `engine/texts_ro.py`): regula din secțiunea 13 se aplică și aici.
+
+~~~text
+[WORKFLOW] Branch: feature/e2-pagina-familiei. Citește .claude/skills/apple-design/SKILL.md și docs/DESIGN.md (B6); componentele native (details, dialog, button) înaintea codului propriu. Singura schimbare de contract: ruta POST /v1/patients/{id}/web-link în contracts/api/openapi.yaml.
+
+Obiectiv: o pagină web pentru familie, cu trei tab-uri, care arată exact ce arată aplicația și permite „Am luat”.
+
+1. Intrarea: POST /v1/patients/{id}/web-link (cu X-Patient-Token) → {"url": "<bază>/acasa/intra/<cod>", "expires_at"}; codul e de unică folosință și expiră în 10 minute. GET /acasa/intra/<cod> pune un cookie de sesiune pg_home (httponly, SameSite=Lax, 30 de zile) și redirecționează la /acasa. Tabel nou home_sessions(token, patient_id, expires_at) în store/db.py. Fără sesiune: pagina „Deschideți linkul din aplicație: Setări → Deschide pe web”. În aplicație (Dev A, 15 min, opțional): butonul „Deschide pe web” în Setări, care cere linkul și îl arată ca QR + „Copiază”. make demo afișează și un link /acasa pentru pacientul demo.
+2. Șablonul comun: templates/home_base.html cu antetul (logo, numele pacientului) și bara de tab-uri (jos pe ecrane < 600 px, sus peste): Azi · Medicamentele mele · De verificat (+ Calendar la E3). Același share.css, aceleași culori și același accent ca portalul.
+3. Azi (/acasa): momentele zilei din build_schedule(azi), fiecare card cu ora, eticheta („Dimineața · 08:00”), pentru fiecare doză poza cutiei (photo_url), numele de pe cutie, cantitatea în cuvinte („1 comprimat”, „½ comprimat”), instrucțiunea; butonul „Am luat” (POST /acasa/doze, aceeași logică și aceeași cheie de idempotență ca POST /v1/.../doses, refactorizată într-o funcție comună) → cardul devine „Luat la 08:12”. Momentul curent sus, cele trecute neluate cu „Nu ați bifat încă”. Fără medicamente: „Nu aveți pastile în program.” (textul din 13.2).
+4. Medicamentele mele (/acasa/medicamente): lista după numele de pe cutie (brand + concentrație), cu poza cutiei, posologia în cuvinte, medicul care l-a prescris sau „fără rețetă”, data expirării. Butoane „i” (popover / details, 44 px) cu explicații scurte, dintr-un singur dicționar în backend/polygraph/share/glossary.py: „Ce înseamnă mg?” („Miligrame: cât din substanța activă e într-o pastilă. 1000 mg = 1 gram.”), „Ce e substanța activă?”, „Ce înseamnă 1-0-1?”, „La nevoie”, „Cu mâncare / pe stomacul gol”. Explicațiile nu dau doze și nu spun „opriți” (regula T-B2-03).
+5. De verificat (/acasa/verificat): alertele în ordinea din 11.3, cu titlul din texts_ro.py și recomandarea pentru familie din contract (cea pe care portalul o reformulează pentru medic); sub fiecare, „Ce puteți face” (recommendation + cui să-i spună, din route_to) și decizia medicului, dacă există, cu DECISION_LABEL_FAMILY. „De ce văd asta?” (details) deschide explicația (mecanismul în cuvinte) și sursa, ca „i”-ul de pe fișă, fără căi interne (QA3). Alertele moderate strânse sub „Arată celelalte N”, ca pe fișă.
+6. Actualizarea: paginile ascultă un flux SSE /acasa/events (același mecanism ca /portal/events, filtrat pe pacientul din sesiune), ca bifa din aplicație să apară pe web și invers.
+7. Accesibilitate: h1 pe fiecare pagină, ținte ≥ 44 px pe pointer: coarse, textul de bază 17 px, Dark Mode din prefers-color-scheme, prefers-contrast: more ca în share.css.
+
+Criterii de acceptare: pe un iPhone (Safari) și pe laptop, cele trei tab-uri arată aceleași medicamente, doze și alerte ca aplicația aparținătorului; „Am luat” pe web apare în modul senior la următorul polling, iar „Am luat” din aplicație apare pe web fără refresh; make check și make demo-check verzi.
+~~~
+
+**Teste**
+- [ ] T-E2-01 pytest: `web-link` → codul merge o dată, a doua oară și după 10 minute dă pagina de intrare; fără cookie, `/acasa` nu arată date.
+- [ ] T-E2-02 pytest: „Am luat” pe web de 2 ori în paralel → o singură doză, aceeași cheie ca `POST /doses`.
+- [ ] T-E2-03 pytest: pentru Maria, „Azi” are aceleași momente și doze ca `expected_schedule.json`, „De verificat” aceleași alerte ca `/analysis`, în ordinea din 11.3; HTML-ul nu conține `kb/`.
+- [ ] T-E2-04 Playwright la 375 px, `hasTouch`: nicio țintă sub 44 px, h1 pe fiecare tab, bara de tab-uri jos.
+- [ ] T-E2-05 Manual: bifă în aplicație → apare pe web în < 5 s; bifă pe web → apare în modul senior.
+
+#### E3 · „Calendar săptămânal” și „Pregătesc cutiuța”
+
+**Responsabil:** Dev B · **Depinde de:** E2 · **Durată:** 1,5 h · **Branch:** `feature/e3-cutiuta`
+
+~~~text
+[WORKFLOW] Branch: feature/e3-cutiuta. Citește .claude/skills/apple-design/SKILL.md și docs/DESIGN.md. Nicio schimbare de contract (rute HTML).
+
+Obiectiv: familia vede săptămâna ca pe o cutiuță de medicamente și o poate umple compartiment cu compartiment.
+
+1. Tab-ul Calendar (/acasa/saptamana?de=<luni>): un grid cu zilele luni–duminică pe coloane și momentele zilei pe rânduri (eticheta + ora, ca în „Azi”), din build_schedule pentru fiecare zi (7 apeluri, ~4 ms fiecare). Fiecare celulă: numărul de pastile și pozele mici ale cutiilor; o zi în care un medicament începe / se termină arată diferența. „Săptămâna trecută / următoare”. Sub 600 px, gridul devine o listă pe zile (fără scroll orizontal).
+2. Comutatorul „Pregătesc cutiuța” (sus, role="switch"). Activ: tap pe o celulă („Marți · Dimineață”) deschide un <dialog> cu ce și cât se pune („Sintrom 4 mg · ½ comprimat”, cu poza cutiei și, dacă există, a pastilei din E5) și butonul „Compartiment pregătit”. Celula pregătită primește bifă și fundal calm. „Am luat” NU apare aici: rămâne doar în „Azi” (o frază sub comutator spune asta).
+3. Starea: tabel nou pillbox(patient_id, day, moment_label, prepared_at), POST /acasa/cutiuta (bifează / debifează). Dacă programul zilei se schimbă după ce compartimentul a fost bifat (medicament nou, ore noi), bifa se șterge și celula arată „Programul s-a schimbat, verificați din nou”.
+4. „Toată săptămâna e pregătită” când toate celulele sunt bifate; nimic altceva (fără notificări).
+
+Criterii de acceptare: pentru Maria, celulele din ziua de azi au exact dozele din „Azi”; o celulă bifată rămâne bifată după refresh și pe alt dispozitiv; un medicament adăugat după bifă o anulează; make check verde.
+~~~
+
+**Teste**
+- [ ] T-E3-01 pytest: grid-ul pe 7 zile = `build_schedule` pe fiecare zi; ziua de azi = `expected_schedule.json`.
+- [ ] T-E3-02 pytest: bifă → refresh → bifă; medicament nou → bifa ștearsă, mesajul apare.
+- [ ] T-E3-03 Playwright la 375 px: lista pe zile, dialogul se închide cu Escape și cu butonul, fără „Am luat” în calendar.
+
+#### E4 · Stocul de pastile și alerta la aparținător
+
+**Responsabil:** Dev B (contract, backend, web, check-in) + Dev A (aplicația) · **Depinde de:** E0 · **Durată:** 3,5 h · **Branch:** `feature/e4-stoc`
+
+Reia bonusul X3 (sărit la 5.2), acum cu două surse pentru alertă: calculul din stoc și ce spune pacientul la „Cum vă simțiți?”. `product.pack_size` (comprimate într-o cutie) există deja în contract și îl citește extracția (B3); lipsește doar câte cutii sunt acasă.
+
+**PR-ul de contract (împreună, primul pas, ~30 min, include și E5):**
+- `medication_item.stock` (opțional, nu în `required`): `{"count": number ≥ 0, "counted_at": date-time}`: câte comprimate erau acasă la momentul numărării.
+- `medication_item.pill_photo_url` (opțional, `string | null`): pentru E5.
+- `feed_event.type` primește `stock_low`; `checkin.intent` primește `out_of_stock`.
+- `make models` (enum-urile Swift trebuie să cunoască valorile noi, altfel decodarea pică: aceeași lecție ca `unverified` la QA1), `make check-contracts`, fixture-ul demo rămâne valid (Maria fără `stock`).
+
+~~~text
+[WORKFLOW] Branch: feature/e4-stoc. Contractul se schimbă doar în PR-ul de contract descris în docs/PLAN.md 14.6 (stock, pill_photo_url, stock_low, out_of_stock), după acordul amândurora. Citește .claude/skills/apple-design/SKILL.md și docs/DESIGN.md pentru partea de UI. Nu edita project.pbxproj.
+
+Obiectiv: familia află din timp că se termină o cutie, din calcul sau din ce spune pacientul, iar pacientul nu rămâne fără un medicament fără să știe cineva.
+
+1. Calculul (Dev B, backend/polygraph/schedule/stock.py): rămase = stock.count − consumul de la counted_at încoace. Consumul: pentru medicamentele cu program, suma cantităților din pattern pe zi × zilele trecute (programul, nu bifele: o bifă uitată nu umflă stocul); pentru „la nevoie”, doar dozele bifate. Zile rămase = rămase / consumul pe zi. Fără stock sau fără consum: nimic.
+2. Pragurile: ≤ 7 zile → „Mai aveți pentru N zile” (pe web în „Medicamentele mele”, în aplicație în lista de medicamente); ≤ 3 zile sau 0 → un eveniment stock_low în Noutăți, o singură dată pentru același (med, counted_at): „Se termină Sintrom: mai sunt pastile pentru 2 zile.” Logul STOC     Sintrom: 2 zile.
+3. „Am cumpărat o cutie”: PATCH /meds/{mid} cu stock = {count: rămase + pack_size, counted_at: acum} (E0 face PATCH-ul parțial sigur); buton pe web și în aplicație. MED_FIELDS primește stock.
+4. Check-in-ul (Dev B, voice/understand.py): frazele „am rămas fără…”, „nu mai am…”, „s-au terminat pastilele de…” → intent out_of_stock; medicamentul se găsește după brand, DCI sau cuvântul de clasă din brands.txt / kb (ca la can_i_take.py). Efect: stock.count = 0 la acel medicament, escalate = true, eveniment stock_low cu checkin_id, iar reply_text: „Am anunțat-o pe {caregiver_name} că nu mai aveți {brand}.” (fără caregiver_name: „Am anunțat familia…”). Fără potrivire sigură: „Ce medicament s-a terminat? Spuneți numele de pe cutie.” și niciun eveniment.
+5. Aplicația (Dev A): în ConfirmSheet, două câmpuri sub posologie: „Comprimate într-o cutie” (precompletat din product.pack_size, editabil) și „Câte cutii aveți acasă?” (implicit 1) → stock la salvare (și la editare, prin PATCH). Lista de medicamente și MedDetailView arată „Mai aveți pentru N zile” (portocaliu ≤ 7, roșu ≤ 3) și „Am cumpărat o cutie”. Noutăți afișează stock_low ca eveniment serios (notificare locală, ca alertele grave; FeedModel.isSerious). Modul senior nu primește ecrane noi: Maria doar spune „am rămas fără…” la check-in.
+6. Portalul: pe fișă, la medicamente, aceeași etichetă „Mai sunt pastile pentru N zile” (fără butoane: medicul doar vede).
+
+Criterii de acceptare: Sintrom cu 10 comprimate, ½ pe zi → „Mai aveți pentru 20 de zile”; cu 1 comprimat → eveniment stock_low pe telefonul Anei (notificare) și pe web; check-in-ul „am rămas fără Sintrom” → stock 0, eveniment, răspunsul vorbit cu numele Anei; pacientul demo nu are stoc, deci scenariul demo și make demo-check rămân neschimbate; make check, make check-ios verzi.
+~~~
+
+**Teste**
+- [ ] T-E4-01 pytest: calculul pe program (½ pe zi, 10 comprimate → 20 de zile), „la nevoie” doar din bife, fără `stock` → nimic.
+- [ ] T-E4-02 pytest: pragul de 3 zile → un singur `stock_low` chiar dacă `/schedule` și `/feed` se cer de 10 ori; „Am cumpărat o cutie” resetează și permite un eveniment nou mai târziu.
+- [ ] T-E4-03 pytest: „am rămas fără Sintrom” / „nu mai am pastile de tensiune” / „s-a terminat Nurofenul” → `out_of_stock` cu medicamentul corect; „am rămas fără pâine” → nicio potrivire, nicio alertă.
+- [ ] T-E4-04 XCTest: `stock_low` și `out_of_stock` se decodează; stocul se trimite la POST și la PATCH.
+- [ ] T-E4-05 Manual: check-in vocal pe telefonul Mariei → notificare pe telefonul Anei în < 15 s.
+
+#### E5 · Poza pastilei lângă poza cutiei
+
+**Responsabil:** Dev A (fotografierea, afișarea în aplicație) + Dev B (ruta, web, fotografiile demo) · **Depinde de:** PR-ul de contract din E4 · **Durată:** 2 h · **Branch:** `feature/e5-poza-pastilei`
+
+Pastila se fotografiază de familie, o dată, nu se recunoaște și nu se desenează: o imagine inventată a unei pastile e mai periculoasă decât niciuna. Fără poză, nu apare nimic în locul ei.
+
+~~~text
+[WORKFLOW] Branch: feature/e5-poza-pastilei. Folosește pill_photo_url din PR-ul de contract E4. Citește .claude/skills/apple-design/SKILL.md și docs/DESIGN.md. Nu edita project.pbxproj; fără dependențe externe în iOS.
+
+Obiectiv: cine dă pastilele vede cum arată pastila, nu doar cutia.
+
+1. Backend (Dev B): POST /v1/patients/{id}/meds/{mid}/pill-photo (multipart, image/jpeg, ≤ 5 MB, redimensionată la 1024 px pe latura mare, ca poza cutiei) → salvată în media, pill_photo_url setat, întoarce medicamentul; DELETE pe aceeași rută o șterge. Ruta în openapi.yaml.
+2. Aplicația (Dev A): în MedDetailView și după „Salvează” în ConfirmSheet (pas opțional, „Mai târziu” vizibil), „Fotografiați o pastilă”: camera, cu indicația „Puneți o pastilă pe o suprafață deschisă la culoare, lângă cutie”. În modul senior, pe „Acum” și în „Ziua de azi”, poza pastilei lângă poza cutiei, aceeași înălțime, etichetele „Cutia” / „Pastila” (VoiceOver: „Pastila de Sintrom”).
+3. Web (Dev B): „Azi”, „Medicamentele mele” și dialogul din „Pregătesc cutiuța” arată ambele poze; tipărirea nu (poza nu ajută medicul pe hârtie).
+4. Demo (Dev B, cu J-7): câte o poză de pastilă pentru cele 8 medicamente demo, făcute cu cutiile fizice, în demo/pills/, încărcate de make demo în pacientul demo. Fără ele, pacientul demo rămâne fără poze de pastile (nu se folosesc poze de pe internet).
+
+Criterii de acceptare: o pastilă fotografiată în aplicație apare pe „Acum” la Maria și pe web; un medicament fără poză arată doar cutia, fără loc gol; make check, make check-ios, make demo-check verzi.
+~~~
+
+**Teste**
+- [ ] T-E5-01 pytest: upload → `pill_photo_url` setat, `/media/...` răspunde; fișier non-JPEG sau > 5 MB → 422 în română; DELETE → `null`.
+- [ ] T-E5-02 XCTest / `EdgeCaseTour`: „Acum” cu și fără poza pastilei, la Dynamic Type AX5, fără suprapuneri.
+- [ ] T-E5-03 Manual: poza făcută pe iPhone apare pe web în „Azi”.
+
+#### E6 · Mai mulți pacienți pe același browser
+
+**Responsabil:** Dev B · **Depinde de:** E2 · **Durată:** 1 h · **Branch:** `feature/e6-mai-multi-pacienti`
+
+~~~text
+[WORKFLOW] Branch: feature/e6-mai-multi-pacienti. Nicio schimbare de contract.
+
+Obiectiv: o Ana care are grijă de doi părinți îi vede pe amândoi pe web, fără conturi.
+
+1. Sesiunea pg_home ține o listă de pacienți: tabel nou home_session_patients(token, patient_id, added_at); un link /acasa/intra/<cod> deschis cu o sesiune existentă adaugă pacientul în ea, nu o înlocuiește.
+2. În antet, numele pacientului devine un selector („Maria ▾”) cu lista și „Adaugă un pacient” (explică: „Deschideți «Deschide pe web» din aplicația celuilalt pacient”). Pacientul ales e în URL (/acasa/p/<id>/…), ca linkurile să poată fi trimise; un id care nu e în sesiune → aceeași pagină ca la portal, „Pacientul nu e în lista dumneavoastră”.
+3. „Scoate din listă” pe fiecare pacient (doar din sesiunea browserului, datele rămân).
+4. Pagina /acasa cu doi sau mai mulți pacienți și niciunul ales: lista, cu cifrele portalului (de luat azi, alerte noi, stoc mic), cel cu ceva de făcut primul.
+
+Criterii de acceptare: Maria și Ion (din make demo) în același browser, fiecare cu datele lui; „Am luat” pe Ion nu atinge Maria; make check verde.
+~~~
+
+**Teste**
+- [ ] T-E6-01 pytest: două linkuri în aceeași sesiune → doi pacienți; un al treilea id în URL → 404 „nu e în lista dumneavoastră”.
+- [ ] T-E6-02 pytest: dozele și cutiuța rămân separate pe pacient.
 
 ## 15. S4, Q4, D1, D2 și materialele
 
@@ -1104,6 +1329,7 @@ Plan B pentru fiecare pas: scanarea pică → butonul „Adaugă rețeta ORL” 
 | Notificări push reale (APNs) | decizie: **nu** la hackathon; polling la 10 s în prim-plan + notificări locale | A |
 | 30 h în loc de 48 h | scope tăiat: fără Android, fără PDF generat, fără Whisper pe drumul critic, bonusurile X doar dacă S3 e la timp; după S4 (W24.5) nu se mai scrie cod nou | amândoi |
 | Aplicația nu ajunge la server pe un iPhone (`-1009`, `unsatisfied (Local network prohibited)`) deși Safari merge (J-1) | înainte de D1, pe fiecare telefon: aplicația ștearsă și reinstalată din Xcode (singurul pas care a mers la J-1; comutatorul din Settings nu ajunge), „Allow” la promptul Local Network și „Verifică legătura” verde; după asta, fără reinstalări în ziua demo-ului. **Rezerva de rețea, hotspot-ul Mac-ului** (macOS 26): System Settings → General → Sharing → Internet Sharing (i) → „Share your connection from”: iPhone USB, Ethernet sau Thunderbolt Bridge (nu Wi-Fi); „To devices using”: Wi-Fi; Wi-Fi Options: nume, WPA2/WPA3 Personal, parolă; comutatorul pornit. Mac-ul își folosește atunci Wi-Fi-ul pentru hotspot (iese din rețeaua sălii), apare interfața `bridge100` (de regulă `192.168.2.1`); `make demo` o afișează prima; telefoanele intră pe rețeaua Mac-ului și în app se pune `http://192.168.2.1:8000`. Permisiunea Local Network e cerută și aici. `local_ips()` ordonează cu `ipaddress`, nu ca text: `bridge100` primul, apoi adresele private de pe `en*` în ordinea interfețelor (en0, en1, …); `169.254.x.x` și loopback nu intră în QR (link-local apare la final ca nefolosibil), iar fără nicio adresă bună `make demo` explică și nu afișează QR (`test_local_ips.py`) | A |
+| Etapele E (14.6) mănâncă timpul dinaintea S4 și pot destabiliza demo-ul | E0 obligatoriu (e un bug); E1–E2 doar dacă sunt în `main` la D 08:30; contractul E4 se face doar dacă E0–E1 sunt în `main` la 00:15; pacientul demo nu primește stoc și nici poze de pastile decât din `demo/pills/`; `make demo-check` verde după fiecare PR; ce nu intră trece în 19, scenariul demo nu se schimbă | amândoi |
 | Somnul | două nopți, în același timp pentru amândoi | amândoi |
 
 ---
@@ -1115,6 +1341,7 @@ Plan B pentru fiecare pas: scanarea pică → butonul „Adaugă rețeta ORL” 
 - Neo4j pentru graful populațional (ce combinații produc cele mai multe alerte la pacienții cabinetelor partenere).
 - Push real (APNs), conturi și consimțământ GDPR complet, audit log; Android doar dacă pilotul o cere.
 - Dozele individualizate (INR pentru anticoagulante, funcția renală) doar prin medic, niciodată automat.
+- Din etapele E (14.6), ce nu intră până la S4; plus, oricum după hackathon: **ora fixă pe un singur medicament** („Euthyrox la 06:30”, un câmp nou în `dosage` și o constrângere în solver), **mai mulți pacienți în aplicație** (`AppStore` cu o listă de `(id, token)` în Keychain și un selector, perechea lui E6), stocul pe push real și numărul de cutii citit din DataMatrix la fiecare scanare.
 - QA5.3 (14.5), mutat aici: „Ce s-a schimbat de la ultima consultație” în capul fișei din portal, din `feed_events`, `doses` și `checkins`, de la ultima decizie a medicului (medicamente noi, alerte noi, doze ratate, simptome), cu testul T-QA5-03.
 - Din review-ul Q3 (aplicația, `docs/reviews/Q3.md`): avertizare „expiră curând” din DataMatrix (azi doar „expirat”); aderența săptămânală în portal („5 din 7 seri”, cu „neconfirmate”, nu „nelulate”); al doilea telefon al familiei legat de același pacient, fără reset; „Pot să iau…?” și pentru suplimente / plante (sunătoare, ginkgo), din surse verificate; QR spre fișă pe reconcilierea tipărită; graful what-if în portal pentru o întrebare gravă; istoricul pe zile în „Ziua de azi” (doar citire, butoane mari); exportul FHIR `MedicationStatement`; actualizarea cutiei existente la o scanare duplicat (expirare, lot), în loc de un al doilea medicament.
 
