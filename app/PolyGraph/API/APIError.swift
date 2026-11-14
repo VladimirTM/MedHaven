@@ -21,6 +21,9 @@ nonisolated enum APIError: LocalizedError {
             switch error.code {
             case .timedOut:
                 return "Serverul răspunde greu. Încercați din nou peste câteva secunde."
+            case .notConnectedToInternet where Self.isLocalHost(error.failingURL):
+                // iOS dă tot -1009 când refuză permisiunea Rețea locală („Local network prohibited”), deși Wi-Fi-ul merge
+                return "Nu pot ajunge la serverul din rețeaua locală. Permiteți „Rețea locală” pentru PolyGraph în Configurări → Confidențialitate și securitate, apoi redeschideți aplicația."
             case .notConnectedToInternet, .networkConnectionLost, .dataNotAllowed:
                 return "Telefonul nu e conectat la rețea."
             case .cannotConnectToHost, .cannotFindHost, .dnsLookupFailed:
@@ -41,6 +44,19 @@ nonisolated enum APIError: LocalizedError {
             }
         case .decoding:
             return "Nu am înțeles răspunsul serverului. Poate aplicația și serverul au versiuni diferite."
+        }
+    }
+
+    /// Adresele private IPv4 (10/8, 172.16/12, 192.168/16), link-local și `.local`: cele pentru care iOS cere Rețea locală.
+    static func isLocalHost(_ url: URL?) -> Bool {
+        guard let host = url?.host()?.lowercased() else { return false }
+        if host.hasSuffix(".local") { return true }
+        let parts = host.split(separator: ".").compactMap { Int($0) }
+        guard parts.count == 4 else { return false }
+        switch (parts[0], parts[1]) {
+        case (10, _), (192, 168), (169, 254): return true
+        case (172, 16...31): return true
+        default: return false
         }
     }
 
