@@ -2,6 +2,8 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<key>CFBundleDisplayName</key>
+	<string>MedHaven</string>
 	<key>NSCameraUsageDescription</key>
 	<string>Camera citește codul și numele de pe cutia medicamentului sau de pe rețetă.</string>
 	<key>NSMicrophoneUsageDescription</key>
@@ -9,7 +11,7 @@
 	<key>NSSpeechRecognitionUsageDescription</key>
 	<string>Ce spuneți se transformă în text chiar pe telefon, ca să putem înțelege cum vă simțiți.</string>
 	<key>NSLocalNetworkUsageDescription</key>
-	<string>Aplicația se conectează la serverul PolyGraph din rețeaua Wi-Fi în care se află telefonul.</string>
+	<string>Aplicația se conectează la serverul MedHaven din rețeaua Wi-Fi în care se află telefonul.</string>
 	<key>NSAppTransportSecurity</key>
 	<dict>
 		<key>NSAllowsLocalNetworking</key>

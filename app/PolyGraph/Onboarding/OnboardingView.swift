@@ -120,7 +120,7 @@ struct OnboardingView: View {
             Text("Bun venit")
                 .font(.largeTitle.bold())
                 .foregroundStyle(PgColor.textPrimary)
-            Text("PolyGraph vă arată ce medicamente se iau, când și ce nu merge împreună.")
+            Text("MedHaven vă arată ce medicamente se iau, când și ce nu merge împreună.")
                 .font(.title3)
                 .foregroundStyle(PgColor.textSecondary)
             Text("Pentru cine folosiți telefonul?")
