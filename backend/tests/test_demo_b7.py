@@ -90,6 +90,9 @@ def test_new_grave_alerts_reach_the_feed(client):
     assert {e["alert_id"] for e in new} == {"al_ddi_med_03_med_09", "al_ddi_med_01_med_09"}
     critical = next(e for e in new if e["alert_id"] == "al_ddi_med_03_med_09")
     assert critical["severity"] == "critical" and "Fromilid" in critical["body"]
+    # medicamentul nou apare o singură dată, cu celălalt din pereche
+    assert critical["body"].startswith("Fromilid, adăugat acum, împreună cu Simvastatin LPH.")
+    assert not any("după ce s-a adăugat Fromilid" in e["body"] for e in new)
     assert not any(w in e["body"].lower() for e in new for w in ("opriți", "nu mai luați"))
 
 
@@ -201,3 +204,19 @@ def test_root_explains_where_the_address_goes(client):
     assert 'src="/static/share/logo.svg"' in r.text and 'rel="icon"' in r.text
     logo = client.get("/static/share/logo.svg")
     assert logo.status_code == 200 and logo.headers["content-type"].startswith("image/svg+xml")
+
+
+def test_new_alert_body_does_not_repeat_the_added_med():
+    """„Paduden SR, după ce s-a adăugat Paduden SR”: alerta unui singur medicament (de ex. AINS la vârstnic)."""
+    from polygraph.api.main import new_alert_body
+
+    med = {"id": "med_10", "product": {"brand": "Paduden SR"}}
+    brands = {"med_01": "Sintrom", "med_08": "Amitriptilin", "med_10": "Paduden SR"}
+    alone = {"med_ids": ["med_10"], "recommendation": "Discutați cu medicul de familie."}
+    assert new_alert_body(alone, brands, med) == "Privește Paduden SR, adăugat acum. Discutați cu medicul de familie."
+    pair = {"med_ids": ["med_01", "med_10"], "recommendation": "Anunțați medicul."}
+    assert new_alert_body(pair, brands, med) == "Paduden SR, adăugat acum, împreună cu Sintrom. Anunțați medicul."
+    other = {"med_ids": ["med_01", "med_08"], "recommendation": "Întrebați medicul."}
+    assert new_alert_body(other, brands, med) == (
+        "Sintrom și Amitriptilin. A apărut după ce s-a adăugat Paduden SR. Întrebați medicul."
+    )

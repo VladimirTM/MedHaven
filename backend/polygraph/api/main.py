@@ -370,6 +370,28 @@ def alerts_or_none(pid: str, patient: dict[str, Any]) -> list[dict[str, Any]] | 
         return None
 
 
+def joined_names(names: list[str]) -> str:
+    """„Sintrom”, „Sintrom și Nurofen”, „Sintrom, Nurofen și Aspenter”."""
+    if len(names) <= 1:
+        return "".join(names)
+    return ", ".join(names[:-1]) + " și " + names[-1]
+
+
+def new_alert_body(alert: dict[str, Any], brands: dict[str, str], med: dict[str, Any]) -> str:
+    """Textul din Noutăți pentru o alertă apărută la salvarea lui `med`: ce medicamente sunt implicate, fără să
+    repete numele celui nou („Paduden SR, după ce s-a adăugat Paduden SR”), apoi recomandarea."""
+    added = med["product"]["brand"]
+    others = [brands.get(m, m) for m in alert["med_ids"] if m != med["id"]]
+    if med["id"] not in alert["med_ids"]:
+        # alerta ține de alte medicamente (de ex. scorul anticolinergic), dar a apărut odată cu cel nou
+        lead = f"{joined_names(others)}. A apărut după ce s-a adăugat {added}."
+    elif others:
+        lead = f"{added}, adăugat acum, împreună cu {joined_names(others)}."
+    else:
+        lead = f"Privește {added}, adăugat acum."
+    return f"{lead} {alert['recommendation']}"
+
+
 def announce_new_alerts(pid: str, patient: dict[str, Any], before: list[dict[str, Any]] | None, med: dict[str, Any]) -> None:
     """Alertele grave apărute la un medicament nou ajung în Noutăți (pe telefonul aparținătorului) și în log."""
     after = alerts_or_none(pid, patient)
@@ -390,7 +412,7 @@ def announce_new_alerts(pid: str, patient: dict[str, Any], before: list[dict[str
                 "type": "alert_new",
                 "severity": alert["severity"],
                 "title": f"Alertă nouă: {alert['title']}",
-                "body": f"{names}, după ce s-a adăugat {med['product']['brand']}. {alert['recommendation']}",
+                "body": new_alert_body(alert, brands, med),
                 "med_ids": alert["med_ids"],
                 "alert_id": alert["id"],
                 "checkin_id": None,
