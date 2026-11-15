@@ -850,8 +850,10 @@ final class EdgeCaseTour: ReviewTestCase {
     private func doctorNote(_ alert: String) -> String {
         if element("alertDetail").exists { app.navigationBars.buttons.firstMatch.tap() }
         guard let list = expect("alerts.list", timeout: 5) else { return "" }
-        list.swipeDown()
-        pause(1)
+        // tras în jos de sus până aproape de jos: un swipeDown scurt nu pornește `.refreshable`
+        list.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.1))
+            .press(forDuration: 0.05, thenDragTo: list.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.9)))
+        pause(2)
         let card = element("alerts.card.\(alert)")
         guard card.waitForExistence(timeout: 5) else { return "" }
         tapElement(card)
