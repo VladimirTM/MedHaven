@@ -814,9 +814,8 @@ final class EdgeCaseTour: ReviewTestCase {
         step("dayAfterWebHours")
     }
 
-    /// T-QA4-06: decizia luată în portal și apoi schimbată ajunge la Ana: în Noutăți fără nicio atingere
-    /// (polling-ul de 10 s), iar pe alertă la redeschiderea aplicației. Tab-ul Alerte nu se reîmprospătează singur
-    /// la o decizie nouă (constatare pentru Q4), de aceea aici aplicația e repornită, fără resetarea demo-ului.
+    /// T-QA4-06: decizia luată în portal și apoi schimbată ajunge la Ana fără nicio atingere: în Noutăți
+    /// (polling-ul de 10 s) și pe alertă (Q4-02: Noutăți reîncarcă alertele la o decizie nouă).
     func testSyncDoctorDecision() {
         launch("syncDecision", role: .caregiver)
         expect("meds.list", timeout: 10)
@@ -846,18 +845,19 @@ final class EdgeCaseTour: ReviewTestCase {
         step("decisionChanged")
     }
 
-    /// Aplicația repornită (fără reset, ca Ana care o redeschide), alerta deschisă și textul din
+    /// Tab-ul Alerte (fără tras în jos și fără repornire), alerta deschisă și textul din
     /// „Decizia medicului de familie”.
     private func doctorNote(_ alert: String) -> String {
-        app.terminate()
-        launch("syncDecision", role: .caregiver, reset: false)
-        guard tapTab("Alerte"), expect("alerts.list", timeout: 10) != nil else { return "" }
+        guard tapTab("Alerte") else { return "" }
+        if element("alertDetail").exists { app.navigationBars.buttons.firstMatch.tap() }
+        guard expect("alerts.list", timeout: 10) != nil else { return "" }
+        pause(2)  // reîncărcarea analizei pornește imediat după lotul din Noutăți
         let card = element("alerts.card.\(alert)")
         guard card.waitForExistence(timeout: 5) else { return "" }
         tapElement(card)
         guard expect("alertDetail", timeout: 5) != nil else { return "" }
-        let note = element("alertDetail.doctorNote")
-        if !note.waitForExistence(timeout: 2) { app.swipeUp() }
-        return note.exists ? note.label : ""
+        // în AX nota e sub câteva ecrane de text
+        guard let note = scrollTo("alertDetail.doctorNote", swipes: 6) else { return "" }
+        return note.label
     }
 }

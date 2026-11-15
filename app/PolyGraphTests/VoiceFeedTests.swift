@@ -114,6 +114,31 @@ struct FeedModelTests {
         #expect(feed.alarmCount == 1)
     }
 
+    /// Q4-02: după istoric, o decizie a medicului sau o alertă nouă reîncarcă alertele, o singură dată.
+    @Test func doctorDecisionReloadsAlerts() async {
+        var batches: [[FeedEvent]] = [
+            [event("old", minute: 1, type: .doctorReviewed)],
+            [event("dose", minute: 2)],
+            [event("dr", minute: 3, type: .doctorReviewed)],
+            [event("dr", minute: 3, type: .doctorReviewed)],
+            [event("al", minute: 4, type: .alertNew)],
+        ]
+        var reloads = 0
+        let feed = FeedModel(
+            fetch: { _ in batches.isEmpty ? [] : batches.removeFirst() },
+            onAlertsChanged: { reloads += 1 })
+        await feed.poll()  // istoricul
+        #expect(reloads == 0)
+        await feed.poll()  // doză ratată
+        #expect(reloads == 0)
+        await feed.poll()  // decizia medicului
+        #expect(reloads == 1)
+        await feed.poll()  // aceeași decizie, din nou
+        #expect(reloads == 1)
+        await feed.poll()  // alertă nouă
+        #expect(reloads == 2)
+    }
+
     @Test func newEventsWaitWhileTheListIsScrolled() {
         let feed = FeedModel()
         feed.receive([event("a", minute: 1)])

@@ -59,7 +59,8 @@ final class AppStore {
             notify: { FeedAlerts.notify($0) },
             notifyBatch: { [weak self] total, serious in
                 FeedAlerts.notifyBatch(patient: self?.patient?.name, total: total, serious: serious)
-            })
+            },
+            onAlertsChanged: { [weak self] in await self?.reloadAnalysis() })
     }
 
     var api: APIClient {
