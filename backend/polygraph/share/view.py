@@ -3,8 +3,10 @@ Funcții pure; rutele sunt în polygraph/api/main.py."""
 
 from __future__ import annotations
 
+import json
 import re
 from datetime import UTC, date, datetime, time, timedelta
+from pathlib import Path
 from typing import Any
 from zoneinfo import ZoneInfo
 
@@ -16,6 +18,13 @@ from polygraph.kb import SEV_RANK
 
 Json = dict[str, Any]
 TZ = ZoneInfo("Europe/Bucharest")
+# etichetele afecțiunilor, aceleași ca în aplicație; sursa e fixture-ul din contracte
+CONDITION_LABELS = {
+    c["code"]: c["label"]
+    for c in json.loads((Path(__file__).resolve().parents[3] / "contracts" / "fixtures" / "conditions.json").read_text())[
+        "conditions"
+    ]
+}
 GRAVE = ("critical", "major")
 
 # aceleași etichete ca în aplicație (app/PolyGraph/Design/Tokens.swift)
@@ -74,6 +83,23 @@ ADHERENCE_INFO = (
 SLOTS = ("dimineața", "la prânz", "seara", "la culcare")
 _QTY = r"(?:\d+(?:[.,/]\d+)?|½)"
 _SCHEME = re.compile(rf"^\s*({_QTY}(?:\s*-\s*{_QTY}){{2,3}})\s*(.*)$")
+
+
+def profile_view(patient: Json) -> Json:
+    """„1,65 m · 68 kg · IMC 25” și afecțiunile în cuvinte, pentru capul paginii pacientului și fișa tipărită."""
+    height, weight = patient.get("height_cm"), patient.get("weight_kg")
+    parts = []
+    if height:
+        parts.append(f"{height / 100:.2f}".replace(".", ",") + " m")
+    if weight:
+        parts.append(f"{weight:g}".replace(".", ",") + " kg")
+    if height and weight:
+        parts.append(f"IMC {round(weight / (height / 100) ** 2)}")
+    conditions = [CONDITION_LABELS.get(c, c) for c in patient.get("conditions") or []]
+    note = (patient.get("conditions_note") or "").strip()
+    if note:
+        conditions.append(note)
+    return {"line": " · ".join(parts), "conditions": conditions}
 
 
 def plural(n: int, one: str, many: str) -> str:
@@ -402,6 +428,7 @@ def page_context(
     return {
         "patient": patient,
         "age": age,
+        "profile": profile_view(patient),
         "summary": summary,
         "stats": stats,
         "meds": [med_row(m) for m in active],

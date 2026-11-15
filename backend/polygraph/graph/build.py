@@ -123,10 +123,12 @@ def build(ctx: Ctx, alerts: list[Json], checkins: list[Json]) -> Json:
         if x != y and not any(e["type"] == "interacts" and {e["source"], e["target"]} == {x, y} for e in edges):
             edge(x, y, "interacts", severity="unknown", alert_id=None)
 
+    # simptomele din ultimele 7 zile; un check-in „din viitor” (PG_TODAY fixat în teste și în demo-check, check-in-ul
+    # cu ora reală) rămâne recent, nu dispare din graf
     since = ctx.today - timedelta(days=7)
     for ci in checkins:
         d = _checkin_date(ci)
-        if d is None or not (since <= d <= ctx.today):
+        if d is None or d < since:
             continue
         for s in ci.get("symptoms") or []:
             yid = f"y:{s['code']}"
