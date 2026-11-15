@@ -635,4 +635,229 @@ final class EdgeCaseTour: ReviewTestCase {
         pause(2)
         step("afterRoleSwitch", audit: true)
     }
+
+    // MARK: - Sincronizarea cu pagina familiei și portalul (14.7: testele „manuale” de pe iPhone, pe simulator)
+    //
+    // Runner-ul joacă rolul browserului: intră pe /acasa cu linkul din aplicație și în portal cu codul medicului,
+    // cu cookie-urile din URLSession.shared. Aplicația vede schimbările prin polling (modul senior la 30 s,
+    // Noutăți la 10 s), deci așteptările merg până la 45 s.
+
+    /// O cerere „de browser” (formular sau JSON), cu redirecturile urmate; întoarce codul final și HTML-ul.
+    @discardableResult
+    private func web(_ method: String, _ path: String, form: [String: String]? = nil, json: Any? = nil)
+        -> (Int, String)
+    {
+        var request = URLRequest(url: URL(string: Self.baseURL + path)!)
+        request.httpMethod = method
+        if let form {
+            var items = URLComponents()
+            items.queryItems = form.sorted { $0.key < $1.key }.map { URLQueryItem(name: $0.key, value: $0.value) }
+            request.setValue("application/x-www-form-urlencoded", forHTTPHeaderField: "Content-Type")
+            request.httpBody = items.percentEncodedQuery?.data(using: .utf8)
+        } else if let json {
+            request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+            request.httpBody = try? JSONSerialization.data(withJSONObject: json)
+        }
+        let done = DispatchSemaphore(value: 0)
+        nonisolated(unsafe) var result: (Int, String) = (0, "")
+        URLSession.shared.dataTask(with: request) { data, response, _ in
+            result = ((response as? HTTPURLResponse)?.statusCode ?? 0, String(decoding: data ?? Data(), as: UTF8.self))
+            done.signal()
+        }.resume()
+        _ = done.wait(timeout: .now() + 30)
+        return result
+    }
+
+    /// Intrarea pe pagina familiei, ca „Deschide pe web”: linkul de unică folosință, cerut cu tokenul pacientului.
+    /// Linkul are adresa din rețea a Mac-ului; se păstrează doar calea, ca cookie-ul să fie pe adresa turului.
+    private func enterFamilyPage() -> Bool {
+        let (status, data) = api("POST", "/v1/patients/pat_demo/web-link")
+        guard status == 201,
+              let body = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+              let url = (body["url"] as? String).flatMap(URL.init(string:))
+        else {
+            XCTFail("web-link a răspuns \(status)")
+            return false
+        }
+        let (code, html) = web("GET", url.path)
+        XCTAssertEqual(code, 200, "intrarea pe /acasa a dat \(code)")
+        return code == 200 && !html.contains("Deschideți linkul din aplicație")
+    }
+
+    /// Cardul unui moment din „Azi” (/acasa), de la `id="m-0700"` până la următorul moment.
+    private func familyMoment(_ time: String) -> String {
+        let html = web("GET", "/acasa").1
+        guard let start = html.range(of: "id=\"m-\(time.replacingOccurrences(of: ":", with: ""))\"") else { return "" }
+        let rest = html[start.upperBound...]
+        return String(rest[..<(rest.range(of: "id=\"m-")?.lowerBound ?? rest.endIndex)])
+    }
+
+    private func portalLogin() -> Bool {
+        let (code, _) = web("POST", "/portal/login", form: ["code": "medic-demo", "next": "/portal"])
+        XCTAssertEqual(code, 200, "login-ul în portal a dat \(code)")
+        return code == 200
+    }
+
+    /// Așteaptă până când `condition` e adevărată (polling-ul aplicației), cel mult `timeout` secunde.
+    private func waitUntil(_ timeout: TimeInterval = 45, _ condition: () -> Bool) -> Bool {
+        let deadline = Date().addingTimeInterval(timeout)
+        while Date() < deadline {
+            if condition() { return true }
+            pause(2)
+        }
+        return condition()
+    }
+
+    private func analyzedAt() -> String {
+        let (_, data) = api("GET", "/v1/patients/pat_demo/analysis")
+        let body = try? JSONSerialization.jsonObject(with: data) as? [String: Any]
+        return body?["analyzed_at"] as? String ?? ""
+    }
+
+    /// T-E0-03: Sintrom (cu medic prescriptor) și Nurofen (fără) editați din detaliu și salvați din prima;
+    /// după salvare, analiza e refăcută (alt `analyzed_at`, același număr de alerte).
+    func testSyncEditBothMeds() {
+        launch("syncEdit", role: .caregiver)
+        expect("meds.list", timeout: 10)
+        for brand in ["Sintrom", "Nurofen"] {
+            let before = analyzedAt()
+            let row = app.descendants(matching: .any).matching(
+                NSPredicate(format: "identifier BEGINSWITH 'meds.row.' AND NOT identifier ENDSWITH '.alert' "
+                    + "AND label CONTAINS[c] %@", brand)).firstMatch
+            for _ in 0..<4 where !(row.exists && onScreen(row)) { app.swipeUp() }
+            guard row.exists else { markAbsent("meds.row.* \(brand)"); continue }
+            tapElement(row)
+            guard tap("medDetail.editButton"), expect("confirm.saveButton", timeout: 5) != nil else { continue }
+            pause(1.1)  // `analyzed_at` are secunde
+            tap("confirm.saveButton")
+            if !element("confirm.saveButton").waitForNonExistence(timeout: 10) {
+                let error = element("confirm.error")
+                XCTFail("E0: \(brand) nu s-a salvat: \(error.exists ? error.label : "foaia a rămas deschisă")")
+                step("notSaved\(brand)", audit: false)
+                tap("confirm.cancelButton")
+                continue
+            }
+            step("saved\(brand)")
+            XCTAssertNotEqual(analyzedAt(), before, "E0: după editarea \(brand), analiza nu s-a refăcut")
+            app.navigationBars.buttons.firstMatch.tap()
+            _ = expect("meds.list", timeout: 5)
+            app.swipeDown()
+        }
+    }
+
+    /// T-P-01: profilul schimbat din Setări (165 cm, 70 kg, + diabet) apare în fișa din portal și pe tipărire.
+    func testSyncProfileToPortal() {
+        launch("syncProfile", role: .caregiver)
+        expect("meds.list", timeout: 10)
+        guard tap("settings.openButton"), let open = scrollTo("settings.profileButton") else { return }
+        open.tap()
+        for (id, value) in [("profile.heightField", "165"), ("profile.weightField", "70")] {
+            guard let field = expect(id) else { return }
+            field.tap()
+            let current = (field.value as? String) ?? ""
+            field.typeText(String(repeating: XCUIKeyboardKey.delete.rawValue, count: current.count + 3) + value)
+        }
+        let done = app.toolbars.buttons["Gata"]
+        if done.exists { done.tap() }
+        guard let diabetes = scrollTo("profile.condition.diabetes") else { return }
+        if !diabetes.isSelected { diabetes.tap() }
+        step("profileFilled")
+        guard let save = scrollTo("profile.saveButton") else { return }
+        save.tap()
+        if !element("profile.saveButton").waitForNonExistence(timeout: 10) {
+            let error = element("profile.error")
+            XCTFail("P-01: profilul nu s-a salvat: \(error.exists ? error.label : "ecranul a rămas deschis")")
+            return step("notSaved")
+        }
+        step("saved")
+        guard portalLogin() else { return }
+        for path in ["/portal/patients/pat_demo", "/portal/patients/pat_demo/print"] {
+            let (code, html) = web("GET", path)
+            XCTAssertEqual(code, 200, "\(path) a dat \(code)")
+            for text in ["1,65 m", "70 kg", "Diabet zaharat", "Hipertensiune arterială"] {
+                XCTAssertTrue(html.contains(text), "P-01: „\(text)” lipsește din \(path)")
+            }
+        }
+    }
+
+    /// T-E2-05: „Am luat” în modul senior apare pe /acasa; „Am luat” pe /acasa ajunge în „Ziua de azi”.
+    func testSyncTakenWithWeb() {
+        launch("syncTaken", role: .senior, now: Self.today(at: "07:05"))
+        guard tap("now.takenButton", timeout: 10) else { return step("noDose") }
+        pause(2)
+        step("appTaken")
+        guard enterFamilyPage() else { return }
+        XCTAssertTrue(waitUntil(20) { familyMoment("07:00").contains("✓ Luat") },
+                      "E2: „Am luat” de la 07:00 din aplicație nu apare pe /acasa")
+        let (code, _) = web("POST", "/acasa/doze", form: ["moment": "07:30", "status": "taken"])
+        XCTAssertEqual(code, 200, "„Am luat” pe /acasa a dat \(code)")
+        guard tap("now.dayButton", timeout: 5), let row = expect("day.moment.07:30") else { return }
+        XCTAssertTrue(waitUntil { row.label.contains("Luate") },
+                      "E2: bifa de pe web nu a ajuns în „Ziua de azi”: „\(row.label)”")
+        step("dayAfterWeb")
+    }
+
+    /// T-E1-04 (web → aplicație): cina mutată pe /acasa/ore (19:00 → 20:00) ajunge în modul senior;
+    /// sensul aplicație → server e `ReviewTour.testDayHours`, iar /acasa citește aceleași ore (pytest, E1).
+    func testSyncDayHoursFromWeb() {
+        launch("syncHours", role: .senior, now: Self.today(at: "07:05"))
+        guard tap("now.dayButton", timeout: 10), expect("day.moment.19:00") != nil else { return }
+        guard enterFamilyPage() else { return }
+        let (code, html) = web("POST", "/acasa/ore", form: [
+            "wake": "07:00", "breakfast": "08:00", "lunch": "13:00", "dinner": "20:00", "bed": "22:30",
+        ])
+        XCTAssertEqual(code, 200, "/acasa/ore a dat \(code)")
+        XCTAssertFalse(html.contains("ordinea zilei"), "/acasa/ore a respins orele")
+        XCTAssertTrue(waitUntil { self.element("day.moment.20:00").exists },
+                      "E1: cina mutată pe web (20:00) nu a ajuns în „Ziua de azi”")
+        XCTAssertFalse(element("day.moment.19:00").exists, "E1: momentul vechi de la 19:00 a rămas")
+        step("dayAfterWebHours")
+    }
+
+    /// T-QA4-06: decizia luată în portal și apoi schimbată ajunge la Ana, pe alertă și în Noutăți.
+    func testSyncDoctorDecision() {
+        launch("syncDecision", role: .caregiver)
+        expect("meds.list", timeout: 10)
+        guard portalLogin() else { return }
+        let alert = "al_ddi_med_01_med_02"
+        let review = "/portal/patients/pat_demo/alerts/\(alert)/review"
+        XCTAssertEqual(web("POST", review, json: ["decision": "change_at_visit", "note": "Discutăm joi."]).0, 200)
+
+        guard tapTab("Alerte") else { return }
+        var decision = ""
+        XCTAssertTrue(waitUntil(30) {
+            decision = doctorNote(alert)
+            return decision.contains("Discutăm joi")
+        }, "QA4-06: nota medicului nu apare pe alertă („\(decision)”)")
+        XCTAssertTrue(decision.contains("Îl modifică la consultație"), "QA4-06: decizia pe alertă e „\(decision)”")
+        step("decision")
+
+        XCTAssertEqual(web("POST", review, json: ["decision": "refer_specialist", "note": "Discutăm joi."]).0, 200)
+        guard tapTab("Noutăți") else { return }
+        let changed = app.descendants(matching: .any)
+            .matching(NSPredicate(format: "label CONTAINS[c] 'schimbat decizia'")).firstMatch
+        XCTAssertTrue(waitUntil(30) { changed.exists }, "QA4-06: „a schimbat decizia” nu apare în Noutăți")
+        step("feedChanged")
+        guard tapTab("Alerte") else { return }
+        XCTAssertTrue(waitUntil(30) {
+            decision = doctorNote(alert)
+            return decision.contains("Trimite la specialist")
+        }, "QA4-06: decizia nouă nu apare pe alertă („\(decision)”)")
+        step("decisionChanged")
+    }
+
+    /// Lista de alerte reîmprospătată (tras în jos), alerta deschisă și textul din „Decizia medicului de familie”.
+    private func doctorNote(_ alert: String) -> String {
+        if element("alertDetail").exists { app.navigationBars.buttons.firstMatch.tap() }
+        guard let list = expect("alerts.list", timeout: 5) else { return "" }
+        list.swipeDown()
+        pause(1)
+        let card = element("alerts.card.\(alert)")
+        guard card.waitForExistence(timeout: 5) else { return "" }
+        tapElement(card)
+        guard expect("alertDetail", timeout: 5) != nil else { return "" }
+        let note = element("alertDetail.doctorNote")
+        if !note.exists { app.swipeUp() }
+        return note.exists ? note.label : ""
+    }
 }
