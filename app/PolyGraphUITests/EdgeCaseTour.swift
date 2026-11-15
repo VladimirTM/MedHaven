@@ -814,22 +814,25 @@ final class EdgeCaseTour: ReviewTestCase {
         step("dayAfterWebHours")
     }
 
-    /// T-QA4-06: decizia luată în portal și apoi schimbată ajunge la Ana, pe alertă și în Noutăți.
+    /// T-QA4-06: decizia luată în portal și apoi schimbată ajunge la Ana: în Noutăți fără nicio atingere
+    /// (polling-ul de 10 s), iar pe alertă la redeschiderea aplicației. Tab-ul Alerte nu se reîmprospătează singur
+    /// la o decizie nouă (constatare pentru Q4), de aceea aici aplicația e repornită, fără resetarea demo-ului.
     func testSyncDoctorDecision() {
         launch("syncDecision", role: .caregiver)
         expect("meds.list", timeout: 10)
         guard portalLogin() else { return }
         let alert = "al_ddi_med_01_med_02"
         let review = "/portal/patients/pat_demo/alerts/\(alert)/review"
-        XCTAssertEqual(web("POST", review, json: ["decision": "change_at_visit", "note": "Discutăm joi."]).0, 200)
 
-        guard tapTab("Alerte") else { return }
-        var decision = ""
-        XCTAssertTrue(waitUntil(30) {
-            decision = doctorNote(alert)
-            return decision.contains("Discutăm joi")
-        }, "QA4-06: nota medicului nu apare pe alertă („\(decision)”)")
-        XCTAssertTrue(decision.contains("Îl modifică la consultație"), "QA4-06: decizia pe alertă e „\(decision)”")
+        XCTAssertEqual(web("POST", review, json: ["decision": "change_at_visit", "note": "Discutăm joi."]).0, 200)
+        guard tapTab("Noutăți") else { return }
+        let reviewed = app.descendants(matching: .any)
+            .matching(NSPredicate(format: "label CONTAINS[c] 'a revizuit'")).firstMatch
+        XCTAssertTrue(waitUntil(30) { reviewed.exists }, "QA4-06: decizia nu apare în Noutăți")
+        step("feedReviewed")
+        var decision = doctorNote(alert)
+        XCTAssertTrue(decision.contains("Discutăm joi") && decision.contains("Îl modifică la consultație"),
+                      "QA4-06: decizia pe alertă e „\(decision)”")
         step("decision")
 
         XCTAssertEqual(web("POST", review, json: ["decision": "refer_specialist", "note": "Discutăm joi."]).0, 200)
@@ -838,28 +841,23 @@ final class EdgeCaseTour: ReviewTestCase {
             .matching(NSPredicate(format: "label CONTAINS[c] 'schimbat decizia'")).firstMatch
         XCTAssertTrue(waitUntil(30) { changed.exists }, "QA4-06: „a schimbat decizia” nu apare în Noutăți")
         step("feedChanged")
-        guard tapTab("Alerte") else { return }
-        XCTAssertTrue(waitUntil(30) {
-            decision = doctorNote(alert)
-            return decision.contains("Trimite la specialist")
-        }, "QA4-06: decizia nouă nu apare pe alertă („\(decision)”)")
+        decision = doctorNote(alert)
+        XCTAssertTrue(decision.contains("Trimite la specialist"), "QA4-06: decizia nouă pe alertă e „\(decision)”")
         step("decisionChanged")
     }
 
-    /// Lista de alerte reîmprospătată (tras în jos), alerta deschisă și textul din „Decizia medicului de familie”.
+    /// Aplicația repornită (fără reset, ca Ana care o redeschide), alerta deschisă și textul din
+    /// „Decizia medicului de familie”.
     private func doctorNote(_ alert: String) -> String {
-        if element("alertDetail").exists { app.navigationBars.buttons.firstMatch.tap() }
-        guard let list = expect("alerts.list", timeout: 5) else { return "" }
-        // tras în jos de sus până aproape de jos: un swipeDown scurt nu pornește `.refreshable`
-        list.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.1))
-            .press(forDuration: 0.05, thenDragTo: list.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.9)))
-        pause(2)
+        app.terminate()
+        launch("syncDecision", role: .caregiver, reset: false)
+        guard tapTab("Alerte"), expect("alerts.list", timeout: 10) != nil else { return "" }
         let card = element("alerts.card.\(alert)")
         guard card.waitForExistence(timeout: 5) else { return "" }
         tapElement(card)
         guard expect("alertDetail", timeout: 5) != nil else { return "" }
         let note = element("alertDetail.doctorNote")
-        if !note.exists { app.swipeUp() }
+        if !note.waitForExistence(timeout: 2) { app.swipeUp() }
         return note.exists ? note.label : ""
     }
 }
