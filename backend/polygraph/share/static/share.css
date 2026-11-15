@@ -645,7 +645,15 @@ caption { text-align: left; color: var(--text-2); padding: 0.5rem 0 0.25rem; cap
 /* ---------------------------------------------------------------- fișa de tipărit (pe ecran) */
 
 .sheet { max-width: 48rem; margin: 0 auto; padding: 1.5rem 1rem 3rem; }
-.print-bar { display: flex; gap: 1rem; flex-wrap: wrap; justify-content: space-between; margin-bottom: 1.25rem; font-size: 0.875rem; }
+.print-topbar .topbar-inner { align-items: center; }
+/* pe ecran, lista completă arată ca o foaie: un card pe fundalul paginii; la tipărire regulile din @media print o aduc la A4 */
+@media screen {
+  .print .sheet { max-width: 60rem; margin: 2rem auto 4rem; padding: 2.5rem clamp(1.25rem, 4vw, 3rem) 3rem; background: var(--surface); border-radius: 1rem; box-shadow: 0 0 0 1px var(--line), 0 1.5rem 3rem -1.5rem rgb(0 0 0 / 0.35); }
+  .print .sheet-head { padding-bottom: 1.25rem; margin-bottom: 0.5rem; border-bottom: 1px solid var(--line); }
+  .print .sheet-head .page-title { font-size: 2rem; letter-spacing: -0.025em; }
+  .print .sheet table { background: transparent; }
+}
+@media screen and (max-width: 40rem) { .print .sheet { margin: 0.75rem; padding: 1.25rem 1rem 2rem; } }
 .sheet-head { display: grid; gap: 0.25rem; }
 .sheet-head .summary-line { font-size: 1rem; }
 .sheet h2 { font-size: 1.0625rem; margin: 1.25rem 0 0.5rem; }
@@ -779,7 +787,7 @@ caption { text-align: left; color: var(--text-2); padding: 0.5rem 0 0.25rem; cap
   .whatif-input, .whatif-form .btn, .whatif-error .btn, .live-stale .btn { min-height: 2.75rem; min-width: 2.75rem; }
   .crumb a,
   .graph-bar a,
-  .print-bar a,
+  .print-topbar .back-link,
   .graph-actions a,
   .login-foot a,
   .center a,

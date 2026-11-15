@@ -79,7 +79,7 @@ Personajele din demo: **Maria** (78 de ani, 8 medicamente de la 5 medici, modul 
 | UC9 | Ana | Maria a uitat o doză | doza ratată apare în Noutăți | F9 | – |
 | UC10 | medicul | primește pacientul fără să instaleze nimic | familia arată QR-ul „Arată medicului”; medicul îl scanează din portal și pacientul intră în lista lui, cu datele mereu la zi | F10 | 2:30 |
 | UC11 | medicul | vrea să decidă pe o alertă | „Menține / Modific la consultație / Trimit la specialist” + notă; decizia ajunge la Ana, pe alertă și în Noutăți | F10 | 2:30 |
-| UC12 | Maria, medicul | consultația la cabinet | „Reconcilierea medicației” de tipărit (2 pagini A4), cu toate medicamentele și alertele | F10 | 2:50 |
+| UC12 | Maria, medicul | consultația la cabinet | „Lista completă a medicamentelor” de tipărit (2 pagini A4), cu toate medicamentele și alertele | F10 | 2:50 |
 
 ### 3.2 Ce nu sunt use case-uri valide
 
@@ -96,7 +96,7 @@ Le spunem explicit, în pitch și în aplicație (secțiunea 2.4):
 |---|---|---|
 | **Pacientul** | vârstnic cu 5–10 medicamente de la medici diferiți | „Modul senior”: doar programul de azi, poza cutiei la fiecare doză, buton mare „Am luat”, asistent vocal |
 | **Aparținătorul** | fiica / fiul, adesea în alt oraș | tot: lista, graful, alertele detaliate, aderența, check-in-urile vocale; primește alertele grave |
-| **Medicul de familie** | cabinetul | portal web cu lista pacienților care i-au partajat tratamentul (prin QR); pe fiecare alertă decide „Menține / Modific la consultație / Trimit la specialist” + notă, care ajung la familie; „Reconcilierea medicației” de tipărit |
+| **Medicul de familie** | cabinetul | portal web cu lista pacienților care i-au partajat tratamentul (prin QR); pe fiecare alertă decide „Menține / Modific la consultație / Trimit la specialist” + notă, care ajung la familie; „Lista completă a medicamentelor” de tipărit |
 
 **Cum circulă datele între roluri (clarificat pe 14.11.2026; de spus la fel în pitch și la întrebările juriului):**
 - **Cine folosește ce.** Pacientul și familia folosesc aplicația iOS. Medicul de familie nu instalează nimic: portalul e o pagină web (`/portal`), deschisă în browser pe calculatorul din cabinet sau pe telefon. Aplicația și portalul vorbesc cu același server; la hackathon, serverul e laptopul care rulează `make demo` (pe el portalul e la `http://localhost:8000/portal`, pe celelalte dispozitive din același Wi-Fi la adresa afișată de `make demo`). Într-un produs real, serverul ar avea o adresă publică.
@@ -121,7 +121,7 @@ Le spunem explicit, în pitch și în aplicație (secțiunea 2.4):
 | F7 | **Modul senior** | Ecranul „Acum”: ce pastilă, cu poza cutiei, câte bucăți, instrucțiunea („pe stomacul gol”); „Am luat” / „Am sărit”; citire cu voce (TTS, română) | A |
 | F8 | **Check-in vocal zilnic** | „Cum vă simțiți azi?” → transcriere pe telefon (recunoașterea vocală iOS, română), cu textul afișat în timp ce vorbește → simptome dintr-un vocabular fix → corelare deterministă cu efectele adverse și interacțiunile existente → escaladare la aparținător dacă e cazul | A (UI audio), B (pipeline) |
 | F9 | **Aparținătorul** | Feed: alerte noi, doze ratate, check-in-uri cu simptome legate de medicamente; în demo rulează pe al doilea telefon | A |
-| F10 | **Portalul medicului de familie** | login cu cod; lista pacienților (cei cu alerte nerevizuite și semnalele familiei sus); fișa cu medicamentele, graful, alertele, aderența, check-in-urile; decizie + notă pe alertă → alertă + Noutăți; QR cu token de 72 h care adaugă pacientul în listă; „Reconcilierea medicației” de tipărit | B (portalul), A (QR) |
+| F10 | **Portalul medicului de familie** | login cu cod; lista pacienților (cei cu alerte nerevizuite și semnalele familiei sus); fișa cu medicamentele, graful, alertele, aderența, check-in-urile; decizie + notă pe alertă → alertă + Noutăți; QR cu token de 72 h care adaugă pacientul în listă; „Lista completă a medicamentelor” de tipărit | B (portalul), A (QR) |
 
 ### 5.2 Bonus (doar dacă sync point-ul S3 e atins la timp; la 30 h, realist doar X2, ca scenariu din modul demo)
 
@@ -172,7 +172,7 @@ Cele două surse se completează: CNAS are lista oficială a rețetelor, PolyGra
 | Variantă | Cum | Ce cere | Când |
 |---|---|---|---|
 | **1. Fără integrare tehnică** | familia deschide istoricul rețetelor din e-SănătateaMea și adaugă în PolyGraph ce lipsește, scanând rețeta tipărită sau salvată (F1 citește deja rețete) | nimic nou; eventual un text de ajutor în aplicație | se poate spune în pitch acum |
-| **2. Prin softul de cabinet** | parteneriat cu un producător de aplicații de cabinet care e deja interfațat cu SIUI / SIPE: cu acordul pacientului, softul trimite lista de prescripții în fișa din portal, iar PolyGraph întoarce reconcilierea și alertele | acord cu producătorul; consimțământul pacientului (GDPR); de verificat dacă specificațiile SIUI permit citirea istoricului de prescripții, nu doar raportarea | după hackathon, cu pilotul din Timișoara (slide-ul 6) |
+| **2. Prin softul de cabinet** | parteneriat cu un producător de aplicații de cabinet care e deja interfațat cu SIUI / SIPE: cu acordul pacientului, softul trimite lista de prescripții în fișa din portal, iar PolyGraph întoarce lista completă și alertele | acord cu producătorul; consimțământul pacientului (GDPR); de verificat dacă specificațiile SIUI permit citirea istoricului de prescripții, nu doar raportarea | după hackathon, cu pilotul din Timișoara (slide-ul 6) |
 | **3. Direct cu CNAS / e-SănătateaMea** | export standard al rețetelor din portalul pacientului spre aplicația aleasă de el | o interfață pe care CNAS nu o oferă azi (n-am găsit una publică) și un temei legal; direcția e dată de Spațiul european al datelor privind sănătatea (EHDS) și de HL7 FHIR, menționat în Strategia națională de digitalizare în sănătate | termen lung; exportul FHIR `MedicationStatement` e deja în secțiunea 19 |
 
 ### 6.4 Ce spunem la juriu și ce verificăm
@@ -1288,7 +1288,7 @@ Telefonul 1 = Maria (modul senior). Telefonul 2 = Ana (aparținător). Laptopul 
 | 1:55 | Pe telefonul Anei: notificare „Maria a raportat: amețeală, vânătăi; posibil legat de Sintrom + Nurofen” | „Vânătăile au fost legate de interacțiunea deja găsită; Ana află în câteva secunde, din alt oraș.” |
 | 2:10 | **Medic nou:** Ana scanează rețeta ORL (Fromilid, claritromicină) → alertă **critică** simvastatină + claritromicină și una gravă Sintrom + claritromicină, pe ambele telefoane | „Al șaselea medic a prescris un antibiotic. PolyGraph a prins două conflicte înainte de prima pastilă.” |
 | 2:30 | laptopul (cabinetul): portalul medicului de familie, Maria sus în listă; medicul alege „Modific la consultație” + notă la Sintrom + Nurofen → apare la Ana | „Familia și medicul de familie văd aceeași fișă; medicul vede și ce nu i-a prescris nimeni (Nurofen-ul). Asta e comunitatea conectată din The Bloom.” |
-| 2:50 | „Reconcilierea medicației” (versiunea de tipărit) | „Și asta o duce Maria la medicul de familie.” |
+| 2:50 | „Lista completă a medicamentelor” (versiunea de tipărit) | „Și asta o duce Maria la medicul de familie.” |
 
 Plan B pentru fiecare pas: scanarea pică → butonul „Adaugă rețeta ORL” din modul demo; recunoașterea vocală pică → check-in prin text; rețeaua pică → hotspot-ul laptopului + cache; totul pică → video-ul de rezervă.
 
@@ -1301,7 +1301,7 @@ Plan B pentru fiecare pas: scanarea pică → butonul „Adaugă rețeta ORL” 
 3. **Soluția:** poză → graf → alerte deterministe → program simplu → voce → familia și medicul de familie în buclă.
 4. **Demo** (secțiunea 16).
 5. **Cum e construit:** diagrama din 8.1 cu regula „LLM doar la margini”; DDInter 2.0 + nomenclatorul RO + Beers / STOPP / ACB; solverul; designul pentru vârstnici (un singur ecran, butoane mari, fără gesturi, Reduce Motion / Dynamic Type respectate).
-6. **Impact și model:** familia (abonament mic), medicii de familie (portalul și fișa de reconciliere: timp câștigat la consultație, OTC-urile pe care altfel nu le vede). Pași următori: date licențiate comercial, pilot cu un cabinet de medicină de familie din Timișoara, integrarea cu sistemele CNAS prin softul de cabinet (secțiunea 6).
+6. **Impact și model:** familia (abonament mic), medicii de familie (portalul și lista completă a medicamentelor: timp câștigat la consultație, OTC-urile pe care altfel nu le vede). Pași următori: date licențiate comercial, pilot cu un cabinet de medicină de familie din Timișoara, integrarea cu sistemele CNAS prin softul de cabinet (secțiunea 6).
 7. **Responsabil:** nu diagnosticăm, nu schimbăm doze; GDPR (date de sănătate, partajare cu token care expiră); drumul spre conformitate MDR (după Regula 11 din MDR, un software care dă informații pentru decizii terapeutice e, probabil, cel puțin clasa IIa; de confirmat cu un specialist în reglementare).
 
 Întrebări probabile de la juriu (de pregătit răspunsul în 2 fraze): „De unde știți că alertele sunt corecte?” · „Ce faceți cu alert fatigue?” (severități, minor ascuns, routing pe roluri) · „Licența datelor?” · „De ce ar deschide un medic de familie încă un portal?” (lista îi arată doar pacienții cu ceva de revizuit, iar fișa îi arată ce nu vede în sistemul lui: OTC-urile și rețetele altor specialiști) · „Cum convingeți un vârstnic să folosească telefonul?” (familia face setup-ul; seniorul are un singur ecran și vocea) · „De ce nu luați datele de la CNAS?” (răspunsul din 6.4).
@@ -1354,7 +1354,7 @@ Plan B pentru fiecare pas: scanarea pică → butonul „Adaugă rețeta ORL” 
 - Din E5, lăsate deoparte la S4: pozele pastilelor pentru pacientul demo (`demo/pills/<med_id>.jpg`, făcute cu cutiile fizice, încărcate la `make demo`; atenție la Sintrom și Nurofen, care intră în listă abia la scanarea live), pasul opțional „Fotografiați o pastilă” după „Salvează” în ConfirmSheet și T-E5-02 în `EdgeCaseTour`.
 - **Codul de asociere, ca în NeuroTrack (MED-01)**, discutat pe 15.11.2026 și lăsat după hackathon (nu e necesar pentru demo, iar QR-ul acoperă fluxul): (1) un cod scurt de tastat lângă QR-ul din „Arată medicului” (6 caractere din `A–Z` fără `I` / `O` și `2–9`, alias al aceluiași `share_token`, aceeași valabilitate de 72 h), cu un câmp „Codul pacientului” în cardul „Adăugați un pacient” din portal, ca medicul să adauge pacientul de la laptop, fără să scaneze cu telefonul; (2) direcția inversă: medicul generează un cod de invitație în portal, familia îl introduce în aplicație, iar cererea apare în portal la „Cereri în așteptare”, cu „Accept” / „Refuz” (consimțământul rămâne la familie). Estimare: ~1,5 h pentru (1), ~4 h în total.
 - QA5.3 (14.5), mutat aici: „Ce s-a schimbat de la ultima consultație” în capul fișei din portal, din `feed_events`, `doses` și `checkins`, de la ultima decizie a medicului (medicamente noi, alerte noi, doze ratate, simptome), cu testul T-QA5-03.
-- Din review-ul Q3 (aplicația, `docs/reviews/Q3.md`): avertizare „expiră curând” din DataMatrix (azi doar „expirat”); aderența săptămânală în portal („5 din 7 seri”, cu „neconfirmate”, nu „nelulate”); al doilea telefon al familiei legat de același pacient, fără reset; „Pot să iau…?” și pentru suplimente / plante (sunătoare, ginkgo), din surse verificate; QR spre fișă pe reconcilierea tipărită; graful what-if în portal pentru o întrebare gravă; istoricul pe zile în „Ziua de azi” (doar citire, butoane mari); exportul FHIR `MedicationStatement`; actualizarea cutiei existente la o scanare duplicat (expirare, lot), în loc de un al doilea medicament.
+- Din review-ul Q3 (aplicația, `docs/reviews/Q3.md`): avertizare „expiră curând” din DataMatrix (azi doar „expirat”); aderența săptămânală în portal („5 din 7 seri”, cu „neconfirmate”, nu „nelulate”); al doilea telefon al familiei legat de același pacient, fără reset; „Pot să iau…?” și pentru suplimente / plante (sunătoare, ginkgo), din surse verificate; QR spre fișă pe lista completă tipărită; graful what-if în portal pentru o întrebare gravă; istoricul pe zile în „Ziua de azi” (doar citire, butoane mari); exportul FHIR `MedicationStatement`; actualizarea cutiei existente la o scanare duplicat (expirare, lot), în loc de un al doilea medicament.
 
 ---
 

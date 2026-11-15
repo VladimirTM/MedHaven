@@ -222,7 +222,7 @@ def test_t_b6_02_print_has_every_major_and_critical_alert(doctor):
     assert grave
     for a in grave:
         assert str(escape(a["title"])) in html
-    assert "Reconcilierea medicației" in html and "Semnătura și parafa" in html
+    assert "Lista completă a medicamentelor" in html and "Semnătura și parafa" in html
     assert "Întrebări propuse pentru consultație" in html
     assert "cytoscape" not in html and "review-form" not in html
 

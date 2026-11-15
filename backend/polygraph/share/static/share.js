@@ -191,6 +191,11 @@
     card.classList.add("is-highlighted");
   });
 
+  // „Tipăriți sau salvați PDF” pe lista completă: dialogul de tipărire al browserului (are și „Salvează ca PDF”)
+  document.addEventListener("click", function (event) {
+    if (event.target.closest("[data-print]")) window.print();
+  });
+
   // tap pe un medicament din graf → cardul lui din lista „Medicamente”
   document.addEventListener("pg:med", function (event) {
     var card = document.getElementById("med-" + event.detail);
