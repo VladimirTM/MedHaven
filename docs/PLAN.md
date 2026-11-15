@@ -4,7 +4,7 @@ Numele produsului: MedHaven (fost PolyGraph). Numele intern din cod rămâne pol
 
 **Track:** The Bloom (Connected Communities, Mobility & Healthcare) → **Medical Renaissance**
 **Platformă:** aplicație **iOS nativă (SwiftUI)**, backend Python. Fără Android: echipa are două MacBook-uri și două iPhone-uri, iar demo-ul se face pe iPhone.
-**Repo:** [github.com/VladimirTM/MedHaven](https://github.com/VladimirTM/MedHaven) (local: `~/Git/PolyGraph`)
+**Repo:** [github.com/VladimirTM/MedHaven](https://github.com/VladimirTM/MedHaven) (local: `~/Git/MedHaven`)
 
 > **Pe scurt (15.11.2026, 02:15, `main` la [#58](https://github.com/VladimirTM/MedHaven/pull/58)):** tot MVP-ul (F1–F10), bonusurile X1 și X2, reparațiile din Q3 (Q3F0–Q3F6), QA1–QA4, QA5.1–QA5.2, J-1 (rețeaua locală, #52, #53), **E0, E1, E2, E3, E6** ([#55](https://github.com/VladimirTM/MedHaven/pull/55), cu turul de review în [#57](https://github.com/VladimirTM/MedHaven/pull/57)), **E5** ([#58](https://github.com/VladimirTM/MedHaven/pull/58), fără pozele demo) și reparația Q4-01 (durata lipită de posologie, [#56](https://github.com/VladimirTM/MedHaven/pull/56)) sunt în `main`. **E4 (stocul) e tăiat:** contractul nu era gata la 00:15, deci trece în secțiunea 19 (regula din 14.6). **Urmează:** testele rămase din E pe iPhone și pe simulator (14.6), apoi S4 (feature freeze, D 09:30), Q4, D1 și D2. Statusul complet e în [secțiunea 7](#7-statusul-pe-scurt), iar ce are de făcut fiecare în [Partea III](#partea-iii--ce-e-de-făcut).
 

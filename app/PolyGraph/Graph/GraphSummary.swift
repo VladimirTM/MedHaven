@@ -66,7 +66,7 @@ struct GraphSummary {
         hub = best.flatMap { entry in name(entry.key).map { Hub(medID: entry.key, name: $0, count: entry.value.all) } }
 
         // alimentele: eticheta vine din nodul `f:` al grafului, legat de alertă prin muchia food_interaction
-        let labels = graph.map(Self.foodLabels) ?? [:]
+        let labels = graph.map { Self.foodLabels($0) } ?? [:]
         var grouped: [(label: String, meds: [String], severity: Severity)] = []
         for alert in shown where alert.kind == .food {
             guard let label = labels[alert.id] ?? Self.foodKey(alert) else { continue }
