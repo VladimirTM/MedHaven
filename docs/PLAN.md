@@ -6,7 +6,7 @@ Numele produsului: MedHaven (fost PolyGraph). Numele intern din cod rămâne pol
 **Platformă:** aplicație **iOS nativă (SwiftUI)**, backend Python. Fără Android: echipa are două MacBook-uri și două iPhone-uri, iar demo-ul se face pe iPhone.
 **Repo:** [github.com/VladimirTM/MedHaven](https://github.com/VladimirTM/MedHaven) (local: `~/Git/MedHaven`)
 
-> **Pe scurt (15.11.2026, 02:15, `main` la [#58](https://github.com/VladimirTM/MedHaven/pull/58)):** tot MVP-ul (F1–F10), bonusurile X1 și X2, reparațiile din Q3 (Q3F0–Q3F6), QA1–QA4, QA5.1–QA5.2, J-1 (rețeaua locală, #52, #53), **E0, E1, E2, E3, E6** ([#55](https://github.com/VladimirTM/MedHaven/pull/55), cu turul de review în [#57](https://github.com/VladimirTM/MedHaven/pull/57)), **E5** ([#58](https://github.com/VladimirTM/MedHaven/pull/58), fără pozele demo) și reparația Q4-01 (durata lipită de posologie, [#56](https://github.com/VladimirTM/MedHaven/pull/56)) sunt în `main`. **E4 (stocul) e tăiat:** contractul nu era gata la 00:15, deci trece în secțiunea 19 (regula din 14.6). **Urmează:** testele rămase din E pe iPhone și pe simulator (14.6), apoi S4 (feature freeze, D 09:30), Q4, D1 și D2. Statusul complet e în [secțiunea 7](#7-statusul-pe-scurt), iar ce are de făcut fiecare în [Partea III](#partea-iii--ce-e-de-făcut).
+> **Pe scurt (15.11.2026, 06:00, `main` la [#63](https://github.com/VladimirTM/MedHaven/pull/63)):** tot MVP-ul (F1–F10), bonusurile X1 și X2, reparațiile din Q3 (Q3F0–Q3F6), QA1–QA4, QA5.1–QA5.2, J-1 (rețeaua locală, #52, #53), **E0, E1, E2, E3, E6** ([#55](https://github.com/VladimirTM/MedHaven/pull/55), cu turul de review în [#57](https://github.com/VladimirTM/MedHaven/pull/57)), **E5** ([#58](https://github.com/VladimirTM/MedHaven/pull/58), fără pozele demo) și reparația Q4-01 ([#56](https://github.com/VladimirTM/MedHaven/pull/56)) sunt în `main`. Peste noapte au intrat și: portalul lățit și foaia de tipărit refăcută ([#60](https://github.com/VladimirTM/MedHaven/pull/60)), numele **MedHaven** pe ecrane ([#61](https://github.com/VladimirTM/MedHaven/pull/61), [#63](https://github.com/VladimirTM/MedHaven/pull/63)), **profilul de sănătate** al pacientului (înălțime, greutate, afecțiuni; contract nou) și ecranul de bun venit ([#62](https://github.com/VladimirTM/MedHaven/pull/62)). **E4 (stocul) e tăiat** (secțiunea 19). `make check` (475 de teste) și `make demo-check` sunt verzi pe `main` (15.11, 06:00). **Urmează:** testele rămase, strânse într-o singură listă în [14.7](#147-testele-rămase-înainte-de-s4), apoi S4 (feature freeze, D 09:30), Q4, D1 și D2. Statusul complet e în [secțiunea 7](#7-statusul-pe-scurt), iar ce are de făcut fiecare în [Partea III](#partea-iii--ce-e-de-făcut).
 
 ## Cum e organizat documentul
 
@@ -188,7 +188,7 @@ Cele două surse se completează: CNAS are lista oficială a rețetelor, PolyGra
 
 ## 7. Statusul pe scurt
 
-**15.11.2026, 02:15, `main` la [#58](https://github.com/VladimirTM/MedHaven/pull/58).** S0–S3 sunt trecute (S1–S3 de facto, fără review Q, pentru că Q0 nu era gata). `make check` are 437 de teste după #55 (353 după Q3F4), `make demo-check` e verde cu pasul X1, iar `PolyGraphTests` sunt verzi pe simulator. Detaliile fiecărei etape (checklist, prompt, teste) sunt în Anexa B (etapele A / B) și Anexa C (QA și Q3).
+**15.11.2026, 06:00, `main` la [#63](https://github.com/VladimirTM/MedHaven/pull/63).** S0–S3 sunt trecute (S1–S3 de facto, fără review Q, pentru că Q0 nu era gata). `make check` are 475 de teste (437 după #55, 353 după Q3F4) și `make demo-check` e verde cu pasul X1, ambele rulate pe `main` la 06:00. `PolyGraphTests` au fost verzi pe simulator înainte de #62; după #62 (modele Swift noi) `make check-ios` trebuie rulat din nou (14.7). Detaliile fiecărei etape (checklist, prompt, teste) sunt în Anexa B (etapele A / B) și Anexa C (QA și Q3).
 
 ### 7.1 Etapele, pe rând
 
@@ -232,7 +232,10 @@ Cele două surse se completează: CNAS are lista oficială a rețetelor, PolyGra
 | E5 poza pastilei | amândoi | ✅ în `main` | [#58](https://github.com/VladimirTM/MedHaven/pull/58) | contract (`pill_photo_url`, `POST` / `DELETE …/pill-photo`), backend și web verzi (T-E5-01); rămâne T-E5-03 pe iPhone; pasul din ConfirmSheet, pozele demo și T-E5-02 mutate în 19 |
 | E4 stocul | amândoi | ⚠️ tăiat | – | contractul nu era în `main` la 00:15 (regula din 14.6); mutat în secțiunea 19 |
 | Q4-01 durata lipită de posologie („1-0-1,7 zile”) | Dev B | ✅ | [#56](https://github.com/VladimirTM/MedHaven/pull/56) | „N zile” după virgulă e durată; doza pe moment doar în sferturi de comprimat, altfel goală și marcată |
-| S4 + Q4 · D1 · D2 | amândoi | ⬜ | – | secțiunea 15 |
+| Portalul și foaia de tipărit | Dev A | ✅ | [#60](https://github.com/VladimirTM/MedHaven/pull/60) | lista și fișa pe toată lățimea, antetul colorat cu anul, „înapoi” ca pe iOS, foaia de tipărit cu antetul portalului și tabel cu borduri; fără linia de disclaimer în antet |
+| Numele MedHaven (doar afișarea) | Dev A | ✅ | [#61](https://github.com/VladimirTM/MedHaven/pull/61), [#63](https://github.com/VladimirTM/MedHaven/pull/63) | aplicația, portalul, pagina familiei, textele din backend și pitch-ul; în cod rămâne `polygraph`; repo-ul local e `~/Git/MedHaven`; avertizările Swift reparate |
+| Profilul de sănătate + ecranul de bun venit | Dev B (+ A) | ✅ | [#62](https://github.com/VladimirTM/MedHaven/pull/62) | contract: `height_cm`, `weight_kg`, `conditions`, `conditions_note` (opționale, `conditions.json` cu etichetele); pasul opțional „Despre sănătate” în onboarding și în Setări, prezentarea MedHaven la prima pornire, meniul de specialități, rezumatul grafului, severitățile în tonuri așezate; profilul apare pe fișa din portal și pe tipărire, motorul nu îl folosește; pytest verde (`test_profile.py`), rămân `make check-ios` și T-P-01 (14.7) |
+| S4 + Q4 · D1 · D2 | amândoi | ⬜ | – | secțiunea 15; înainte, lista din 14.7 |
 
 ### 7.2 Livrate în afara etapelor (14.11.2026, [PR #33](https://github.com/VladimirTM/MedHaven/pull/33))
 
@@ -743,7 +746,7 @@ Ordinea ține cont de S4 (feature freeze, D 09:30): ce e marcat „înainte de S
 | # | Ce | Când | Status | Detalii |
 |---|---|---|---|---|
 | J-1 | Al doilea iPhone nu se conectează din aplicație (`-1009`, „offline”), deși Safari ajunge la `/health`. **Cauza** (consola Xcode, 14.11.2026): `_NSURLErrorNWPathKey=unsatisfied (Local network prohibited), interface: en0[802.11], ipv4, constrained`: iOS refuză aplicației permisiunea Rețea locală (Safari e scutit, de aceea merge), chiar dacă în Settings comutatorul pare pornit; de obicei după o reinstalare din Xcode sau cu alt bundle id (`Signing.local.xcconfig`). Codul și `Info.plist` sunt corecte; aplicația arată acum mesajul despre Rețea locală în loc de „offline”. Comutatorul oprit / pornit nu a ajutat; **a rezolvat reinstalarea**. **Pe fiecare telefon, înainte de scenă:** aplicația ștearsă (Remove App → Delete App), reinstalată din Xcode, deschisă de pe Home Screen, „Allow” la promptul Local Network, „Verifică legătura” din Setări verde; dacă promptul nu apare: telefonul repornit și reinstalarea repetată, în ultimă instanță Settings → General → Transfer or Reset iPhone → Reset → Reset Location & Privacy (resetează toate permisiunile). Adresa din app: `http://<IP-ul Mac-ului>:8000` (portul lui `make demo`, nu 9000). Hotspot-ul Mac-ului nu ocolește permisiunea; e doar rezerva de rețea (pașii în 18) | înainte de D1 | ✅ *(14.11.2026, ambele telefoane conectate la `make demo`)* | 18 |
-| J-2 | **S4** feature freeze: toate feature-urile MVP rulează în scenariul demo de 3 ori la rând; Q4 fără blocker deschis | D 09:30 | ⬜ | 10.2 |
+| J-2 | **S4** feature freeze: lista de teste din 14.7 trecută, toate feature-urile MVP rulează în scenariul demo de 3 ori la rând; Q4 fără blocker deschis | D 09:30 | ⬜ | 10.2, 14.7 |
 | J-3 | **Q4**: turul de bază + `EdgeCaseTour` + turul T-Q3F5-01; fiecare constatare din Q3 primește starea închisă / deschisă / regresie în `docs/reviews/Q4.md` | primele 45 min din D1 | ⬜ | 15.1 |
 | J-4 | `make demo-check` cu `URL=` pe serverul din `make demo`, pe Mac-ul de demo (repetarea T-Q3F0-02) | înainte de D1 | ✅ | Anexa C, Q3F0 |
 | J-5 | **D1** integrare, repetiții, video de rezervă | W24.5–W27.5 | ⬜ | 15.2 |
@@ -800,7 +803,7 @@ Constatările QA-nn și Q3-nn citate în prompturi sunt în Anexa C. QA0 e gata 
 | QA5 | funcționalitățile pentru demo (opțional) | Dev B | 2–4 h | `feature/qa5-…` |
 | E0–E6 | ideile din 14.11 seara: bug-ul de editare, orele zilei, pagina familiei, cutiuța, stocul, poza pastilei, mai mulți pacienți | Dev A + Dev B | 30 min – 3,5 h fiecare | `fix/e0-…`, `feature/e1-…` … (14.6) |
 
-Status la 15.11.2026, 02:15: QA0 ✅ (#33); QA1 ✅ (#43); QA2–QA4 ✅ (#44); QA5.1 și QA5.2 ✅ ([#49](https://github.com/VladimirTM/MedHaven/pull/49), [#51](https://github.com/VladimirTM/MedHaven/pull/51)), QA5.3 mutat în secțiunea 19; E0–E3 și E6 ✅ ([#55](https://github.com/VladimirTM/MedHaven/pull/55), turul în [#57](https://github.com/VladimirTM/MedHaven/pull/57)), E5 ✅ ([#58](https://github.com/VladimirTM/MedHaven/pull/58)), E4 ⚠️ tăiat (mutat în 19); rămân testele manuale și de simulator din 14.6. Dependențele: QA2 și QA3 după QA1, QA4 după QA3, QA5 după QA2 și QA4; E1, E2 și E4 după E0, E3 și E6 după E2, E5 cu contractul lui (`pill_photo_url`), făcut separat de E4.
+Status la 15.11.2026, 06:00: QA0 ✅ (#33); QA1 ✅ (#43); QA2–QA4 ✅ (#44); QA5.1 și QA5.2 ✅ ([#49](https://github.com/VladimirTM/MedHaven/pull/49), [#51](https://github.com/VladimirTM/MedHaven/pull/51)), QA5.3 mutat în secțiunea 19; E0–E3 și E6 ✅ ([#55](https://github.com/VladimirTM/MedHaven/pull/55), turul în [#57](https://github.com/VladimirTM/MedHaven/pull/57)), E5 ✅ ([#58](https://github.com/VladimirTM/MedHaven/pull/58)), E4 ⚠️ tăiat (mutat în 19); rămân testele manuale și de simulator, strânse în 14.7. Dependențele: QA2 și QA3 după QA1, QA4 după QA3, QA5 după QA2 și QA4; E1, E2 și E4 după E0, E3 și E6 după E2, E5 cu contractul lui (`pill_photo_url`), făcut separat de E4.
 
 ### 14.1 QA1 · Robustețea backend-ului
 
@@ -1090,11 +1093,11 @@ Criterii de acceptare: Sintrom cu 10 comprimate, ½ pe zi → „Mai aveți pent
 ~~~
 
 **Teste**
-- [ ] T-E4-01 pytest: calculul pe program (½ pe zi, 10 comprimate → 20 de zile), „la nevoie” doar din bife, fără `stock` → nimic.
-- [ ] T-E4-02 pytest: pragul de 3 zile → un singur `stock_low` chiar dacă `/schedule` și `/feed` se cer de 10 ori; „Am cumpărat o cutie” resetează și permite un eveniment nou mai târziu.
-- [ ] T-E4-03 pytest: „am rămas fără Sintrom” / „nu mai am pastile de tensiune” / „s-a terminat Nurofenul” → `out_of_stock` cu medicamentul corect; „am rămas fără pâine” → nicio potrivire, nicio alertă.
-- [ ] T-E4-04 XCTest: `stock_low` și `out_of_stock` se decodează; stocul se trimite la POST și la PATCH.
-- [ ] T-E4-05 Manual: check-in vocal pe telefonul Mariei → notificare pe telefonul Anei în < 15 s.
+- [ ] ⚠️ *(E4 tăiat)* T-E4-01 pytest: calculul pe program (½ pe zi, 10 comprimate → 20 de zile), „la nevoie” doar din bife, fără `stock` → nimic.
+- [ ] ⚠️ *(E4 tăiat)* T-E4-02 pytest: pragul de 3 zile → un singur `stock_low` chiar dacă `/schedule` și `/feed` se cer de 10 ori; „Am cumpărat o cutie” resetează și permite un eveniment nou mai târziu.
+- [ ] ⚠️ *(E4 tăiat)* T-E4-03 pytest: „am rămas fără Sintrom” / „nu mai am pastile de tensiune” / „s-a terminat Nurofenul” → `out_of_stock` cu medicamentul corect; „am rămas fără pâine” → nicio potrivire, nicio alertă.
+- [ ] ⚠️ *(E4 tăiat)* T-E4-04 XCTest: `stock_low` și `out_of_stock` se decodează; stocul se trimite la POST și la PATCH.
+- [ ] ⚠️ *(E4 tăiat)* T-E4-05 Manual: check-in vocal pe telefonul Mariei → notificare pe telefonul Anei în < 15 s.
 
 #### E5 · Poza pastilei lângă poza cutiei
 
@@ -1119,7 +1122,7 @@ Criterii de acceptare: o pastilă fotografiată în aplicație apare pe „Acum�
 
 **Teste**
 - [x] T-E5-01 pytest (`backend/tests/test_e5_pill_photo.py`): upload → `pill_photo_url` setat, `/media/...` răspunde; fișier non-JPEG sau > 5 MB → 422 în română; DELETE → `null`.
-- [ ] T-E5-02 XCTest / `EdgeCaseTour`: „Acum” cu și fără poza pastilei, la Dynamic Type AX5, fără suprapuneri.
+- [ ] ➡️ *(mutat în 19, cu pasul din ConfirmSheet)* T-E5-02 XCTest / `EdgeCaseTour`: „Acum” cu și fără poza pastilei, la Dynamic Type AX5, fără suprapuneri.
 - [ ] T-E5-03 Manual: poza făcută pe iPhone apare pe web în „Azi”.
 
 #### E6 · Mai mulți pacienți pe același browser
@@ -1142,6 +1145,45 @@ Criterii de acceptare: Maria și Ion (din make demo) în același browser, fieca
 **Teste**
 - [x] T-E6-01 pytest: două linkuri în aceeași sesiune → doi pacienți; un al treilea id în URL → 404 „nu e în lista dumneavoastră”. *(14.11.2026, `test_e3_e6.py`: pacientul se alege din cookie, nu din URL; un id fără sesiune în acest browser e ignorat, iar ieșirea închide doar pacientul de pe ecran)*
 - [ ] T-E6-02 pytest: dozele și cutiuța rămân separate pe pacient.
+
+### 14.7 Testele rămase înainte de S4
+
+Starea la 15.11.2026, 06:00, pe `main` la #63. **Verde, rulat acum:** `make check` (475 de teste: contracte, ruff, pytest) și `make demo-check` (scenariul întreg în ~1 s). Tot ce urmează cere un Mac cu simulator, un iPhone sau un browser; fiecare test bifat aici se bifează și la etapa lui. Ordinea e cea în care merită făcute: întâi ce poate strica demo-ul.
+
+**1. Pe Mac, automat (Dev A, ~20 min)**
+
+| # | Ce | Închide |
+|---|---|---|
+| 1 | `make check-ios` pe `main`: e primul după #62 (modele Swift noi pentru profil, `PatientProfileTests`, `GraphSummaryTests`) | T-E0-01, regresia #62 |
+| 2 | turul `make review Q=Q3f5 ONLY="testCaregiverMeds testScanBoxFake testGraph testOnboarding" CONFIGS="Light AX" NO_VIDEO=1`; `testOnboarding` trece acum și prin prezentarea MedHaven și pasul „Despre sănătate” | T-Q3F5-01 |
+| 3 | T-E1-03 nu e scris: un XCTest care salvează orele noi și verifică `Reminders.plan` pe programul nou (nicio notificare la ora veche); dacă nu intră în 15 min, rămâne manual (punctul 2.3) | T-E1-03 |
+
+**2. Pe iPhone, manual (amândoi, ~40 min, cu `make demo` pornit pe laptop)**
+
+| # | Ce | Închide |
+|---|---|---|
+| 1 | Nurofen (fără rețetă) și Sintrom (cu rețetă) editați din detaliu, salvați din prima, alertele recalculate | T-E0-03 |
+| 2 | **Nou (#62), T-P-01:** aplicația ștearsă și reinstalată (J-1) → prezentarea MedHaven → onboarding cu „Despre sănătate” completat, apoi sărit la a doua instalare; profilul schimbat din Setări → apare pe fișa din portal și pe tipărire; un profil gol nu lasă rânduri goale | T-P-01 |
+| 3 | cina mutată din Setări (19:00 → 20:00): dozele de seară se mută în aplicație, pe `/acasa` și în portal, „Am luat” de dimineață rămâne bifat, nicio notificare la 19:00; invers, ora schimbată pe `/acasa/ore` apare în aplicație | T-E1-04 (și T-E1-03, dacă nu e XCTest) |
+| 4 | „Am luat” în modul senior → apare pe `/acasa` în < 5 s; bifă pe `/acasa` → apare în modul senior la următorul polling (≤ 30 s) | T-E2-05 |
+| 5 | poza unei pastile făcută din detaliul medicamentului → apare pe „Acum” la Maria și pe `/acasa` | T-E5-03 |
+| 6 | graful Mariei în aplicație și în Safari pe același iPhone, light și dark, unul lângă altul (după #62 paleta severităților e nouă, în ambele) | T-QA2-05 |
+| 7 | decizia medicului luată și schimbată în portal pe iPhone → văzută în aplicația Anei, pe alertă și în Noutăți | T-QA4-06 |
+
+**3. În browser (Dev B, ~30 min)**
+
+| # | Ce | Închide |
+|---|---|---|
+| 1 | `/acasa` la 375 px cu atingere (Playwright cu `hasTouch` sau, mai repede, Safari → Responsive Design Mode): nicio țintă sub 44 px, h1 pe fiecare tab, bara de tab-uri jos | T-E2-04 |
+| 2 | „Calendar” la 375 px: lista pe zile, dialogul cutiuței se închide cu Escape și cu butonul, fără „Am luat” | T-E3-03 |
+| 3 | T-E6-02 nu e scris: un pytest în `test_e3_e6.py`, Maria și Ion în aceeași sesiune, „Am luat” și o bifă de cutiuță pe Ion nu apar la Maria (~10 min) | T-E6-02 |
+| 4 | foaia de tipărit după #60: Print Preview în Safari și Chrome, 2 pagini A4, fără antetul și subsolul browserului, cu profilul pacientului | regresia #60 / #62 |
+
+**4. Fizic, în sală (J-7, B-7)**
+- T-A2-03: 3 cutii reale + rețeta tipărită, scanate pe iPhone în lumina sălii.
+- Check-in-ul demo dictat de 3 ori (15.4).
+
+**Nu mai sunt de testat înainte de S4:** T-E4-01…05 (E4 tăiat), T-E5-02 și T-QA5-03 (mutate în 19 cu funcționalitățile lor). După lista de mai sus urmează Q4 (J-3, 15.1), care reia și scenariul de 2 ori pe simulator (T-Q-03).
 
 ## 15. S4, Q4, D1, D2 și materialele
 
@@ -1246,7 +1288,7 @@ Reguli: fără constatări vagi („ar putea fi mai frumos”); fiecare constata
 
 **Durată:** W24.5–W27.5
 
-- [ ] `make demo-check` verde pe `main`
+- [x] `make demo-check` verde pe `main` *(15.11.2026, 06:00, la #63; de repetat după ultimul merge dinainte de S4)*
 - [ ] Q4: raportul `docs/reviews/Q4.md` fără blocker deschis; regresia constatărilor din Q1–Q3 verde
 - [ ] Q4 rulează și `EdgeCaseTour` (Q3F6); `make demo-check` verde pe Mac-ul de demo cu `kb.sqlite` reconstruit (Q3F0)
 - [ ] Scenariul din secțiunea 16 rulat cronometrat de 3 ori, cu resetare între rulări; fiecare problemă → fix doar dacă e < 20 min, altfel se scoate din scenariu
