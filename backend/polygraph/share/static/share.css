@@ -1148,3 +1148,34 @@ body.family { font-size: 1.0625rem; }
 .key-star { color: var(--g-purple); font-size: 1.125rem; line-height: 1; }
 .graph-key-tip { margin: 0.875rem 0 0; color: var(--text-2); font-size: 0.875rem; }
 @media print { .graph-key { display: none; } }
+
+/* ---------------------------------------------------------------- fișa trimisă familiei
+   În portal, panoul de trimitere stă deasupra foii (doar pe ecran); la familie, cardul de pe „Azi” duce la /acasa/fisa. */
+
+.send-sheet { max-width: 60rem; margin: 2rem auto 0; padding: 1.25rem clamp(1.25rem, 4vw, 3rem); background: var(--surface); border-radius: 1rem; box-shadow: 0 0 0 1px var(--line); display: grid; gap: 0.5rem; }
+.send-sheet h2 { margin: 0; }
+.send-sheet .muted { max-width: 42rem; }
+.send-sheet-form { display: grid; gap: 0.5rem; margin-top: 0.25rem; }
+.send-sheet-form label { font-weight: 600; font-size: 0.9375rem; }
+.send-sheet-form textarea { resize: vertical; min-height: 4.5rem; line-height: 1.4; }
+.send-sheet-form .btn { justify-self: start; }
+.send-sheet-state { color: var(--ok); font-weight: 600; animation: appear 240ms var(--ease); }
+@media screen and (max-width: 40rem) { .send-sheet { margin: 0.75rem 0.75rem 0; padding: 1rem; } .send-sheet-form .btn { justify-self: stretch; } }
+@media screen { .print .send-sheet + .sheet { margin-top: 1rem; } }
+
+.sheet-banner { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1rem; padding: 0.875rem 1rem 0.875rem 1.125rem; background: var(--surface); border-radius: var(--radius); box-shadow: 0 0 0 1px var(--line); color: var(--text); text-decoration: none; -webkit-tap-highlight-color: transparent; transition: transform 160ms var(--ease); }
+.sheet-banner:active { transform: scale(0.98); transition-duration: 0s; }
+.sheet-banner:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.sheet-banner-text { flex: 1; display: grid; gap: 0.125rem; }
+.sheet-banner-title { font-weight: 650; font-size: 1.0625rem; color: var(--accent); }
+.sheet-banner-chevron { width: 0.5rem; height: 0.875rem; fill: none; stroke: var(--text-2); stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
+
+.sheet-note { margin-bottom: 1.25rem; font-size: 1.0625rem; }
+.sheet-decisions { list-style: none; padding: 0; display: grid; gap: 0.75rem; }
+.sheet-decision { background: var(--surface); border-radius: var(--radius); box-shadow: 0 0 0 1px var(--line); padding: 0.875rem 1.125rem; }
+.sheet-decision-title { font-weight: 650; font-size: 1.0625rem; line-height: 1.3; }
+.sheet-decision .family-decision { margin-top: 0.5rem; }
+.sheet-part + .sheet-part { margin-top: 1.75rem; }
+.sheet-part > .small.muted { margin-top: 0.625rem; }
+.sheet-older { padding-left: 1.25rem; display: grid; gap: 0.375rem; }
+@media (prefers-reduced-motion: reduce) { .sheet-banner, .send-sheet-state { transition: none; animation: none; } }
