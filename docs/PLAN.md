@@ -747,7 +747,7 @@ Ordinea ține cont de S4 (feature freeze, D 09:30): ce e marcat „înainte de S
 |---|---|---|---|---|
 | J-1 | Al doilea iPhone nu se conectează din aplicație (`-1009`, „offline”), deși Safari ajunge la `/health`. **Cauza** (consola Xcode, 14.11.2026): `_NSURLErrorNWPathKey=unsatisfied (Local network prohibited), interface: en0[802.11], ipv4, constrained`: iOS refuză aplicației permisiunea Rețea locală (Safari e scutit, de aceea merge), chiar dacă în Settings comutatorul pare pornit; de obicei după o reinstalare din Xcode sau cu alt bundle id (`Signing.local.xcconfig`). Codul și `Info.plist` sunt corecte; aplicația arată acum mesajul despre Rețea locală în loc de „offline”. Comutatorul oprit / pornit nu a ajutat; **a rezolvat reinstalarea**. **Pe fiecare telefon, înainte de scenă:** aplicația ștearsă (Remove App → Delete App), reinstalată din Xcode, deschisă de pe Home Screen, „Allow” la promptul Local Network, „Verifică legătura” din Setări verde; dacă promptul nu apare: telefonul repornit și reinstalarea repetată, în ultimă instanță Settings → General → Transfer or Reset iPhone → Reset → Reset Location & Privacy (resetează toate permisiunile). Adresa din app: `http://<IP-ul Mac-ului>:8000` (portul lui `make demo`, nu 9000). Hotspot-ul Mac-ului nu ocolește permisiunea; e doar rezerva de rețea (pașii în 18) | înainte de D1 | ✅ *(14.11.2026, ambele telefoane conectate la `make demo`)* | 18 |
 | J-2 | **S4** feature freeze: lista de teste din 14.7 trecută, toate feature-urile MVP rulează în scenariul demo de 3 ori la rând; Q4 fără blocker deschis | D 09:30 | ⬜ | 10.2, 14.7 |
-| J-3 | **Q4**: turul de bază + `EdgeCaseTour` + turul T-Q3F5-01; fiecare constatare din Q3 primește starea închisă / deschisă / regresie în `docs/reviews/Q4.md` | primele 45 min din D1 | ⬜ | 15.1 |
+| J-3 | **Q4**: turul de bază + `EdgeCaseTour` + turul T-Q3F5-01; fiecare constatare din Q3 primește starea închisă / deschisă / regresie în `docs/reviews/Q4.md` | primele 45 min din D1 | ✅ *(15.11.2026: fără blocker; Q4-02 și Q4-03 reparate în `fix/q4-alert-refresh`)* | 15.1 |
 | J-4 | `make demo-check` cu `URL=` pe serverul din `make demo`, pe Mac-ul de demo (repetarea T-Q3F0-02) | înainte de D1 | ✅ | Anexa C, Q3F0 |
 | J-5 | **D1** integrare, repetiții, video de rezervă | W24.5–W27.5 | ⬜ | 15.2 |
 | J-6 | **D2** pitch și submit | W27.5–W30 | ⬜ | 15.3 |
@@ -1284,8 +1284,8 @@ Reguli: fără constatări vagi („ar putea fi mai frumos”); fiecare constata
 4. Un sync point nu e considerat trecut cât timp raportul Q aferent are un blocker cu decizia „acum” încă deschis.
 
 **Teste**
-- [ ] T-Q-01 `make review Q=QN` produce capturi pentru toate fluxurile livrate, în toate cele 5 configurații.
-- [ ] T-Q-02 Raportul are pentru fiecare constatare captură, pași de reproducere și fix propus.
+- [x] T-Q-01 `make review Q=QN` produce capturi pentru toate fluxurile livrate, în toate cele 5 configurații. *(Q4, 15.11.2026: 292 de capturi, 20/20 teste)*
+- [x] T-Q-02 Raportul are pentru fiecare constatare captură, pași de reproducere și fix propus. *(`docs/reviews/Q4.md`)*
 - [ ] T-Q-03 Q4: scenariul demo trece de 2 ori la rând pe simulator, fără blocker deschis.
 
 ### 15.2 D1 · Integrare, repetiții, video de rezervă (împreună)
@@ -1293,8 +1293,8 @@ Reguli: fără constatări vagi („ar putea fi mai frumos”); fiecare constata
 **Durată:** W24.5–W27.5
 
 - [x] `make demo-check` verde pe `main` *(15.11.2026, 06:00, la #63; de repetat după ultimul merge dinainte de S4)*
-- [ ] Q4: raportul `docs/reviews/Q4.md` fără blocker deschis; regresia constatărilor din Q1–Q3 verde
-- [ ] Q4 rulează și `EdgeCaseTour` (Q3F6); `make demo-check` verde pe Mac-ul de demo cu `kb.sqlite` reconstruit (Q3F0)
+- [x] Q4: raportul `docs/reviews/Q4.md` fără blocker deschis; regresia constatărilor din Q1–Q3 verde
+- [x] Q4 rulează și `EdgeCaseTour` (Q3F6); `make demo-check` verde pe Mac-ul de demo cu `kb.sqlite` reconstruit (Q3F0) *(15.11.2026, 08:55)*
 - [ ] Scenariul din secțiunea 16 rulat cronometrat de 3 ori, cu resetare între rulări; fiecare problemă → fix doar dacă e < 20 min, altfel se scoate din scenariu
 - [ ] Înregistrare ecran (ambele telefoane + portalul medicului) a unei rulări curate: **video de rezervă** dacă ceva pică pe scenă
 - [ ] Telefoanele: luminozitate maximă, Nu deranja (cu excepția notificărilor app-ului), baterie > 80%, aplicația instalată din Xcode în configurația Release
