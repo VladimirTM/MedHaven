@@ -127,7 +127,7 @@ def test_t_qa3_05_sources_have_no_internal_kb_paths_and_unlinked_patient_shows_n
     for path in (PORTAL, f"{PORTAL}/print"):
         html = doctor.get(path).text
         assert "kb/" not in html
-        assert "Lista verificată PolyGraph (din DDInter 2.0)" in html
+        assert "Lista verificată MedHaven (din DDInter 2.0)" in html
 
     created = doctor.post("/v1/patients", json={"name": "Străin", "birth_year": 1950}).json()
     pid = created["id"]

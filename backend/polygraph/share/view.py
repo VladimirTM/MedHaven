@@ -33,13 +33,13 @@ KIND_LABEL = {
 }
 SOURCE_LABEL = {
     "ddinter": "DDInter 2.0",
-    "curated": "Lista verificată PolyGraph",
+    "curated": "Lista verificată MedHaven",
     "beers": "AGS Beers 2023",
     "stopp": "STOPP/START v3",
     "acb": "Scala ACB",
     "rcp": "RCP",
-    "schedule": "Programul calculat de PolyGraph",
-    "app": "PolyGraph",
+    "schedule": "Programul calculat de MedHaven",
+    "app": "MedHaven",
 }
 DECISION_LABEL = {"keep": "Menține", "change_at_visit": "Modific la consultație", "refer_specialist": "Trimit la specialist"}
 # aceleași etichete la persoana a III-a ca DoctorDecision.label din app/PolyGraph/Alerts/AlertSections.swift (QA3)
