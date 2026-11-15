@@ -985,7 +985,7 @@ Criterii de acceptare: pe iPhone, Nurofen adăugat și apoi editat (posologia sc
 ~~~
 
 **Teste**
-- [ ] T-E0-01 XCTest: corpul PATCH conține cheile `raw`, `name`, `specialty` cu `null`. *(scris în `ShareDemoTests.swift`; de rulat cu `make check-ios`)*
+- [x] T-E0-01 XCTest: corpul PATCH conține cheile `raw`, `name`, `specialty` cu `null`. *(15.11.2026, `ShareDemoTests.swift`, verde pe iPhone 18 Pro, pe `main` la #63)*
 - [x] T-E0-02 pytest: PATCH parțial pe `dosage` / `prescriber` păstrează câmpurile nesetate; `null` explicit se salvează. *(14.11.2026, `backend/tests/test_e0.py`)*
 - [ ] T-E0-03 Manual, pe iPhone: Nurofen (fără rețetă) și Sintrom (cu rețetă) editate, salvate, alertele recalculate.
 
@@ -1011,7 +1011,7 @@ Criterii de acceptare: cina mutată de la 19:00 la 20:00 → dozele de seară ap
 **Teste**
 - [x] T-E1-01 pytest: anchors în altă ordine → 422; anchors schimbați → `/schedule` are orele noi, programul Mariei cu anchors inițiali = `expected_schedule.json`. *(14.11.2026, `backend/tests/test_e1.py`)*
 - [x] T-E1-02 pytest: doză de dimineață bifată, apoi cina mutată → doza rămâne `taken` în ziua de azi; dozele de ieri neschimbate. *(14.11.2026, `test_e1.py`; mutarea în `schedule/move.py`, după a câta apariție a medicamentului în zi)*
-- [ ] T-E1-03 XCTest: după salvare, `Reminders` primește programul nou (nicio notificare la ora veche).
+- [x] T-E1-03 XCTest: după salvare, `Reminders` primește programul nou (nicio notificare la ora veche). *(15.11.2026, `SeniorTests.remindersFollowMovedDinner`: cina 19:00 → 20:00, nicio cerere `pg.moment.*T19:00`; `replaceAll` scoate cererile vechi, iar modul senior le reface după `scheduleSignature`)*
 - [ ] T-E1-04 Manual: ora schimbată în aplicație se vede pe web fără reîncărcarea serverului, și invers.
 
 #### E2 · Pagina familiei pe web: „Azi”, „Medicamentele mele”, „De verificat”
@@ -1150,13 +1150,13 @@ Criterii de acceptare: Maria și Ion (din make demo) în același browser, fieca
 
 Starea la 15.11.2026, 06:00, pe `main` la #63. **Verde, rulat acum:** `make check` (475 de teste: contracte, ruff, pytest) și `make demo-check` (scenariul întreg în ~1 s). Tot ce urmează cere un Mac cu simulator, un iPhone sau un browser; fiecare test bifat aici se bifează și la etapa lui. Ordinea e cea în care merită făcute: întâi ce poate strica demo-ul.
 
-**1. Pe Mac, automat (Dev A, ~20 min)**
+**1. Pe Mac, automat (Dev A) ✅ gata (15.11, 06:24)**
 
 | # | Ce | Închide |
 |---|---|---|
-| 1 | `make check-ios` pe `main`: e primul după #62 (modele Swift noi pentru profil, `PatientProfileTests`, `GraphSummaryTests`) | T-E0-01, regresia #62 |
-| 2 | turul `make review Q=Q3f5 ONLY="testCaregiverMeds testScanBoxFake testGraph testOnboarding" CONFIGS="Light AX" NO_VIDEO=1`; `testOnboarding` trece acum și prin prezentarea MedHaven și pasul „Despre sănătate” | T-Q3F5-01 |
-| 3 | T-E1-03 nu e scris: un XCTest care salvează orele noi și verifică `Reminders.plan` pe programul nou (nicio notificare la ora veche); dacă nu intră în 15 min, rămâne manual (punctul 2.3) | T-E1-03 |
+| 1 | ✅ testele unitare (`-only-testing:PolyGraphTests`) pe `main` la #63, verzi; testele de UI le acoperă turul de la punctul 2. Notă: `make check-ios` rulează și cele 42 de teste de UI (~25 min, cer backend pe 8000), deci pentru o verificare rapidă se folosește `-only-testing:PolyGraphTests` | T-E0-01, regresia #62 |
+| 2 | ✅ turul `make review Q=Q3f5 ONLY="testCaregiverMeds testScanBoxFake testGraph testOnboarding" CONFIGS="Light AX" NO_VIDEO=1`; `testOnboarding` trece acum și prin prezentarea MedHaven și pasul „Despre sănătate” | T-Q3F5-01 |
+| 3 | ✅ scris (`SeniorTests.remindersFollowMovedDinner`) și verde. Inițial: T-E1-03 nu era scris: un XCTest care salvează orele noi și verifică `Reminders.plan` pe programul nou (nicio notificare la ora veche); dacă nu intră în 15 min, rămâne manual (punctul 2.3) | T-E1-03 |
 
 **2. Pe iPhone, manual (amândoi, ~40 min, cu `make demo` pornit pe laptop)**
 
@@ -2260,7 +2260,7 @@ Criterii de acceptare: aceeași doză ratată arată „joi, 12 nov., 14:00” �
 În ordinea vizibilității în demo: Q3-29 (chevroane duble), Q3-32 (titlul strivit: „Arată medicului” ca pictogramă `qrcode` cu etichetă VoiceOver), Q3-33 (analogia o singură dată, ca pe web: detaliul complet după „i”), Q3-35 (statusul și segmentul la confirmare), Q3-40 („Arată medicului” ascuns cu lista goală), Q3-41 („Anulează” de 50 pt), Q3-22 (onboarding în AX), Q3-28 (avertizare la concentrații neobișnuite), Q3-36 (tranziția „Am luat”), Q3-37 (ordinea dozelor), Q3-38 (graful gol: textul comun din QA3), Q3-39 (comutarea rolului la „Gata”). Ce nu intră trece la secțiunea 19.
 
 **Teste**
-- [ ] T-Q3F5-01 `make review Q=Q3f5 ONLY="testCaregiverMeds testScanBoxFake testGraph testOnboarding" CONFIGS="Light AX" NO_VIDEO=1`: capturile arată schimbările.
+- [x] T-Q3F5-01 `make review Q=Q3f5 ONLY="testCaregiverMeds testScanBoxFake testGraph testOnboarding" CONFIGS="Light AX" NO_VIDEO=1`: capturile arată schimbările. *(15.11.2026, 06:20: 4 teste trecute, nimic absent, 38 de capturi; auditul 95 față de 86 ieri, plusul doar pe ecranele din #62, aceleași tipuri acceptate; pentru Q4: etichetele de clasă suprapuse în graf, de dinainte, și rândul 4 din „Pe scurt” tăiat la marginea de scroll)*
 
 > Implementat pe 14.11.2026 (`chore/q3f5-polish`, pornit din `fix/q3f4-caregiver-consistency`): Q3-29 (fără chevronul propriu în listă), Q3-32 („Arată medicului” ca `qrcode` cu etichetă VoiceOver), Q3-40 (ascuns cu lista goală), Q3-41 („Anulează” la înălțimea aparținătorului), Q3-33 (analogia doar în `detail`, fără cardul dublu), Q3-35 (o singură pastilă de status, „Stomac gol” în segment, cu eticheta VoiceOver întreagă), Q3-22 (butoanele onboarding-ului în scroll la AX, textul pe mai multe rânduri), Q3-28 (`confirm.unusualStrengthWarning` peste 10× catalogul sau peste 2 g, cu test unitar), Q3-38 (`graph.empty`, „Graful apare după primul medicament”), Q3-39 (rolul se schimbă la „Gata”). Amânate: Q3-36 (tranziția „Am luat”, de lucrat pe simulator cu capturile de cadre) și Q3-37 (fixture-ul are `med_07, med_04`, solverul sortează după id; schimbarea fixture-ului atinge testele senior). `PolyGraphTests` verzi pe simulator (42 s). Turul T-Q3F5-01 rămâne pentru testarea de la final.
 

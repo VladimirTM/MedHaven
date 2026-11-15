@@ -187,6 +187,33 @@ struct SeniorWordsTests {
         #expect(planned.first?.title == "La micul dejun")
         #expect(planned.last?.body == "med_01, med_02, med_03, med_08")
     }
+
+    /// T-E1-03: cina mutată (19:00 → 20:00) din „Orele zilei”: notificările se planifică la ora nouă și niciuna
+    /// nu mai rămâne la 19:00 (`replaceAll` scoate toate cererile `pg.moment.*` înainte să le pună pe cele noi).
+    @Test func remindersFollowMovedDinner() throws {
+        let calendar = bucharest()
+        var json = try #require(
+            try JSONSerialization.jsonObject(with: ContractFiles.data("fixtures/expected_schedule.json"))
+                as? [String: Any])
+        var moments = try #require(json["moments"] as? [[String: Any]])
+        let dinner = try #require(moments.firstIndex { $0["time"] as? String == "19:00" })
+        moments[dinner]["time"] = "20:00"
+        json["moments"] = moments
+        let moved = try JSONCoding.decoder.decode(Schedule.self, from: JSONSerialization.data(withJSONObject: json))
+
+        let now = try #require(SeniorDay.scheduledAt(day: "2026-11-14", time: "07:10", calendar: calendar))
+        let before = Reminders.plan(
+            schedule: try demoSchedule(), names: { $0 }, isDone: { _ in false }, now: now, calendar: calendar)
+        let after = Reminders.plan(schedule: moved, names: { $0 }, isDone: { _ in false }, now: now, calendar: calendar)
+
+        #expect(after.count == before.count)
+        #expect(!after.contains { $0.id.hasSuffix("T19:00") })
+        #expect(after.map(\.id).contains("pg.moment.2026-11-14T20:00"))
+        #expect(after.map(\.id).contains("pg.moment.2026-11-15T20:00"))
+        let evening = try #require(after.first { $0.id == "pg.moment.2026-11-14T20:00" })
+        #expect(evening.body == "med_01, med_02, med_03, med_08")
+        #expect(after.allSatisfy { $0.id.hasPrefix(Reminders.prefix) })
+    }
 }
 
 // MARK: - Q3F1
