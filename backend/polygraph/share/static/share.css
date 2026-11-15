@@ -646,14 +646,56 @@ caption { text-align: left; color: var(--text-2); padding: 0.5rem 0 0.25rem; cap
 
 .sheet { max-width: 48rem; margin: 0 auto; padding: 1.5rem 1rem 3rem; }
 .print-topbar .topbar-inner { align-items: center; }
-/* pe ecran, lista completă arată ca o foaie: un card pe fundalul paginii; la tipărire regulile din @media print o aduc la A4 */
-@media screen {
-  .print .sheet { max-width: 60rem; margin: 2rem auto 4rem; padding: 2.5rem clamp(1.25rem, 4vw, 3rem) 3rem; background: var(--surface); border-radius: 1rem; box-shadow: 0 0 0 1px var(--line), 0 1.5rem 3rem -1.5rem rgb(0 0 0 / 0.35); }
-  .print .sheet-head { padding-bottom: 1.25rem; margin-bottom: 0.5rem; border-bottom: 1px solid var(--line); }
-  .print .sheet-head .page-title { font-size: 2rem; letter-spacing: -0.025em; }
-  .print .sheet table { background: transparent; }
+/* Lista completă a medicamentelor e un document: hârtie albă, Times New Roman, titlul de 14 pt centrat, restul de 12 pt.
+   Același aspect pe ecran și la tipărire; print.js o împarte în pagini A4 (210 × 296 mm), fiecare cu numărul ei jos, la mijloc. */
+.print .sheet {
+  --surface: #fff; --text: #000; --text-2: #333; --line: #bbb; --fill: #e6e6e6;
+  --sev-major: #000; --sev-text-major: #000; --sev-text-moderate: #000;
+  color: #000; line-height: 1.35;
 }
-@media screen and (max-width: 40rem) { .print .sheet { margin: 0.75rem; padding: 1.25rem 1rem 2rem; } }
+.print .sheet, .print .sheet * { font-family: "Times New Roman", Times, serif; }
+.print .sheet * { font-size: 12pt; letter-spacing: 0; }
+.print .sheet .sheet-head .page-title { font-size: 14pt; font-weight: 700; text-align: center; margin: 0 0 8pt; }
+.print .sheet h2 { font-weight: 700; margin: 14pt 0 6pt; }
+.print .sheet .disclaimer, .print .sheet .small, .print .sheet .muted { color: #333; }
+
+/* tabelele: chenar complet, antet gri, prima coloană numerotată, grupele pe prescriptor ca rânduri pe toată lățimea */
+.print .sheet table { width: 100%; display: table; border-collapse: collapse; table-layout: fixed; background: transparent; margin: 4pt 0 8pt; }
+.print .sheet table thead { display: table-header-group; }
+.print .sheet table tbody { display: table-row-group; }
+.print .sheet table tr { display: table-row; padding: 0; }
+.print .sheet table th, .print .sheet table td { display: table-cell; border: 0.75pt solid #000 !important; padding: 3pt 5pt; text-align: left; vertical-align: top; color: #000; font-weight: 400; overflow-wrap: anywhere; }
+.print .sheet table thead th { background: #e6e6e6; font-weight: 700; text-align: center; vertical-align: middle; }
+.print .sheet table th[scope="row"] { font-weight: 700; }
+.print .sheet table tr.group th { background: #f2f2f2; font-weight: 700; }
+.print .sheet table td.nr { text-align: center; }
+.print .sheet table caption { caption-side: top; text-align: left; font-weight: 700; padding: 0 0 3pt; }
+.print .sheet .nowrap { white-space: nowrap; }
+.print .sheet col.c-nr { width: 6%; }
+.print .sheet table.meds col.c-med { width: 24%; }
+.print .sheet table.meds col.c-dci { width: 27%; }
+.print .sheet table.meds col.c-pos { width: 29%; }
+.print .sheet table.meds col.c-since { width: 14%; }
+.print .sheet table.problems col.c-alert { width: 64%; }
+.print .sheet table.problems col.c-src { width: 30%; }
+
+/* paginile: hârtie A4 cu numărul în subsol; 262 mm de text între margini (296 − 14 − 20) */
+.print .pg { position: relative; box-sizing: border-box; width: 210mm; height: 296mm; padding: 14mm 16mm 20mm; background: #fff; color: #000; }
+.print .pg-body { height: 262mm; }
+.print .pg-foot { position: absolute; left: 0; right: 0; bottom: 9mm; text-align: center; }
+
+@media screen {
+  /* fără JavaScript foaia rămâne un singur card; cu print.js, fiecare pagină e o foaie A4 pe fundalul portalului */
+  .print .sheet:not(.paginated) { max-width: 60rem; margin: 2rem auto 4rem; padding: 2.5rem clamp(1.25rem, 4vw, 3rem) 3rem; background: #fff; border-radius: 0.25rem; box-shadow: 0 0 0 1px var(--line), 0 1.5rem 3rem -1.5rem rgb(0 0 0 / 0.35); }
+  .print .sheet.paginated { max-width: none; margin: 0; padding: 1.5rem 1rem 4rem; overflow-x: auto; }
+  .print .pages { display: grid; gap: 1.5rem; justify-content: center; width: max-content; min-width: 100%; }
+  .print .pg { box-shadow: 0 0 0 1px var(--line), 0 1.5rem 3rem -1.5rem rgb(0 0 0 / 0.35); }
+}
+@media print {
+  .print .sheet.paginated { max-width: none; margin: 0; padding: 0; }
+  .print .pg { break-after: page; page-break-after: always; box-shadow: none; }
+  .print .pg:last-child { break-after: auto; page-break-after: auto; }
+}
 .sheet-head { display: grid; gap: 0.25rem; }
 .sheet-head .summary-line { font-size: 1rem; }
 .sheet h2 { font-size: 1.0625rem; margin: 1.25rem 0 0.5rem; }
