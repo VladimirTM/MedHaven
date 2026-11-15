@@ -89,6 +89,10 @@ paths:
                 birth_year: { type: integer }
                 caregiver_name: { type: [string, "null"] }
                 anchors: { $ref: "../schema/schedule.schema.json#/$defs/anchors" }
+                height_cm: { $ref: "../schema/patient.schema.json#/properties/height_cm" }
+                weight_kg: { $ref: "../schema/patient.schema.json#/properties/weight_kg" }
+                conditions: { $ref: "../schema/patient.schema.json#/properties/conditions" }
+                conditions_note: { $ref: "../schema/patient.schema.json#/properties/conditions_note" }
       responses:
         "200":
           description: Profilul actualizat
