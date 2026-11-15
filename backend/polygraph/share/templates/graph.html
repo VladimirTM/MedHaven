@@ -10,6 +10,7 @@
 </header>
 {% endif %}
 <div id="graph" class="graph fill" role="img" aria-label="Graful terapeutic al pacientului {{ patient.name }}"></div>
+{% if not embed %}<ol id="graph-legend" class="graph-legend" aria-label="Substanțele din graf" hidden></ol>{% endif %}
 <script id="graph-data" type="application/json">{{ graph | tojson }}</script>
 <script src="/static/share/cytoscape.min.js" defer></script>
 <script src="/static/share/graph-core.js" defer></script>

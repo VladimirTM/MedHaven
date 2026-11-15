@@ -135,10 +135,11 @@
   {% if meds %}
   <section aria-labelledby="h-graph" class="no-print">
     <h2 id="h-graph">Graful terapeutic</h2>
-    <p class="section-lead">Medicamentele și legăturile dintre ele; liniile colorate sunt alerte. Atingeți o linie ca să ajungeți la alertă.</p>
+    <p class="section-lead">Medicamentele (pătrate) și substanțele lor active (cercuri numerotate, explicate sub graf); liniile colorate dintre cercuri sunt alerte. Atingeți o linie ca să ajungeți la alertă.</p>
     <div class="graph-frame">
       <div id="graph" class="graph" role="img" aria-label="Graful terapeutic: {{ meds | length }} medicamente și interacțiunile dintre ele; lista alertelor de mai sus conține aceleași informații."></div>
     </div>
+    <ol id="graph-legend" class="graph-legend" aria-label="Substanțele din graf" hidden></ol>
     <p class="graph-actions">
       <button class="btn btn-secondary" type="button" data-graph-reset>Arată tot graful</button>
       <a href="{{ base }}/graph">Deschideți graful pe tot ecranul</a>

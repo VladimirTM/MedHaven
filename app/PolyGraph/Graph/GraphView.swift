@@ -21,7 +21,7 @@ struct GraphView: View {
     /// înălțimea textului din „Pe scurt”, măsurată
     @State private var summaryHeight: CGFloat = 0
     /// cât poate ocupa „Pe scurt”; restul rămâne pentru graf
-    @ScaledMetric(relativeTo: .body) private var summaryMaxHeight: CGFloat = 220
+    @ScaledMetric(relativeTo: .body) private var summaryMaxHeight: CGFloat = 250
 
     var body: some View {
         content
@@ -113,10 +113,21 @@ struct GraphView: View {
         GraphSummary(alerts: store.analysis?.alerts ?? [], graph: store.analysis?.graph, meds: store.visibleMeds)
     }
 
-    /// Sub graf, ce înseamnă desenul, pe înțelesul oricui. Panoul crește cât textul, până la
-    /// `summaryMaxHeight`; peste, se derulează, ca graful să rămână vizibil.
+    private var legend: GraphLegend {
+        GraphLegend(graph: store.analysis?.graph)
+    }
+
+    /// numele din nodul din centru („Maria”); fără el, „pacientul”
+    private var patientName: String {
+        store.analysis?.graph.nodes.first { $0.data.type == .patient }?.data.label
+            ?? store.patient?.name ?? "pacientul"
+    }
+
+    /// Sub graf, ce înseamnă desenul, pe înțelesul oricui, apoi legenda substanțelor numerotate. Panoul crește
+    /// cât textul, până la `summaryMaxHeight`; peste, se derulează, ca graful să rămână vizibil.
     private var summaryPanel: some View {
         let summary = summary
+        let legend = legend
         return ScrollView {
             VStack(alignment: .leading, spacing: Spacing.s) {
                 Text("Pe scurt")
@@ -124,9 +135,26 @@ struct GraphView: View {
                     .foregroundStyle(PgColor.textPrimary)
                     .accessibilityAddTraits(.isHeader)
 
+                summaryRow(.icon("info.circle", PgColor.textSecondary), "graph.summary.howTo",
+                    "În centru e **\(patientName)**. Pătratele sunt medicamentele, iar cercurile cu număr sunt "
+                        + "substanțele active din ele (lista de mai jos). O linie colorată între două cercuri "
+                        + "înseamnă că acele substanțe nu se potrivesc bine; atingeți linia ca să vedeți de ce.")
+
                 if summary.isEmpty {
                     summaryRow(.icon("checkmark.circle", PgColor.accent), "graph.summary.none",
-                        "Nu am găsit combinații de discutat între medicamentele de pe listă.")
+                        "Nu am găsit combinații de discutat între medicamentele de pe listă. Liniile gri, dacă "
+                            + "există, sunt legături fără un risc stabilit.")
+                }
+
+                if !summary.serious.isEmpty {
+                    VStack(alignment: .leading, spacing: Spacing.xs) {
+                        summaryRow(.line(Severity.major.color), "graph.summary.serious",
+                            "**\(GraphSummary.combinations(summary.serious.count, "gravă", "grave").capitalizedFirst)**, "
+                                + "de discutat cu medicul cât mai curând (liniile groase din graf):")
+                        ForEach(summary.serious, id: \.alertID) { pair in
+                            pairButton(pair, identifier: "graph.summary.serious.\(pair.alertID)", advice: true)
+                        }
+                    }
                 }
 
                 if let hub = summary.hub {
@@ -134,41 +162,148 @@ struct GraphView: View {
                         open(.med(id: hub.medID))
                     } label: {
                         summaryRow(.icon("point.3.connected.trianglepath.dotted", PgColor.accent), "graph.summary.hub",
-                            "Cele mai multe legături le are **\(hub.name)**: "
-                                + GraphSummary.combinations(hub.count, "cu alte medicamente", "cu alte medicamente") + ".")
+                            hubText(hub))
                     }
                     .buttonStyle(.plain)
                     .accessibilityHint("Deschide medicamentul")
                 }
 
-                if !summary.serious.isEmpty {
-                    summaryRow(.line(Severity.major.color), "graph.summary.serious",
-                        "**\(GraphSummary.combinations(summary.serious.count, "gravă", "grave").capitalizedFirst)**: "
-                            + summary.serious.map(\.text).joined(separator: "; ")
-                            + ". Vorbiți cu medicul cât mai curând.")
-                }
-
-                if summary.moderateCount > 0 {
-                    summaryRow(.line(Severity.moderate.color), "graph.summary.moderate",
-                        "**\(GraphSummary.combinations(summary.moderateCount, "de discutat", "de discutat").capitalizedFirst)** "
-                            + "la următoarea vizită la medicul de familie.")
+                if !summary.moderate.isEmpty {
+                    VStack(alignment: .leading, spacing: Spacing.xs) {
+                        summaryRow(.line(Severity.moderate.color), "graph.summary.moderate",
+                            "**\(GraphSummary.combinations(summary.moderateCount, "de discutat", "de discutat").capitalizedFirst)** "
+                                + "la următoarea vizită la medicul de familie (liniile subțiri)"
+                                + (summary.moderateCount > Self.moderateShown ? ". Cele mai importante:" : ":"))
+                        ForEach(summary.moderate.prefix(Self.moderateShown), id: \.alertID) { pair in
+                            pairButton(pair, identifier: "graph.summary.moderate.\(pair.alertID)", advice: false)
+                        }
+                        if summary.moderateCount > Self.moderateShown {
+                            Text("Celelalte \(summary.moderateCount - Self.moderateShown) sunt în tab-ul Alerte.")
+                                .font(.footnote)
+                                .foregroundStyle(PgColor.textSecondary)
+                                .padding(.leading, 18 + Spacing.s)
+                                .accessibilityIdentifier("graph.summary.moderate.more")
+                        }
+                    }
                 }
 
                 if !summary.foods.isEmpty {
-                    summaryRow(.icon("fork.knife", PgColor.textSecondary), "graph.summary.food",
-                        "**Atenție la**: "
-                            + summary.foods.prefix(4).map { "\($0.label) (\($0.meds))" }.joined(separator: ", ")
-                            + (summary.foods.count > 4 ? " și altele, în tab-ul Alerte." : "."))
+                    summaryRow(.icon("fork.knife", PgColor.textSecondary), "graph.summary.food", foodText(summary.foods))
+                }
+
+                if !legend.isEmpty {
+                    legendSection(legend)
                 }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(.horizontal, Spacing.m)
-            .padding(.top, Spacing.s)
+            .padding(.vertical, Spacing.s)
             .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { summaryHeight = $0 }
         }
         .scrollBounceBehavior(.basedOnSize)
         .frame(height: min(summaryHeight, summaryMaxHeight))
         .accessibilityIdentifier("graph.summary")
+    }
+
+    /// câte combinații „de discutat” se explică una câte una; restul sunt în tab-ul Alerte
+    private static let moderateShown = 3
+
+    private func hubText(_ hub: GraphSummary.Hub) -> String {
+        var text = "Cele mai multe legături le are **\(hub.name)**: "
+            + GraphSummary.combinations(hub.count, "cu alte medicamente", "cu alte medicamente")
+        if hub.serious > 0 {
+            text += hub.serious == hub.count
+                ? ", toate grave"
+                : ", dintre care " + GraphSummary.combinations(hub.serious, "gravă", "grave")
+        }
+        return text + ". E un bun punct de pornire în discuția cu medicul."
+    }
+
+    private func foodText(_ foods: [GraphSummary.Food]) -> String {
+        let shown = foods.prefix(4)
+        var text = "**Atenție la mâncare și băutură** (liniile punctate, spre etichetele verzi): "
+            + shown.map { "\($0.label.firstLowercased) (cu \($0.meds))" }.joined(separator: "; ")
+            + (foods.count > 4 ? "; și altele, în tab-ul Alerte." : ".")
+        // pentru cele grave, și ce e de făcut
+        for food in shown where food.severity == .critical || food.severity == .major {
+            text += " \(food.label): \(food.advice.firstLowercased)"
+        }
+        return text
+    }
+
+    /// o combinație: perechea îngroșată, ce se întâmplă și, pentru cele grave, ce e de făcut; atingerea deschide alerta
+    private func pairButton(_ pair: GraphSummary.Pair, identifier: String, advice: Bool) -> some View {
+        Button {
+            open(.alert(id: pair.alertID, zoom: false))
+        } label: {
+            Text(LocalizedStringKey(
+                "**\(pair.text).** \(pair.explanation)" + (advice ? " \(pair.recommendation)" : "")))
+                .font(.subheadline)
+                .foregroundStyle(PgColor.textPrimary)
+                .fixedSize(horizontal: false, vertical: true)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(.leading, 18 + Spacing.s)
+                .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .accessibilityHint("Deschide alerta")
+        .accessibilityIdentifier(identifier)
+    }
+
+    // MARK: - Legenda substanțelor
+
+    @ScaledMetric(relativeTo: .caption) private var badgeSize: CGFloat = 22
+
+    /// Numerele din cercurile grafului, cu numele substanței, medicamentul și clasa ei.
+    private func legendSection(_ legend: GraphLegend) -> some View {
+        VStack(alignment: .leading, spacing: Spacing.xs) {
+            Text("Substanțele din graf")
+                .font(.headline)
+                .foregroundStyle(PgColor.textPrimary)
+                .accessibilityAddTraits(.isHeader)
+                .padding(.top, Spacing.xxs)
+            LazyVGrid(
+                columns: [GridItem(.adaptive(minimum: 150), spacing: Spacing.s, alignment: .topLeading)],
+                alignment: .leading, spacing: Spacing.xs
+            ) {
+                ForEach(legend.items) { item in
+                    legendItem(item)
+                }
+            }
+        }
+        .accessibilityIdentifier("graph.substances")
+    }
+
+    private func legendItem(_ item: GraphLegend.Item) -> some View {
+        HStack(alignment: .top, spacing: Spacing.xs) {
+            Text("\(item.number)")
+                .font(.caption.weight(.bold))
+                .monospacedDigit()
+                .foregroundStyle(PgColor.textPrimary)
+                .frame(width: badgeSize, height: badgeSize)
+                .background(Circle().fill(PgColor.surface))
+                .overlay(Circle().strokeBorder(item.severity.map(\.color) ?? PgColor.textSecondary, lineWidth: 1.5))
+                .accessibilityHidden(true)
+            VStack(alignment: .leading, spacing: 0) {
+                Text(item.name)
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(PgColor.textPrimary)
+                Text(legendDetail(item))
+                    .font(.caption)
+                    .foregroundStyle(PgColor.textSecondary)
+            }
+            .fixedSize(horizontal: false, vertical: true)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel("Cercul \(item.number): \(item.name), \(legendDetail(item))")
+        .accessibilityIdentifier("graph.substance.\(item.number)")
+    }
+
+    /// „din Sintrom 4 mg · antagoniști ai vitaminei K”
+    private func legendDetail(_ item: GraphLegend.Item) -> String {
+        let from = item.products.isEmpty ? nil : "din " + item.products.joined(separator: ", ")
+        return [from, item.classes.first].compactMap { $0 }.joined(separator: " · ")
     }
 
     private enum SummaryMark {
@@ -402,5 +537,10 @@ private extension String {
     /// „2 combinații grave” → „2 combinații grave”; „o combinație” → „O combinație”
     var capitalizedFirst: String {
         prefix(1).uppercased(with: PgFormat.romanian) + dropFirst()
+    }
+
+    /// „Evitați grepfrutul.” → „evitați grepfrutul.”
+    var firstLowercased: String {
+        prefix(1).lowercased(with: PgFormat.romanian) + dropFirst()
     }
 }

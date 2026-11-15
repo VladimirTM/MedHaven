@@ -4,7 +4,9 @@
 // Fără dependențe de WKWebView sau de pagină: primește containerul, graful (contracts/schema/graph.schema.json)
 // și callback-urile; cine îl folosește decide ce înseamnă o atingere.
 //
-//   const graph = pgMount(container, graph, { dark, contrast, interactive, onAlert, onMed, onReady });
+//   const graph = pgMount(container, graph, { dark, contrast, interactive, halo, onAlert, onMed, onReady });
+//     halo: () => culoarea fundalului de sub graf (conturul numelor); implicit fundalul aplicației
+//   graph.legend                     // substanțele numerotate din desen, ca pgLegend(graph)
 //   graph.reset(animated)            // „Recentrează”: tot graful, centrat
 //   graph.setTheme({ dark, contrast })
 //   graph.destroy()
@@ -13,8 +15,10 @@
 
   // Layout radial determinist: pacientul în centru; medicamentele pe primul inel, ordonate astfel încât
   // perechile care interacționează să fie apropiate (mai puține linii care traversează desenul); fiecare
-  // substanță pe aceeași rază cu medicamentul ei; clasele, alimentele și simptomele în afară, în direcția
+  // substanță pe aceeași rază cu medicamentul ei; alimentele și simptomele în afară, în direcția
   // substanțelor de care țin. Inelele sunt elipse, ca desenul să umple ecranul pe înălțime.
+  // Clasele ATC nu se desenează (sunt în legendă), iar substanțele sunt cercuri numerotate, fără etichetă:
+  // singurele texte din desen sunt numele medicamentelor și ale alimentelor, care nu se mai suprapun.
   function pgRadialPositions(cy, W, H) {
     const TAU = Math.PI * 2;
     const products = cy.nodes('[type = "product"]').map((n) => n.id()).sort();
@@ -78,7 +82,7 @@
       subs.forEach((s, i) => { angle[s] = angle[p] + (subs.length === 1 ? 0 : spread * (i / (subs.length - 1) - 0.5)); });
     }
     // inelul exterior: direcția medie a substanțelor (sau medicamentelor) de care ține nodul
-    const outer = cy.nodes('[type = "atc_class"], [type = "food"], [type = "symptom"]');
+    const outer = cy.nodes('[type = "food"], [type = "symptom"]');
     outer.forEach((node) => {
       const linked = node.connectedEdges().connectedNodes().filter((m) => m.id() !== node.id() && angle[m.id()] !== undefined);
       angle[node.id()] = linked.length ? meanAngle(linked.map((m) => angle[m.id()])) : 0;
@@ -96,25 +100,100 @@
       items.forEach((it) => { angle[it.id] = it.a; });
     }
     separate(Object.keys(productOf), TAU / 22);
-    separate(cy.nodes('[type = "atc_class"]').map((m) => m.id()), TAU / 22);
     separate(cy.nodes('[type = "food"], [type = "symptom"]').map((m) => m.id()), TAU / 14);
 
     const rx = W / 2, ry = Math.min(H / 2, rx * 1.45);
-    const ring = { product: 0.5, substance: 0.72, atc_class: 0.88, food: 1.02, symptom: 1.02 };
+    const ring = { product: 0.56, substance: 0.8, atc_class: 0.8, food: 1.02, symptom: 1.02 };
     const positions = {};
     cy.nodes().forEach((node) => {
       const type = node.data("type");
       if (type === "patient") { positions[node.id()] = { x: 0, y: 0 }; return; }
       const r = ring[type] || 1.0, a = angle[node.id()] || 0;
       positions[node.id()] = { x: Math.cos(a) * rx * r, y: Math.sin(a) * ry * r };
-      // etichetele de pe inelele exterioare stau spre exterior, nu peste linii
-      if (type === "food" || type === "symptom") {
-        const c = Math.cos(a), s = Math.sin(a);
-        node.data("lh", c > 0.4 ? "right" : c < -0.4 ? "left" : "center");
-        node.data("lv", Math.abs(c) > 0.4 ? "center" : s < 0 ? "top" : "bottom");
-      }
     });
+    pgPlaceLabels(cy, positions, angle);
     return positions;
+  }
+
+  // Unde stă fiecare nume, ca să nu se suprapună cu alte nume sau cu noduri: pentru fiecare medicament (apoi
+  // aliment / simptom) se încearcă, în ordinea preferinței, dedesubt / deasupra / stânga / dreapta și se alege
+  // locul cu cea mai mică suprapunere față de ce e deja așezat. Mărimea textului e estimată (fără DOM), cu
+  // aceeași lățime maximă și aceeași împărțire pe rânduri ca stilul de mai jos.
+  const NODE_SIZE = { patient: 34, product: 26, substance: 20, food: 14, symptom: 16 };
+  const LABEL = {
+    patient: { font: 13, max: 90 }, product: { font: 12, max: 84 }, food: { font: 10, max: 90 }, symptom: { font: 10, max: 90 },
+  };
+  const LABEL_GAP = 4;
+
+  function labelSize(text, font, max) {
+    // calibrat pe Cytoscape în Chrome / WKWebView: rânduri de font × 1.1, plus conturul (halo) și marginile
+    const charW = font * 0.6, lineH = font * 1.1, pad = 7;
+    const lines = [];
+    String(text || "").split(/\s+/).filter(Boolean).forEach((word) => {
+      const last = lines[lines.length - 1];
+      if (last !== undefined && (last.length + 1 + word.length) * charW <= max) lines[lines.length - 1] = last + " " + word;
+      else lines.push(word);
+    });
+    const w = Math.min(max, Math.max(0, ...lines.map((l) => l.length * charW)));
+    return { w: w + pad, h: Math.max(lines.length, 1) * lineH + pad };
+  }
+
+  function labelBox(pos, half, size, side) {
+    switch (side) {
+      case "top": return { x1: pos.x - size.w / 2, x2: pos.x + size.w / 2, y2: pos.y - half - LABEL_GAP, y1: pos.y - half - LABEL_GAP - size.h };
+      case "left": return { x2: pos.x - half - LABEL_GAP, x1: pos.x - half - LABEL_GAP - size.w, y1: pos.y - size.h / 2, y2: pos.y + size.h / 2 };
+      case "right": return { x1: pos.x + half + LABEL_GAP, x2: pos.x + half + LABEL_GAP + size.w, y1: pos.y - size.h / 2, y2: pos.y + size.h / 2 };
+      default: return { x1: pos.x - size.w / 2, x2: pos.x + size.w / 2, y1: pos.y + half + LABEL_GAP, y2: pos.y + half + LABEL_GAP + size.h };
+    }
+  }
+
+  function overlapArea(a, b) {
+    const w = Math.min(a.x2, b.x2) - Math.max(a.x1, b.x1), h = Math.min(a.y2, b.y2) - Math.max(a.y1, b.y1);
+    return w > 0 && h > 0 ? w * h : 0;
+  }
+
+  function pgPlaceLabels(cy, positions, angle) {
+    const obstacles = [];
+    cy.nodes().forEach((node) => {
+      const type = node.data("type"), half = (NODE_SIZE[type] || 0) / 2, p = positions[node.id()];
+      if (!half || !p) return;
+      obstacles.push({ x1: p.x - half - 2, x2: p.x + half + 2, y1: p.y - half - 2, y2: p.y + half + 2, weight: 1 });
+    });
+    const place = (node, text, sides) => {
+      const type = node.data("type"), p = positions[node.id()], conf = LABEL[type];
+      if (!p || !conf) return;
+      const size = labelSize(text, conf.font, conf.max), half = (NODE_SIZE[type] || 0) / 2;
+      let best = null;
+      sides.forEach((side, rank) => {
+        const box = labelBox(p, half, size, side);
+        let cost = rank * 4;
+        obstacles.forEach((o) => { cost += overlapArea(box, o) * o.weight; });
+        if (!best || cost < best.cost) best = { side, box, cost };
+      });
+      // două nume unul peste altul sunt mai rele decât un nume peste un nod
+      obstacles.push(Object.assign({ weight: 3 }, best.box));
+      node.data("lside", best.side);
+    };
+    const TAU = Math.PI * 2;
+    const norm = (a) => ((a % TAU) + TAU) % TAU;
+    // pacientul: numele dedesubt, ca până acum
+    cy.nodes('[type = "patient"]').forEach((node) => place(node, node.data("label"), ["bottom"]));
+    // medicamentele, de sus în jos (ordinea e stabilă: după unghi); preferința: spre pacient pe verticală,
+    // pentru că substanța fiecăruia stă spre exterior
+    cy.nodes('[type = "product"]').sort((m, n) => positions[m.id()].y - positions[n.id()].y || (m.id() < n.id() ? -1 : 1))
+      .forEach((node) => {
+        const s = Math.sin(angle[node.id()] || 0), c = Math.cos(angle[node.id()] || 0);
+        const vertical = s > 0.3 ? ["top", "bottom"] : ["bottom", "top"];
+        const sides = c >= 0 ? ["left", "right"] : ["right", "left"];
+        place(node, node.data("short") || node.data("label"), vertical.concat(sides));
+      });
+    // alimentele și simptomele: spre exterior, apoi celelalte
+    cy.nodes('[type = "food"], [type = "symptom"]').forEach((node) => {
+      const a = norm(angle[node.id()] || 0), c = Math.cos(a), s = Math.sin(a);
+      const out = Math.abs(c) > 0.4 ? (c > 0 ? "right" : "left") : s < 0 ? "top" : "bottom";
+      const rest = ["top", "bottom", "left", "right"].filter((x) => x !== out);
+      place(node, node.data("label"), [out].concat(rest));
+    });
   }
 
   // Culorile de sistem iOS, accentul și severitățile din Assets.xcassets (PGSeverity*), scrise ca hex / rgba: Cytoscape nu înțelege
@@ -124,10 +203,12 @@
       ? {
           text: "#F2F2F7", muted: "#8E8E93", faint: "rgba(235,235,245,0.18)", node: "#2C2C2E", nodeBorder: "#48484A",
           accent: "#5CC2BC", red: "#E8806F", orange: "#E3A24F", gray: "#77726B", purple: "#BF5AF2", green: "#30D158",
+          halo: "#121214",
         }
       : {
           text: "#1C1C1E", muted: "#8E8E93", faint: "rgba(60,60,67,0.18)", node: "#FFFFFF", nodeBorder: "#D1D1D6",
           accent: "#0E6B68", red: "#B23A2E", orange: "#9A5B0C", gray: "#8A857D", purple: "#AF52DE", green: "#34C759",
+          halo: "#F7F5F2",
         };
     if (contrast) {
       p.muted = dark ? "#AEAEB2" : "#6C6C70";
@@ -136,6 +217,7 @@
       p.red = dark ? "#F2A396" : "#8E2A20";
       p.orange = dark ? "#F0C080" : "#7A4708";
       p.gray = dark ? "#A39E96" : "#5F5A53";
+      p.halo = dark ? "#000000" : "#FFFFFF";
     }
     p.moderateOpacity = contrast ? 0.7 : 0.4;
     return p;
@@ -149,8 +231,13 @@
     }
   }
 
-  // eticheta clasei ATC (9 px) apare doar de la zoom 1.5 în sus: 9 × 1.5 = 13.5 px pe ecran (Q3-12)
-  const ATC_LABEL_ZOOM = 1.5;
+  // la deschidere, încadrarea pe alerta cea mai gravă nu se apropie mai mult de atât: rămân vizibile și vecinii
+  const FOCUS_MAX_ZOOM = 1.4;
+
+  // un contur în culoarea fundalului, ca liniile care trec pe sub un nume să nu-l facă greu de citit
+  function halo(p) {
+    return { "text-outline-color": p.halo, "text-outline-width": 2.5, "text-outline-opacity": 0.92 };
+  }
 
   function style(p) {
     return [
@@ -160,30 +247,34 @@
           "text-wrap": "wrap", "text-max-width": 90,
           "background-color": p.node, "border-width": 1.5, "border-color": p.nodeBorder,
           "width": 18, "height": 18 } },
-      { selector: 'node[type = "patient"]', style: {
+      { selector: 'node[type = "patient"]', style: Object.assign({
           "background-color": p.accent, "border-width": 0, "width": 34, "height": 34,
-          "font-size": 13, "font-weight": 600 } },
-      { selector: 'node[type = "product"]', style: {
-          "shape": "round-rectangle", "width": 26, "height": 26, "font-size": 12, "font-weight": 600,
-          "border-color": p.accent, "border-width": 2 } },
+          "font-size": 13, "font-weight": 600 }, halo(p)) },
+      { selector: 'node[type = "product"]', style: Object.assign({
+          "label": "data(short)", "shape": "round-rectangle", "width": 26, "height": 26, "font-size": 12, "font-weight": 600,
+          "text-max-width": 84, "line-height": 1.1, "border-color": p.accent, "border-width": 2 }, halo(p)) },
       { selector: 'node[type = "product"][severity = "critical"], node[type = "product"][severity = "major"]',
         style: { "border-color": p.red } },
       { selector: 'node[type = "product"][severity = "moderate"]', style: { "border-color": p.orange } },
+      // substanța: un cerc cu numărul ei din legendă, în interior; bordura spune cât de gravă e cea mai grea legătură
       { selector: 'node[type = "substance"]', style: {
-          "width": 12, "height": 12, "font-size": 10, "color": p.muted, "text-max-width": 70,
-          "min-zoomed-font-size": 7 } },
-      { selector: 'node[type = "atc_class"]', style: {
-          "shape": "diamond", "width": 10, "height": 10, "font-size": 9, "color": p.muted,
-          "min-zoomed-font-size": 9 * ATC_LABEL_ZOOM } },
-      { selector: 'node[type = "food"]', style: {
-          "shape": "round-tag", "width": 14, "height": 14, "border-color": p.green, "font-size": 10 } },
-      { selector: 'node[type = "symptom"]', style: {
-          "shape": "star", "width": 16, "height": 16, "border-color": p.purple, "font-size": 10 } },
-      { selector: "node[lh]", style: { "text-halign": "data(lh)", "text-valign": "data(lv)", "text-margin-y": 0 } },
-      { selector: 'node[lh = "left"]', style: { "text-margin-x": -4 } },
-      { selector: 'node[lh = "right"]', style: { "text-margin-x": 4 } },
-      { selector: 'node[lv = "top"]', style: { "text-margin-y": -4 } },
-      { selector: 'node[lv = "bottom"]', style: { "text-margin-y": 4 } },
+          "label": "data(num)", "width": 20, "height": 20, "font-size": 10, "font-weight": 700, "color": p.text,
+          "text-valign": "center", "text-halign": "center", "text-margin-y": 0, "text-wrap": "none" } },
+      { selector: 'node[type = "substance"][severity = "critical"], node[type = "substance"][severity = "major"]',
+        style: { "border-color": p.red, "border-width": 2 } },
+      { selector: 'node[type = "substance"][severity = "moderate"]', style: { "border-color": p.orange, "border-width": 2 } },
+      { selector: 'node[type = "atc_class"]', style: { "display": "none" } },
+      { selector: 'node[type = "food"]', style: Object.assign({
+          "shape": "round-tag", "width": 14, "height": 14, "border-color": p.green, "font-size": 10 }, halo(p)) },
+      { selector: 'node[type = "symptom"]', style: Object.assign({
+          "shape": "star", "width": 16, "height": 16, "border-color": p.purple, "font-size": 10 }, halo(p)) },
+      // locul numelui, ales de pgPlaceLabels
+      { selector: 'node[lside = "top"]', style: { "text-valign": "top", "text-halign": "center", "text-margin-y": -LABEL_GAP } },
+      { selector: 'node[lside = "bottom"]', style: { "text-valign": "bottom", "text-halign": "center", "text-margin-y": LABEL_GAP } },
+      { selector: 'node[lside = "left"]', style: {
+          "text-valign": "center", "text-halign": "left", "text-margin-x": -LABEL_GAP, "text-margin-y": 0, "text-justification": "right" } },
+      { selector: 'node[lside = "right"]', style: {
+          "text-valign": "center", "text-halign": "right", "text-margin-x": LABEL_GAP, "text-margin-y": 0, "text-justification": "left" } },
 
       { selector: "edge", style: {
           "width": 1, "line-color": p.faint, "curve-style": "bezier", "target-arrow-shape": "none" } },
@@ -220,15 +311,67 @@
     return edges.union(ends).union(ends.incomers('node[type = "product"]'));
   }
 
+  // „Amlodipină Actavis 10 mg” → „Amlodipină Actavis”: în desen doar numele; concentrația e în legendă
+  // și în detaliul medicamentului
+  function shortName(label) {
+    const full = String(label || "");
+    const short = full.replace(/\s+\d+(?:[.,]\d+)?\s*(?:mg|mcg|µg|μg|g|ml|ui|%)(?:\s*\/\s*\S+)?(?:\s.*)?$/i, "").trim();
+    return short || full;
+  }
+
+  // Legenda substanțelor din desen. Numerele urmează ordinea substanțelor în graph.nodes (backend-ul pune fiecare
+  // substanță după medicamentul ei); aceeași regulă o folosește GraphLegend din aplicație.
+  //   [{ num: 1, id: "s:B01AA07", label: "acenocumarol", severity, products: ["Sintrom 4 mg"], classes: ["…"] }]
+  function pgLegend(graph) {
+    const nodes = (graph && graph.nodes) || [], edges = (graph && graph.edges) || [];
+    const byId = {};
+    nodes.forEach((n) => { byId[n.data.id] = n.data; });
+    const items = [], index = {};
+    nodes.forEach((n) => {
+      if (n.data.type !== "substance") return;
+      index[n.data.id] = items.length;
+      items.push({ num: items.length + 1, id: n.data.id, label: n.data.label, severity: n.data.severity || null,
+        products: [], classes: [] });
+    });
+    edges.forEach((e) => {
+      const d = e.data;
+      if (d.type === "contains" && index[d.target] !== undefined && byId[d.source]) {
+        items[index[d.target]].products.push(byId[d.source].label);
+      }
+      if (d.type === "in_class" && index[d.source] !== undefined && byId[d.target]) {
+        items[index[d.source]].classes.push(byId[d.target].label);
+      }
+    });
+    return items;
+  }
+
   function pgMount(container, graph, options) {
     const opts = options || {};
+    const legend = pgLegend(graph);
+    const nums = {};
+    legend.forEach((item) => { nums[item.id] = String(item.num); });
+    // o copie, cu numărul substanței și numele scurt al medicamentului; graful primit rămâne neatins
+    const elements = {
+      nodes: ((graph && graph.nodes) || []).map((n) => {
+        const extra = n.data.type === "substance" ? { num: nums[n.data.id] }
+          : n.data.type === "product" ? { short: shortName(n.data.label) } : {};
+        return { data: Object.assign({}, n.data, extra) };
+      }),
+      edges: ((graph && graph.edges) || []).map((e) => ({ data: Object.assign({}, e.data) })),
+    };
     let theme = { dark: !!opts.dark, contrast: !!opts.contrast };
+    function themedStyle() {
+      const p = palette(theme.dark, theme.contrast);
+      const halo = typeof opts.halo === "function" ? opts.halo() : null;
+      if (halo) p.halo = halo;
+      return style(p);
+    }
     const interactive = opts.interactive !== false;
     const cy = cytoscape({
       container: container || undefined,
       styleEnabled: true,
-      elements: graph,
-      style: style(palette(theme.dark, theme.contrast)),
+      elements: elements,
+      style: themedStyle(),
       layout: { name: "null" },
       minZoom: 0.3, maxZoom: 4,
       userZoomingEnabled: interactive, userPanningEnabled: interactive,
@@ -251,9 +394,8 @@
     }
     function showFocus() {
       viewport(focus, FOCUS_PADDING);
-      // sub zoom-ul la care apar etichetele claselor, ca ele să nu acopere medicamentele
-      if (cy.zoom() > ATC_LABEL_ZOOM - 0.1) {
-        cy.zoom(ATC_LABEL_ZOOM - 0.1);
+      if (cy.zoom() > FOCUS_MAX_ZOOM) {
+        cy.zoom(FOCUS_MAX_ZOOM);
         if (container) cy.center(focus);
         else {
           const vw = opts.width || 390, vh = opts.height || 640, bb = focus.boundingBox({ includeLabels: false }), z = cy.zoom();
@@ -277,6 +419,7 @@
 
     return {
       cy: cy,
+      legend: legend,
       reset: (animated) => showAll(!!animated),
       resize: () => {
         cy.resize();
@@ -284,11 +427,12 @@
       },
       setTheme: (next) => {
         theme = { dark: !!next.dark, contrast: !!next.contrast };
-        cy.style(style(palette(theme.dark, theme.contrast)));
+        cy.style(themedStyle());
       },
       destroy: () => cy.destroy(),
     };
   }
 
   window.pgMount = pgMount;
+  window.pgLegend = pgLegend;
 })();
