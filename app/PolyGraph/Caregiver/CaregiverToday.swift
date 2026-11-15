@@ -49,7 +49,7 @@ struct CaregiverToday {
     }
 
     var title: String {
-        firstName.isEmpty ? "Azi" : "\(firstName) azi"
+        firstName.isEmpty ? "Azi" : "\(firstName), azi"
     }
 
     /// „fără simptome” / „amețeală, vânătăi”
