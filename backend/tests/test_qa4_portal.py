@@ -235,9 +235,11 @@ def test_t_qa4_05_accessibility_h1_logout_avatars_and_44px_touch_targets(doctor)
 
     # „Ieșire” și „‹ Pacienții mei” (back-link) / „‹ Fișa pacientului” pe fișă și pe tipărire
     page_html = doctor.get(PORTAL).text
-    assert 'action="/portal/logout"' in page_html and "Ieșire" in page_html and 'class="back-link" href="/portal"' in page_html and "Pacienții mei</a>" in page_html
+    assert 'action="/portal/logout"' in page_html and "Ieșire" in page_html
+    assert 'class="back-link" href="/portal"' in page_html and "Pacienții mei</a>" in page_html
     print_html = doctor.get(f"{PORTAL}/print").text
-    assert 'action="/portal/logout"' in print_html and "Ieșire" in print_html and "Fișa pacientului</a>" in print_html and "data-print" in print_html
+    assert 'action="/portal/logout"' in print_html and "Ieșire" in print_html
+    assert "Fișa pacientului</a>" in print_html and "data-print" in print_html
 
     # avatarul are o culoare stabilă per pacient (data-tone="0..5")
     portal_html = doctor.get("/portal").text
