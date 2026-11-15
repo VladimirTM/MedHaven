@@ -9,6 +9,9 @@ struct DayView: View {
     /// „Înapoi la Acum”: ieșire de 72 pt, nu doar butonul de înapoi de 44 pt sau swipe (Q3-25)
     var onBack: () -> Void = {}
     @State private var isSharing = false
+    @State private var isShowingEmergency = false
+    @State private var isPreparing = false
+    @State private var isShowingWeek = false
 
     @ScaledMetric(relativeTo: .title) private var titleSize: CGFloat = 28
     @ScaledMetric(relativeTo: .title2) private var textSize: CGFloat = 22
@@ -42,6 +45,27 @@ struct DayView: View {
                     }
                     .padding(.top, Spacing.s)
                 }
+                // fișa de urgență și pregătirea pentru o programare au nevoie doar de lista de medicamente
+                if !store.visibleMeds.isEmpty {
+                    SeniorButton(
+                        "Săptămâna", systemImage: "calendar", prominence: .secondary,
+                        identifier: "day.weekButton"
+                    ) {
+                        isShowingWeek = true
+                    }
+                    SeniorButton(
+                        "Pentru urgențe", systemImage: "staroflife", prominence: .secondary,
+                        identifier: "day.emergencyButton"
+                    ) {
+                        isShowingEmergency = true
+                    }
+                    SeniorButton(
+                        "Am o programare la medic", systemImage: "calendar.badge.clock", prominence: .secondary,
+                        identifier: "day.procedureButton"
+                    ) {
+                        isPreparing = true
+                    }
+                }
                 SeniorButton(
                     "Înapoi la Acum", systemImage: "chevron.backward", prominence: .secondary,
                     identifier: "day.backButton", action: onBack)
@@ -54,6 +78,20 @@ struct DayView: View {
         .sheet(isPresented: $isSharing) {
             ShareSheet(audience: .senior)
                 .environment(store)
+        }
+        .sheet(isPresented: $isShowingEmergency) {
+            EmergencyCardView(audience: .senior)
+                .environment(store)
+        }
+        .sheet(isPresented: $isPreparing) {
+            ProcedurePrepView(audience: .senior)
+                .environment(store)
+        }
+        .sheet(isPresented: $isShowingWeek) {
+            NavigationStack {
+                WeekView(audience: .senior)
+            }
+            .environment(store)
         }
     }
 

@@ -1,11 +1,12 @@
 import SwiftUI
 
 enum CaregiverTab: Hashable {
-    case meds, alerts, graph, feed
+    case meds, alerts, graph, week, feed
 }
 
-/// Modul aparținător: patru tab-uri, fiecare cu stiva lui și titlu mare.
-/// Butoanele din tab bar se găsesc în testele UI după etichetă („Medicamente”, „Alerte”, „Graf”, „Noutăți”).
+/// Modul aparținător: cinci tab-uri, fiecare cu stiva lui și titlu mare.
+/// Butoanele din tab bar se găsesc în testele UI după etichetă („Medicamente”, „Alerte”, „Graf”, „Săptămâna”,
+/// „Noutăți”).
 struct CaregiverRoot: View {
     @Environment(AppStore.self) private var store
     @Environment(\.scenePhase) private var scenePhase
@@ -36,6 +37,13 @@ struct CaregiverRoot: View {
                         .caregiverDestinations()
                 }
                 .accessibilityIdentifier("tab.graph")
+            }
+            Tab("Săptămâna", systemImage: "calendar", value: CaregiverTab.week) {
+                NavigationStack {
+                    WeekView(audience: .caregiver)
+                        .pgSettingsToolbar()
+                }
+                .accessibilityIdentifier("tab.week")
             }
             Tab("Noutăți", systemImage: "bell", value: CaregiverTab.feed) {
                 NavigationStack {

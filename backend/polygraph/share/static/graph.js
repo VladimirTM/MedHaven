@@ -28,12 +28,53 @@
 
   function theme() { return { dark: dark.matches, contrast: contrast.matches }; }
 
+  // conturul numelor din graf ia culoarea cadrului (alb în fișă), nu fundalul aplicației
+  function halo() {
+    var frame = container.closest(".graph-frame") || container;
+    var color = window.getComputedStyle(frame).backgroundColor;
+    return color && !/rgba\(\s*0,\s*0,\s*0,\s*0\s*\)|transparent/.test(color) ? color : null;
+  }
+
+  // legenda substanțelor numerotate din graf (pgLegend din graph-core.js), sub cadru; textul intră cu textContent
+  var legendEl = document.getElementById("graph-legend");
+  function renderLegend(elements) {
+    if (!legendEl || typeof window.pgLegend !== "function") return;
+    var items = window.pgLegend(elements);
+    legendEl.textContent = "";
+    items.forEach(function (item) {
+      var li = document.createElement("li");
+      var num = document.createElement("span");
+      num.className = "graph-legend-num" + (item.severity ? " sev-" + item.severity : "");
+      num.textContent = String(item.num);
+      num.setAttribute("aria-hidden", "true");
+      var text = document.createElement("span");
+      var name = document.createElement("strong");
+      name.textContent = item.label;
+      text.appendChild(name);
+      var detail = [];
+      if (item.products.length) detail.push("din " + item.products.join(", "));
+      if (item.classes.length) detail.push(item.classes[0]);
+      if (detail.length) {
+        var small = document.createElement("span");
+        small.className = "graph-legend-detail";
+        small.textContent = detail.join(" · ");
+        text.appendChild(small);
+      }
+      li.setAttribute("aria-label", "Cercul " + item.num + ": " + item.label + (detail.length ? ", " + detail.join(", ") : ""));
+      li.appendChild(num);
+      li.appendChild(text);
+      legendEl.appendChild(li);
+    });
+    legendEl.hidden = items.length === 0;
+  }
+
   function mount(elements) {
     return window.pgMount(container, elements, {
       dark: dark.matches,
       contrast: contrast.matches,
       // în fișă graful nu fură derularea paginii
       interactive: !page,
+      halo: halo,
       onAlert: function (id) { open("alert", id); },
       onMed: function (id) { open("med", id); },
       onReady: function (count) { post("ready", count); },
@@ -41,11 +82,13 @@
   }
 
   var graph = mount(data);
+  renderLegend(data);
 
   // QA5.1: fișa s-a actualizat singură (live.js) și graful are date noi
   document.addEventListener("pg:graph", function (event) {
     graph.destroy();
     graph = mount(event.detail);
+    renderLegend(event.detail);
   });
 
   [dark, contrast].forEach(function (mq) {

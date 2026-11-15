@@ -1,4 +1,4 @@
-"""QA2: graful comun între aplicație și portal (T-QA2-01..06, Q3-12)."""
+"""QA2: graful comun între aplicație și portal (T-QA2-01..07, Q3-12)."""
 
 from __future__ import annotations
 
@@ -80,6 +80,8 @@ const mod = cy.edges('[type = "interacts"][severity = "moderate"]').first();
 const maj = cy.edges('[alert_id = "al_ddi_med_01_med_02"]').first();
 const prod = cy.nodes('[id = "med_05"]').first();
 const atc = cy.nodes('[type = "atc_class"]').first();
+const sub = cy.nodes('[id = "s:B01AA07"]').first();
+const amlo = cy.nodes('[id = "med_04"]').first();
 const s1 = cy.nodes('[id = "s:B01AA07"]').first().position();
 const s2 = cy.nodes('[id = "s:M01AE01"]').first().position();
 const mid = { x: (s1.x + s2.x) / 2, y: (s1.y + s2.y) / 2 };
@@ -97,8 +99,11 @@ console.log(JSON.stringify({
   modWidth: parseFloat(mod.style("width")),
   modOpacity: parseFloat(mod.style("opacity")),
   majWidth: parseFloat(maj.style("width")),
-  atcMinZoomedFont: parseFloat(atc.style("min-zoomed-font-size")),
-  atcFontSize: parseFloat(atc.style("font-size")),
+  atcDisplay: atc.style("display"),
+  subLabel: sub.style("label"),
+  amloLabel: amlo.style("label"),
+  productSides: cy.nodes('[type = "product"]').map((n) => n.data("lside")),
+  legend: mounted.legend.map((i) => [i.num, i.id, i.label, i.products, i.classes]),
   zoomInitial,
   zoomAfterReset,
   screenMid,
@@ -135,6 +140,43 @@ def test_t_qa2_03_04_06_palette_tap_and_worst_alert_focus(demo_analysis):
     # T-QA2-06 / Q3-12: ce e grav se vede primul, centrat la deschidere, fără etichete de clasă peste medicamente
     assert light["modWidth"] == 1.5 and light["modOpacity"] == pytest.approx(0.4)
     assert light["majWidth"] == 4
-    assert light["atcFontSize"] * light["zoomInitial"] < light["atcMinZoomedFont"]
+    assert light["atcDisplay"] == "none"
     assert light["zoomInitial"] > light["zoomAfterReset"]
     assert 120 <= light["screenMid"]["x"] <= 270 and 200 <= light["screenMid"]["y"] <= 440
+
+
+def test_t_qa2_07_substances_are_numbered_circles_with_a_legend(demo_analysis):
+    """Numele substanțelor și ale claselor nu mai stau în desen (se suprapuneau cu ale medicamentelor): substanța e
+    un cerc cu numărul ei, iar legenda (pgLegend) dă numărul, numele, medicamentul și clasa."""
+    light = _eval_mount(demo_analysis["graph"], dark=False)
+    # în desen: numărul substanței și numele medicamentului fără concentrație
+    assert light["subLabel"] == "1"
+    assert light["amloLabel"] == "Amlodipină Actavis"
+    # fiecare nume de medicament are un loc ales (pgPlaceLabels)
+    assert all(side in ("top", "bottom", "left", "right") for side in light["productSides"])
+    # legenda: numerele urmează ordinea substanțelor din graph.nodes, cu medicamentul și clasa
+    first = light["legend"][0]
+    assert first == [1, "s:B01AA07", "acenocumarol", ["Sintrom 4 mg"], ["antagoniști ai vitaminei K"]]
+    subs = [n["data"]["id"] for n in demo_analysis["graph"]["nodes"] if n["data"]["type"] == "substance"]
+    assert [item[1] for item in light["legend"]] == subs
+    assert [item[0] for item in light["legend"]] == list(range(1, len(subs) + 1))
+
+
+def test_t_qa2_07_legend_numbers_match_the_app_on_the_contract_example():
+    """Aceleași numere ca GraphLegendTests din aplicație, pe contracts/examples/graph.demo.json."""
+    graph = json.loads((ROOT / "contracts" / "examples" / "graph.demo.json").read_text(encoding="utf-8"))
+    probe = r"""
+const fs = require("fs");
+global.window = {};
+require(process.argv[1]);
+const graph = JSON.parse(fs.readFileSync(0, "utf8"));
+console.log(JSON.stringify(window.pgLegend(graph)));
+"""
+    proc = subprocess.run(
+        ["node", "-e", probe, str(PORTAL_CORE)], input=json.dumps(graph), text=True, capture_output=True, check=True
+    )
+    legend = json.loads(proc.stdout)
+    assert [i["num"] for i in legend] == list(range(1, 10))
+    assert legend[0]["id"] == "s:B01AA07" and legend[0]["products"] == ["Sintrom 4 mg"]
+    calcium = [i for i in legend if i["products"] == ["Calcium + Vitamin D"]]
+    assert [(i["num"], i["id"]) for i in calcium] == [(6, "s:A12AA04"), (7, "s:A11CC05")]

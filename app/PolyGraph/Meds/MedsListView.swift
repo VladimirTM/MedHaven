@@ -11,6 +11,8 @@ struct MedsListView: View {
     @Environment(\.pgReduceMotion) private var reduceMotion
     @State private var isScanning = false
     @State private var isSharing = false
+    @State private var isShowingEmergency = false
+    @State private var isPreparing = false
     @State private var completion: ScanOutcome?
 
     init(showAlerts: @escaping () -> Void = {}) {
@@ -38,6 +40,28 @@ struct MedsListView: View {
                         .accessibilityIdentifier("meds.shareButton")
                     }
                 }
+                // fișa de urgență și pregătirea pentru o programare, într-un singur meniu (bara rămâne aerisită)
+                if !store.visibleMeds.isEmpty {
+                    ToolbarItem(placement: .topBarLeading) {
+                        Menu {
+                            Button {
+                                isShowingEmergency = true
+                            } label: {
+                                Label("Fișa de urgență", systemImage: "staroflife")
+                            }
+                            .accessibilityIdentifier("meds.emergencyButton")
+                            Button {
+                                isPreparing = true
+                            } label: {
+                                Label("Am o programare", systemImage: "calendar.badge.clock")
+                            }
+                            .accessibilityIdentifier("meds.procedureButton")
+                        } label: {
+                            Label("Urgențe și programări", systemImage: "staroflife")
+                        }
+                        .accessibilityIdentifier("meds.safetyMenu")
+                    }
+                }
                 ToolbarItem(placement: .topBarTrailing) {
                     Button {
                         isScanning = true
@@ -52,6 +76,14 @@ struct MedsListView: View {
                 ShareSheet(audience: .caregiver)
                     .environment(store)
                     .presentationDetents([.medium, .large])
+            }
+            .sheet(isPresented: $isShowingEmergency) {
+                EmergencyCardView(audience: .caregiver)
+                    .environment(store)
+            }
+            .sheet(isPresented: $isPreparing) {
+                ProcedurePrepView(audience: .caregiver)
+                    .environment(store)
             }
             .fullScreenCover(isPresented: $isScanning) {
                 ScanView { outcome in

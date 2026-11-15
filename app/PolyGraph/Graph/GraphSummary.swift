@@ -1,19 +1,25 @@
 import Foundation
 
-/// Interpretarea grafului pe înțelesul oricui, din aceleași alerte ca graful: câte combinații grave și
-/// moderate sunt între medicamente, care medicament are cele mai multe legături și la ce mâncare sau
-/// băutură trebuie avut grijă. Cele `minor` nu intră, ca în tab-ul Alerte.
+/// Interpretarea grafului pe înțelesul oricui, din aceleași alerte ca graful: care sunt combinațiile grave și
+/// moderate dintre medicamente și ce înseamnă fiecare, care medicament are cele mai multe legături și la ce
+/// mâncare sau băutură trebuie avut grijă. Cele `minor` nu intră, ca în tab-ul Alerte.
 struct GraphSummary {
     struct Pair {
         let alertID: String
         /// „Sintrom cu Nurofen”
         let text: String
+        /// ce se întâmplă, într-o propoziție: „Risc crescut de sângerare.”
+        let explanation: String
+        /// ce e de făcut: „Discutați cu medicul cardiolog înainte de următoarea doză de Nurofen.”
+        let recommendation: String
     }
 
     struct Hub {
         let medID: String
         let name: String
         let count: Int
+        /// câte dintre combinațiile lui sunt grave
+        let serious: Int
     }
 
     struct Food {
@@ -22,12 +28,17 @@ struct GraphSummary {
         /// „Sintrom, Nurofen”
         let meds: String
         let severity: Severity
+        /// recomandarea alertei celei mai grave cu alimentul: „Evitați grepfrutul și sucul de grepfrut.”
+        let advice: String
     }
 
     let serious: [Pair]
-    let moderateCount: Int
+    /// combinațiile „de discutat”, cele mai importante primele (ordinea din tab-ul Alerte)
+    let moderate: [Pair]
     let hub: Hub?
     let foods: [Food]
+
+    var moderateCount: Int { moderate.count }
 
     var isEmpty: Bool { serious.isEmpty && moderateCount == 0 && foods.isEmpty }
 
@@ -40,12 +51,15 @@ struct GraphSummary {
         let pairs = shown.filter { $0.kind == .ddi && $0.medids.count == 2 }
         let isSerious: (Alert) -> Bool = { $0.severity == .critical || $0.severity == .major }
 
-        serious = pairs.filter(isSerious).compactMap { alert in
+        func pair(_ alert: Alert) -> Pair? {
             let names = alert.medids.compactMap(name)
             guard names.count == 2 else { return nil }
-            return Pair(alertID: alert.id, text: "\(names[0]) cu \(names[1])")
+            return Pair(
+                alertID: alert.id, text: "\(names[0]) cu \(names[1])",
+                explanation: Self.explanation(alert), recommendation: Self.sentence(alert.recommendation))
         }
-        moderateCount = pairs.filter { !isSerious($0) }.count
+        serious = pairs.filter(isSerious).compactMap(pair)
+        moderate = pairs.filter { !isSerious($0) }.compactMap(pair)
 
         // medicamentul din cele mai multe combinații; la egalitate, cel cu mai multe grave, apoi ordinea listei
         var counts: [String: (all: Int, serious: Int)] = [:]
@@ -63,22 +77,27 @@ struct GraphSummary {
                 if lhs.value.serious != rhs.value.serious { return lhs.value.serious > rhs.value.serious }
                 return (order[lhs.key] ?? .max) < (order[rhs.key] ?? .max)
             }
-        hub = best.flatMap { entry in name(entry.key).map { Hub(medID: entry.key, name: $0, count: entry.value.all) } }
+        hub = best.flatMap { entry in
+            name(entry.key).map { Hub(medID: entry.key, name: $0, count: entry.value.all, serious: entry.value.serious) }
+        }
 
         // alimentele: eticheta vine din nodul `f:` al grafului, legat de alertă prin muchia food_interaction
         let labels = graph.map { Self.foodLabels($0) } ?? [:]
-        var grouped: [(label: String, meds: [String], severity: Severity)] = []
+        var grouped: [(label: String, meds: [String], severity: Severity, advice: String)] = []
         for alert in shown where alert.kind == .food {
             guard let label = labels[alert.id] ?? Self.foodKey(alert) else { continue }
             let names = alert.medids.compactMap(name)
             if let i = grouped.firstIndex(where: { $0.label == label }) {
                 for n in names where !grouped[i].meds.contains(n) { grouped[i].meds.append(n) }
             } else {
-                grouped.append((label, names, alert.severity))
+                // alertele vin ordonate după severitate: prima e cea mai gravă, cu recomandarea ei
+                grouped.append((label, names, alert.severity, Self.sentence(alert.recommendation)))
             }
         }
         foods = grouped.map {
-            Food(label: Self.capitalized($0.label), meds: $0.meds.joined(separator: ", "), severity: $0.severity)
+            Food(
+                label: Self.capitalized($0.label), meds: $0.meds.joined(separator: ", "), severity: $0.severity,
+                advice: $0.advice)
         }
     }
 
@@ -91,6 +110,32 @@ struct GraphSummary {
         case 2...19: "\(count) combinații \(plural)"
         default: "\(count) de combinații \(plural)"
         }
+    }
+
+    /// Ce înseamnă combinația, într-o propoziție: titlul alertei („Risc crescut de sângerare.”); când titlul
+    /// doar numește perechea („Simvastatină + omeprazol”), prima propoziție din detaliu care spune ce se întâmplă.
+    static func explanation(_ alert: Alert) -> String {
+        let title = alert.title.trimmingCharacters(in: .whitespacesAndNewlines)
+        if !title.isEmpty && !title.contains("+") { return sentence(title) }
+        // „Omeprazolul poate crește ușor concentrația de simvastatină. Evaluat prin analogie…” → prima propoziție;
+        // „Pentru X + Y, DDInter nu dă un nivel.” nu explică nimic, deci se sare
+        let sentences = alert.detail
+            .components(separatedBy: ". ")
+            .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
+            .filter { !$0.isEmpty && !$0.contains("nu dă un nivel") }
+        guard let first = sentences.first else { return sentence(title) }
+        if first.hasPrefix("Evaluat prin analogie") {
+            return "Nu există date directe pentru perechea aceasta; riscul e estimat după un medicament din aceeași "
+                + "clasă și trebuie confirmat de medic."
+        }
+        return sentence(first)
+    }
+
+    /// textul cu punct la final: „Risc crescut de sângerare” → „Risc crescut de sângerare.”
+    static func sentence(_ text: String) -> String {
+        let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard let last = trimmed.last else { return trimmed }
+        return ".!?".contains(last) ? trimmed : trimmed + "."
     }
 
     // MARK: - Ajutoare
