@@ -117,22 +117,25 @@
     return positions;
   }
 
-  // Culorile de sistem iOS și accentul din Assets.xcassets, scrise ca hex / rgba: Cytoscape nu înțelege
+  // Culorile de sistem iOS, accentul și severitățile din Assets.xcassets (PGSeverity*), scrise ca hex / rgba: Cytoscape nu înțelege
   // variabilele CSS și nici sintaxa `rgb(0 0 0 / 0.1)` (QA-01).
   function palette(dark, contrast) {
     const p = dark
       ? {
           text: "#F2F2F7", muted: "#8E8E93", faint: "rgba(235,235,245,0.18)", node: "#2C2C2E", nodeBorder: "#48484A",
-          accent: "#5CC2BC", red: "#FF453A", orange: "#FF9F0A", gray: "#636366", purple: "#BF5AF2", green: "#30D158",
+          accent: "#5CC2BC", red: "#E8806F", orange: "#E3A24F", gray: "#77726B", purple: "#BF5AF2", green: "#30D158",
         }
       : {
           text: "#1C1C1E", muted: "#8E8E93", faint: "rgba(60,60,67,0.18)", node: "#FFFFFF", nodeBorder: "#D1D1D6",
-          accent: "#0E6B68", red: "#FF3B30", orange: "#FF9500", gray: "#AEAEB2", purple: "#AF52DE", green: "#34C759",
+          accent: "#0E6B68", red: "#B23A2E", orange: "#9A5B0C", gray: "#8A857D", purple: "#AF52DE", green: "#34C759",
         };
     if (contrast) {
       p.muted = dark ? "#AEAEB2" : "#6C6C70";
       p.faint = dark ? "rgba(235,235,245,0.45)" : "rgba(60,60,67,0.45)";
       p.nodeBorder = dark ? "#8E8E93" : "#6C6C70";
+      p.red = dark ? "#F2A396" : "#8E2A20";
+      p.orange = dark ? "#F0C080" : "#7A4708";
+      p.gray = dark ? "#A39E96" : "#5F5A53";
     }
     p.moderateOpacity = contrast ? 0.7 : 0.4;
     return p;

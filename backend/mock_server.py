@@ -270,6 +270,7 @@ def create_patient(body: dict[str, Any]) -> dict[str, Any]:
         "birth_year": body["birth_year"],
         "caregiver_name": body.get("caregiver_name", DEMO["patient"]["caregiver_name"]),
         "anchors": body.get("anchors") or DEMO["patient"]["anchors"],
+        **{k: body[k] for k in ("height_cm", "weight_kg", "conditions", "conditions_note") if k in body},
     }
     state.create(pid, token, patient, [m["id"] for m in DEMO["meds"]])
     return {"id": pid, "patient_token": token, "patient": patient}
@@ -283,7 +284,13 @@ def get_patient(pid: str, x_patient_token: str | None = Header(None)) -> dict[st
 @app.patch("/v1/patients/{pid}")
 def update_patient(pid: str, body: dict[str, Any], x_patient_token: str | None = Header(None)) -> dict[str, Any]:
     patient = auth(pid, x_patient_token)
-    patient.update({k: v for k, v in body.items() if k in ("name", "birth_year", "caregiver_name", "anchors")})
+    patient.update(
+        {
+            k: v
+            for k, v in body.items()
+            if k in ("name", "birth_year", "caregiver_name", "anchors", "height_cm", "weight_kg", "conditions", "conditions_note")
+        }
+    )
     return patient
 
 

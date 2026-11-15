@@ -18,6 +18,9 @@
   <header class="sheet-head">
     <h1 class="page-title">Fișa medicației pentru consultație</h1>
     <p><strong>{{ patient.name }}</strong>{% if age %}, {{ age }} de ani{% endif %} · generată la {{ generated }}</p>
+    {% if profile.line or profile.conditions %}
+    <p class="patient-profile">{% if profile.line %}{{ profile.line }}{% endif %}{% if profile.line and profile.conditions %} · {% endif %}{% if profile.conditions %}Afecțiuni: {{ profile.conditions | join(", ") }}{% endif %}</p>
+    {% endif %}
     <p class="summary-line">{{ summary | join(" · ") }}</p>
   </header>
 

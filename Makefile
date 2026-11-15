@@ -37,8 +37,9 @@ models: ## modelele Swift din contracts/schema (quicktype)
 	mkdir -p app/PolyGraph/Models
 	npx -y quicktype@23 --src-lang schema --lang swift --acronym-style original \
 		-o app/PolyGraph/Models/Contracts.swift contracts/schema/*.schema.json
-	@# quicktype numește tipurile anonime după schemă: `Result` ar ascunde Swift.Result în tot modulul
-	perl -pi -e 's/\bResult\b/KBSearchHit/g; s/\bMedicationItemSchema\b/Substance/g' app/PolyGraph/Models/Contracts.swift
+	@# quicktype numește tipurile anonime după schemă: `Result` ar ascunde Swift.Result în tot modulul;
+	@# enum-ul afecțiunilor iese `PatientSchema`, iar `height_cm` iese `heightcm`
+	perl -pi -e 's/\bResult\b/KBSearchHit/g; s/\bMedicationItemSchema\b/Substance/g; s/\bPatientSchema\b/Condition/g; s/\bheightcm\b/heightCm/g' app/PolyGraph/Models/Contracts.swift
 	@echo "Generat app/PolyGraph/Models/Contracts.swift (nu se editează de mână)."
 
 mock: ## serverul mock pe 0.0.0.0:$(PORT) (fixture-urile din contracts/)
