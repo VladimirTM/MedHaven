@@ -111,6 +111,23 @@ def _delete_med(c):
     assert "al_ddi_med_01_med_02" not in ids
 
 
+def _pill_photo(c):
+    r = c.post(f"{P}/meds/med_01/pill-photo", headers=H, files={"image": ("p.jpg", b"\xff\xd8\xff\xe0", "image/jpeg")})
+    assert r.status_code == 200 and r.json()["pill_photo_url"]
+    ok("medication_item", r.json())
+    bad = c.post(f"{P}/meds/med_01/pill-photo", headers=H, files={"image": ("p.png", b"\x89PNG", "image/png")})
+    assert bad.status_code == 422
+    missing = c.post(f"{P}/meds/med_x/pill-photo", headers=H, files={"image": ("p.jpg", b"\xff\xd8", "image/jpeg")})
+    assert missing.status_code == 404
+
+
+def _delete_pill_photo(c):
+    c.post(f"{P}/meds/med_01/pill-photo", headers=H, files={"image": ("p.jpg", b"\xff\xd8\xff\xe0", "image/jpeg")})
+    r = c.delete(f"{P}/meds/med_01/pill-photo", headers=H)
+    assert r.status_code == 200 and r.json()["pill_photo_url"] is None
+    ok("medication_item", r.json())
+
+
 def _analysis(c):
     r = c.get(f"{P}/analysis", headers=H)
     assert r.status_code == 200
@@ -233,6 +250,8 @@ CASES = {
     ("post", "/v1/patients/{id}/meds"): _add_med,
     ("patch", "/v1/patients/{id}/meds/{mid}"): _update_med,
     ("delete", "/v1/patients/{id}/meds/{mid}"): _delete_med,
+    ("post", "/v1/patients/{id}/meds/{mid}/pill-photo"): _pill_photo,
+    ("delete", "/v1/patients/{id}/meds/{mid}/pill-photo"): _delete_pill_photo,
     ("get", "/v1/patients/{id}/analysis"): _analysis,
     ("post", "/v1/patients/{id}/what-if"): _what_if,
     ("get", "/v1/patients/{id}/schedule"): _schedule,

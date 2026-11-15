@@ -210,6 +210,7 @@ paths:
                 prescriber: { type: object }
                 start_date: { type: [string, "null"], format: date }
                 end_date: { type: [string, "null"], format: date }
+                pill_photo_url: { type: [string, "null"], description: "de regulă prin /pill-photo; null o scoate" }
       responses:
         "200":
           description: Medicamentul actualizat
@@ -223,6 +224,51 @@ paths:
       operationId: deleteMed
       responses:
         "204": { description: Șters }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "404": { $ref: "#/components/responses/NotFound" }
+
+  /v1/patients/{id}/meds/{mid}/pill-photo:
+    parameters:
+      - $ref: "#/components/parameters/PatientId"
+      - name: mid
+        in: path
+        required: true
+        schema: { type: string }
+    post:
+      tags: [meds]
+      operationId: uploadPillPhoto
+      summary: Poza unei pastile, făcută de familie (E5); înlocuiește poza veche
+      description: >-
+        JPEG ≤ 5 MB, redimensionat la 1024 px pe latura mare (ca poza cutiei). Setează pill_photo_url și
+        întoarce medicamentul. Nu schimbă analiza.
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [image]
+              properties:
+                image: { type: string, format: binary, description: "image/jpeg, ≤ 5 MB" }
+      responses:
+        "200":
+          description: Medicamentul, cu pill_photo_url setat
+          content:
+            application/json:
+              schema: { $ref: "../schema/medication_item.schema.json" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "422": { $ref: "#/components/responses/Invalid" }
+    delete:
+      tags: [meds]
+      operationId: deletePillPhoto
+      summary: Șterge poza pastilei (pill_photo_url devine null)
+      responses:
+        "200":
+          description: Medicamentul, cu pill_photo_url null
+          content:
+            application/json:
+              schema: { $ref: "../schema/medication_item.schema.json" }
         "401": { $ref: "#/components/responses/Unauthorized" }
         "404": { $ref: "#/components/responses/NotFound" }
 

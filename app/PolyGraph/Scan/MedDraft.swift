@@ -237,6 +237,7 @@ final class MedDraft: Identifiable {
             id: "med_" + String(UUID().uuidString.lowercased().replacingOccurrences(of: "-", with: "").prefix(12)),
             match: Match(confidence: 0, method: .manual, needsReview: true),
             photourl: nil,
+            pillPhotourl: nil,
             prescriber: Prescriber(name: nil, specialty: nil),
             product: Product(
                 batch: code?.batch, brand: "", expiry: code?.expiry, form: nil, gtin: code?.gtin, packSize: nil,

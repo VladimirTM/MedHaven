@@ -372,6 +372,35 @@ def update_med(pid: str, mid: str, body: dict[str, Any], x_patient_token: str | 
     return state.meds[pid][mid]
 
 
+MAX_PILL_PHOTO = 5 * 1024 * 1024
+
+
+@app.post("/v1/patients/{pid}/meds/{mid}/pill-photo")
+async def upload_pill_photo(pid: str, mid: str, request: Request, x_patient_token: str | None = Header(None)) -> dict[str, Any]:
+    auth(pid, x_patient_token)
+    if mid not in state.meds[pid]:
+        raise HTTPException(404, "Medicamentul nu există.")
+    image = (await request.form()).get("image")
+    if image is None or isinstance(image, str):
+        raise HTTPException(422, "Lipsește poza pastilei.")
+    picture = await image.read()
+    if not picture.startswith(b"\xff\xd8"):
+        raise HTTPException(422, "Poza pastilei trebuie să fie JPEG.")
+    if len(picture) > MAX_PILL_PHOTO:
+        raise HTTPException(422, "Poza pastilei depășește 5 MB.")
+    state.meds[pid][mid]["pill_photo_url"] = f"/media/pill_{mid}.jpg"
+    return state.meds[pid][mid]
+
+
+@app.delete("/v1/patients/{pid}/meds/{mid}/pill-photo")
+def delete_pill_photo(pid: str, mid: str, x_patient_token: str | None = Header(None)) -> dict[str, Any]:
+    auth(pid, x_patient_token)
+    if mid not in state.meds[pid]:
+        raise HTTPException(404, "Medicamentul nu există.")
+    state.meds[pid][mid]["pill_photo_url"] = None
+    return state.meds[pid][mid]
+
+
 @app.delete("/v1/patients/{pid}/meds/{mid}", status_code=204)
 def delete_med(pid: str, mid: str, x_patient_token: str | None = Header(None)) -> Response:
     auth(pid, x_patient_token)

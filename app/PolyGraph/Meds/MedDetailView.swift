@@ -27,6 +27,7 @@ struct MedDetailView: View {
     private func content(_ med: MedicationItem) -> some View {
         List {
             photoSection(med)
+            PillPhotoSection(med: med)
 
             Section {
                 VStack(alignment: .leading, spacing: Spacing.xxs) {

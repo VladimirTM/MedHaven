@@ -147,6 +147,28 @@ struct APIClient {
         _ = try await perform(request("DELETE", "v1/patients/\(patientID)/meds/\(medID)"))
     }
 
+    // MARK: Poza pastilei (E5)
+
+    /// E5: poza unei pastile, făcută de familie (serverul o micșorează la 1024 px). Întoarce medicamentul actualizat.
+    func uploadPillPhoto(patientID: String, medID: String, jpeg: Data) async throws -> MedicationItem {
+        let form = Self.pillPhotoForm(jpeg: jpeg)
+        var req = try request("POST", "v1/patients/\(patientID)/meds/\(medID)/pill-photo", timeout: Self.slowTimeout)
+        req.setValue(form.contentType, forHTTPHeaderField: "Content-Type")
+        req.httpBody = form.encoded()
+        return try await send(req)
+    }
+
+    /// E5: șterge poza pastilei; medicamentul întors are `pill_photo_url` null.
+    func deletePillPhoto(patientID: String, medID: String) async throws -> MedicationItem {
+        try await send(request("DELETE", "v1/patients/\(patientID)/meds/\(medID)/pill-photo"))
+    }
+
+    static func pillPhotoForm(jpeg: Data, boundary: String = "PolyGraph-\(UUID().uuidString)") -> MultipartForm {
+        var form = MultipartForm(boundary: boundary)
+        form.addFile("image", filename: "pastila.jpg", mimeType: "image/jpeg", data: jpeg)
+        return form
+    }
+
     // MARK: Analiză
 
     func getAnalysis(patientID: String) async throws -> Analysis {

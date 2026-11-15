@@ -77,14 +77,26 @@ struct QuantityIcon: View {
 
 /// Un medicament din moment: poza cutiei pe toată lățimea, numele, cât și cum. Un singur element VoiceOver.
 /// La textul de accesibilitate numele vine înaintea pozei, ca ora și pastila să încapă pe primul ecran (Q3-02).
+/// E5: dacă familia a fotografiat pastila, cutia și pastila stau una lângă alta, la aceeași înălțime, cu etichete.
 struct DoseCard: View {
     let dose: DoseElement
     let med: MedicationItem?
     let photoURL: URL?
+    /// E5: nil = fără poza pastilei; cardul arată exact ca înainte
+    let pillPhotoURL: URL?
 
     @Environment(\.dynamicTypeSize) private var typeSize
     @ScaledMetric(relativeTo: .title) private var nameSize: CGFloat = 28
     @ScaledMetric(relativeTo: .title2) private var textSize: CGFloat = 22
+    @ScaledMetric(relativeTo: .title3) private var captionSize: CGFloat = 20
+
+    /// Explicit, ca apelurile vechi (fără poza pastilei) să rămână valide.
+    init(dose: DoseElement, med: MedicationItem?, photoURL: URL?, pillPhotoURL: URL? = nil) {
+        self.dose = dose
+        self.med = med
+        self.photoURL = photoURL
+        self.pillPhotoURL = pillPhotoURL
+    }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
@@ -120,7 +132,61 @@ struct DoseCard: View {
         .frame(maxWidth: .infinity, alignment: .leading)
     }
 
+    @ViewBuilder
     private var photo: some View {
+        if let pillPhotoURL {
+            photoPair(pillURL: pillPhotoURL)
+        } else {
+            boxPhoto
+        }
+    }
+
+    /// Cutia și pastila, două pătrate egale (deci aceeași înălțime), fiecare cu eticheta dedesubt.
+    /// Doar pastila intră în textul VoiceOver („Pastila de Sintrom”); cutia rămâne ascunsă, ca până acum.
+    private func photoPair(pillURL: URL) -> some View {
+        HStack(alignment: .top, spacing: Spacing.xs) {
+            labeledSquare(url: photoURL, caption: PillPhoto.boxCaption, placeholder: "pills")
+                .accessibilityHidden(true)
+            labeledSquare(url: pillURL, caption: PillPhoto.pillCaption, placeholder: nil)
+                .accessibilityElement(children: .ignore)
+                .accessibilityLabel(PillPhoto.accessibilityLabel(brand: med?.product.brand ?? "medicament"))
+                .accessibilityAddTraits(.isImage)
+                .accessibilityIdentifier("now.pillPhoto.\(dose.medid)")
+        }
+        .padding(Spacing.xs)
+    }
+
+    /// Fără poză reușită: la cutie, pictograma de până acum; la pastilă, doar fundalul (nu se desenează o pastilă).
+    private func labeledSquare(url: URL?, caption: String, placeholder: String?) -> some View {
+        VStack(spacing: Spacing.xxs) {
+            Color.clear
+                .aspectRatio(1, contentMode: .fit)
+                .overlay {
+                    AsyncImage(url: url) { phase in
+                        if let image = phase.image {
+                            image.resizable().scaledToFill()
+                        } else {
+                            ZStack {
+                                PgColor.calmCard
+                                if let placeholder {
+                                    Image(systemName: placeholder)
+                                        .font(.system(size: 40))
+                                        .foregroundStyle(PgColor.textSecondary)
+                                }
+                            }
+                        }
+                    }
+                }
+                .clipShape(RoundedRectangle(cornerRadius: Radius.card, style: .continuous))
+            Text(caption)
+                .font(.system(size: captionSize, weight: .semibold))
+                .foregroundStyle(PgColor.textSecondary)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+        .frame(maxWidth: .infinity)
+    }
+
+    private var boxPhoto: some View {
         Color.clear
             .aspectRatio(4 / 3, contentMode: .fit)
             .overlay {

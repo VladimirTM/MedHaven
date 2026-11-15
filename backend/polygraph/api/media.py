@@ -1,15 +1,17 @@
-"""Stochează fotografiile scanate și servește pozele din fixture-uri."""
+"""Stochează fotografiile scanate (cutii, pastile) și servește pozele din fixture-uri."""
 
 import os
 import re
 import struct
 import zlib
 from hashlib import sha256
+from io import BytesIO
 from pathlib import Path
 from tempfile import NamedTemporaryFile
 
 from fastapi import HTTPException, Response
 from fastapi.responses import FileResponse
+from PIL import Image, ImageOps
 
 ROOT = Path(__file__).resolve().parents[3]
 NAME = re.compile(r"(?:[a-f0-9]{64}\.jpg|med_[0-9]{2}\.(?:jpg|png))")
@@ -34,6 +36,28 @@ def save_photo(picture: bytes) -> str:
             except FileExistsError:
                 pass
     return f"/media/{path.name}"
+
+
+PILL_PHOTO_SIDE = 1024
+JPEG = b"\xff\xd8"
+
+
+def save_pill_photo(picture: bytes) -> str:
+    """E5: poza pastilei, micșorată la 1024 px pe latura mare (o pastilă nu are nevoie de mai mult);
+    EXIF-ul (locația, ora) se pierde la reîncodare. ValueError dacă nu e un JPEG care se poate citi."""
+    if not picture.startswith(JPEG):
+        raise ValueError("nu e JPEG")
+    try:
+        with Image.open(BytesIO(picture)) as image:
+            if image.format != "JPEG":
+                raise ValueError("nu e JPEG")
+            image = ImageOps.exif_transpose(image).convert("RGB")
+            image.thumbnail((PILL_PHOTO_SIDE, PILL_PHOTO_SIDE))
+            out = BytesIO()
+            image.save(out, "JPEG", quality=85)
+    except (OSError, Image.DecompressionBombError) as error:
+        raise ValueError("JPEG ilizibil") from error
+    return save_photo(out.getvalue())
 
 
 def placeholder_png() -> bytes:

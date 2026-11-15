@@ -39,7 +39,7 @@ sys.path.insert(0, str(ROOT / "contracts"))
 import validate as contracts  # noqa: E402  (contracts/validate.py: schemele JSON)
 
 from polygraph.api.errors import request_message, schema_message  # noqa: E402
-from polygraph.api.media import get_photo, save_photo  # noqa: E402
+from polygraph.api.media import get_photo, save_photo, save_pill_photo  # noqa: E402
 from polygraph.demo.seed import seed_history, simulate_missed_dose  # noqa: E402
 from polygraph.engine import analyze, new_alerts  # noqa: E402
 from polygraph.engine.analyze import make_ctx  # noqa: E402
@@ -72,7 +72,18 @@ DEMO = json.loads((FIX / "demo_patient.json").read_text(encoding="utf-8"))
 DEMO_ID, DEMO_TOKEN = "pat_demo", "demo-token"
 TZ = ZoneInfo("Europe/Bucharest")
 LOG = logging.getLogger("uvicorn.error")
-MED_FIELDS = ("product", "substances", "dosage", "prescriber", "start_date", "end_date", "photo_url", "match", "source")
+MED_FIELDS = (
+    "product",
+    "substances",
+    "dosage",
+    "prescriber",
+    "start_date",
+    "end_date",
+    "photo_url",
+    "pill_photo_url",
+    "match",
+    "source",
+)
 
 
 class App:
@@ -409,6 +420,45 @@ def update_med(pid: str, mid: str, body: dict[str, Any], x_patient_token: str | 
     med = merged_med(med, copy.deepcopy(body))
     invalid("medication_item", med)
     plausible_med(med)
+    store().update_med(pid, med)
+    return med
+
+
+MAX_PILL_PHOTO = 5 * 1024 * 1024
+
+
+@app.post("/v1/patients/{pid}/meds/{mid}/pill-photo")
+def upload_pill_photo(
+    pid: str,
+    mid: str,
+    image: Annotated[UploadFile | None, File()] = None,
+    x_patient_token: str | None = Header(None),
+) -> dict[str, Any]:
+    """E5: poza unei pastile, făcută de familie. Nu se recunoaște și nu schimbă analiza; doar se arată lângă cutie."""
+    auth(pid, x_patient_token)
+    med = store().get_med(pid, mid)
+    if med is None:
+        raise HTTPException(404, "Medicamentul nu există.")
+    if image is None:
+        raise HTTPException(422, "Lipsește poza pastilei.")
+    picture = image.file.read(MAX_PILL_PHOTO + 1)
+    if len(picture) > MAX_PILL_PHOTO:
+        raise HTTPException(422, "Poza pastilei depășește 5 MB.")
+    try:
+        med["pill_photo_url"] = save_pill_photo(picture)
+    except ValueError:
+        raise HTTPException(422, "Poza pastilei trebuie să fie JPEG.") from None
+    store().update_med(pid, med)
+    return med
+
+
+@app.delete("/v1/patients/{pid}/meds/{mid}/pill-photo")
+def delete_pill_photo(pid: str, mid: str, x_patient_token: str | None = Header(None)) -> dict[str, Any]:
+    auth(pid, x_patient_token)
+    med = store().get_med(pid, mid)
+    if med is None:
+        raise HTTPException(404, "Medicamentul nu există.")
+    med["pill_photo_url"] = None
     store().update_med(pid, med)
     return med
 

@@ -120,8 +120,7 @@ struct DayView: View {
         }
         .buttonStyle(PressableButtonStyle())
         .accessibilityElement(children: .combine)
-        .accessibilityLabel(
-            "Ora \(moment.time), \(moment.label). \(medNames(moment)). \(state.text).")
+        .accessibilityLabel(rowAccessibilityLabel(moment, stateText: state.text))
         .accessibilityHint("Deschide pastilele de la ora \(moment.time)")
         .accessibilityIdentifier("day.moment.\(moment.time)")
     }
@@ -141,24 +140,81 @@ struct DayView: View {
         }
     }
 
+    @ViewBuilder
     private func photos(_ moment: Moment) -> some View {
-        HStack(spacing: Spacing.xs) {
-            ForEach(moment.doses, id: \.medid) { dose in
-                AsyncImage(url: store.api.mediaURL(store.med(id: dose.medid)?.photourl)) { phase in
+        if pillPhotoBrands(moment).isEmpty {
+            HStack(spacing: Spacing.xs) {
+                ForEach(moment.doses, id: \.medid) { dose in
+                    boxThumbnail(dose)
+                }
+            }
+            .accessibilityHidden(true)
+        } else {
+            // E5: pastila stă lângă cutia ei, la aceeași mărime; dacă perechile nu încap pe un rând,
+            // fiecare medicament trece pe rândul lui (nimic nu iese din card)
+            ViewThatFits(in: .horizontal) {
+                HStack(spacing: Spacing.s) {
+                    ForEach(moment.doses, id: \.medid) { dose in
+                        thumbnailPair(dose)
+                    }
+                }
+                VStack(alignment: .leading, spacing: Spacing.xs) {
+                    ForEach(moment.doses, id: \.medid) { dose in
+                        thumbnailPair(dose)
+                    }
+                }
+            }
+            .accessibilityHidden(true)
+        }
+    }
+
+    private func boxThumbnail(_ dose: DoseElement) -> some View {
+        AsyncImage(url: store.api.mediaURL(store.med(id: dose.medid)?.photourl)) { phase in
+            if let image = phase.image {
+                image.resizable().scaledToFill()
+            } else {
+                Image(systemName: "pills")
+                    .foregroundStyle(PgColor.textSecondary)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .background(PgColor.calmCard)
+            }
+        }
+        .frame(width: thumbnail, height: thumbnail)
+        .clipShape(RoundedRectangle(cornerRadius: Radius.thumbnail, style: .continuous))
+    }
+
+    /// Fără poză reușită, pastila rămâne un pătrat liniștit, fără pictogramă (nu se desenează o pastilă).
+    @ViewBuilder
+    private func thumbnailPair(_ dose: DoseElement) -> some View {
+        HStack(spacing: Spacing.xxs) {
+            boxThumbnail(dose)
+            if let url = store.api.mediaURL(store.med(id: dose.medid)?.pillPhotourl) {
+                AsyncImage(url: url) { phase in
                     if let image = phase.image {
                         image.resizable().scaledToFill()
                     } else {
-                        Image(systemName: "pills")
-                            .foregroundStyle(PgColor.textSecondary)
-                            .frame(maxWidth: .infinity, maxHeight: .infinity)
-                            .background(PgColor.calmCard)
+                        PgColor.calmCard
                     }
                 }
                 .frame(width: thumbnail, height: thumbnail)
                 .clipShape(RoundedRectangle(cornerRadius: Radius.thumbnail, style: .continuous))
             }
         }
-        .accessibilityHidden(true)
+    }
+
+    /// Fără poze de pastile, textul e exact cel de dinainte de E5.
+    private func rowAccessibilityLabel(_ moment: Moment, stateText: String) -> String {
+        let base = "Ora \(moment.time), \(moment.label). \(medNames(moment)). \(stateText)."
+        let pills = pillPhotoBrands(moment).map { " " + PillPhoto.accessibilityLabel(brand: $0) + "." }
+        return base + pills.joined()
+    }
+
+    /// E5: numele medicamentelor din moment care au poza pastilei, pentru VoiceOver („Pastila de Sintrom.”).
+    private func pillPhotoBrands(_ moment: Moment) -> [String] {
+        moment.doses.compactMap { dose in
+            guard let med = store.med(id: dose.medid), store.api.mediaURL(med.pillPhotourl) != nil else { return nil }
+            return med.product.brand
+        }
     }
 
     private struct RowState {
