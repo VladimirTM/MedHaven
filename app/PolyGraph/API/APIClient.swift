@@ -50,6 +50,12 @@ struct MedicationUpdate: Encodable {
     }
 }
 
+/// Răspunsul la POST /v1/patients/{id}/alerts/{alertID}/explain (X4): `ai` = false când a răspuns rezerva deterministă.
+struct AlertExplanation: Decodable, Equatable {
+    let text: String
+    let ai: Bool
+}
+
 /// Răspunsul la POST /v1/patients/{id}/web-link (E2; schema e inline în openapi.yaml, deci nu e în Contracts.swift).
 struct WebLink: Decodable, Equatable {
     let url: String
@@ -181,6 +187,10 @@ struct APIClient {
 
     func whatIf(patientID: String, _ body: WhatIfRequest) async throws -> WhatIfResult {
         try await send(request("POST", "v1/patients/\(patientID)/what-if", body: body))
+    }
+
+    func explainAlert(patientID: String, alertID: String) async throws -> AlertExplanation {
+        try await send(request("POST", "v1/patients/\(patientID)/alerts/\(alertID)/explain", timeout: Self.slowTimeout))
     }
 
     // MARK: Ziua

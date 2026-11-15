@@ -525,6 +525,20 @@ def analysis(pid: str, x_patient_token: str | None = Header(None)) -> dict[str, 
     return {**result, "analyzed_at": now_iso()}
 
 
+@app.post("/v1/patients/{pid}/alerts/{alert_id}/explain")
+def explain_alert(pid: str, alert_id: str, x_patient_token: str | None = Header(None)) -> dict[str, Any]:
+    """X4: explicația pe înțeles (Gemini, doar din câmpurile alertei; rezervă deterministă)."""
+    from polygraph.engine.explain import explain
+
+    patient = auth(pid, x_patient_token)
+    meds = store().list_meds(pid)
+    alert = next((a for a in run_analysis(pid, patient, meds)["alerts"] if a["id"] == alert_id), None)
+    if alert is None:
+        raise HTTPException(404, "Alerta nu mai există")
+    brands = [m["product"]["brand"] for m in meds if m["id"] in alert.get("med_ids", [])]
+    return explain(alert, brands)
+
+
 def med_from_kb(hit: dict[str, Any], mid: str) -> dict[str, Any]:
     """Un MedicationItem minim din rezultatul căutării în kb (pentru what-if pe text)."""
     return {

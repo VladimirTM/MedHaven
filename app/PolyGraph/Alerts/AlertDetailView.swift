@@ -9,6 +9,9 @@ struct AlertDetailView: View {
     @Environment(AppStore.self) private var store
     @Environment(\.dismiss) private var dismiss
     @State private var acknowledged = 0
+    @State private var explanation: AlertExplanation?
+    @State private var explaining = false
+    @State private var explainFailed = false
 
     var body: some View {
         Group {
@@ -52,6 +55,8 @@ struct AlertDetailView: View {
                 Text(alert.detail)
                     .accessibilityIdentifier("alertDetail.detail")
             }
+
+            explainSection(alert)
 
             Section("Ce puteți face") {
                 Text(alert.recommendation)
@@ -121,6 +126,57 @@ struct AlertDetailView: View {
             }
         }
         .listStyle(.insetGrouped)
+    }
+
+    @ViewBuilder
+    private func explainSection(_ alert: Alert) -> some View {
+        Section {
+            if let explanation {
+                Text(explanation.text)
+                    .accessibilityIdentifier("alertDetail.aiText")
+            } else {
+                Button {
+                    Task { await explain(alert) }
+                } label: {
+                    HStack(spacing: Spacing.xs) {
+                        if explaining {
+                            ProgressView()
+                        } else {
+                            Image(systemName: "sparkles")
+                        }
+                        Text(explaining ? "Pregătesc explicația…" : "Explică pe înțeles")
+                    }
+                }
+                .disabled(explaining)
+                .accessibilityIdentifier("alertDetail.explainButton")
+                if explainFailed {
+                    Text("Nu am putut pregăti explicația. Încercați din nou.")
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
+                }
+            }
+        } header: {
+            Text("Pe înțeles")
+        } footer: {
+            if let explanation {
+                Text(explanation.ai
+                    ? "Reformulat de AI (Gemini) doar din datele alertei. Decizia vine din baza de date de mai jos."
+                    : "Textul aplicației, fără AI.")
+            }
+        }
+    }
+
+    private func explain(_ alert: Alert) async {
+        guard let id = store.settings.patientID else { return }
+        explaining = true
+        explainFailed = false
+        defer { explaining = false }
+        do {
+            let result = try await store.api.explainAlert(patientID: id, alertID: alert.id)
+            withPgAnimation(.pgStandard) { explanation = result }
+        } catch {
+            explainFailed = true
+        }
     }
 
     private func statusText(_ alert: Alert) -> String {
