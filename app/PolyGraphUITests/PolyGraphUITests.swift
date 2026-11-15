@@ -49,7 +49,13 @@ class ReviewTestCase: XCTestCase {
         XCUIDevice.shared.appearance = Self.variant.hasPrefix("Dark") ? .dark : .light
         // permisiunile de sistem (notificări, cameră) apar peste aplicație în momente greu de prevăzut
         addUIInterruptionMonitor(withDescription: "permisiuni") { alert in
-            Self.allow(alert)
+            // bannerul unei notificări a aplicației (Noutăți) nu e o permisiune: atins, ar deschide notificarea
+            // și n-are butoane (testul pica), deci doar îl împingem în sus
+            if alert.identifier == "NotificationShortLookView" || alert.elementType != .alert {
+                alert.swipeUp()
+                return true
+            }
+            return Self.allow(alert)
         }
     }
 

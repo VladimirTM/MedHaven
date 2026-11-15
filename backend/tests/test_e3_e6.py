@@ -91,3 +91,27 @@ def test_two_patients_switch_and_logout(client):
     assert '<span class="family-patient">Ion</span>' in client.get("/acasa").text
     client.post("/acasa/iesire")
     assert "Deschideți linkul din aplicație" in client.get("/acasa").text
+
+
+def test_doses_and_pillbox_stay_per_patient(client):
+    """T-E6-02: „Am luat” și cutiuța pe Ion nu ating Maria (și invers)."""
+    ion = "pat_demo_ion"
+    client.get(_link(ion, ""))  # Ion devine pacientul de pe ecran, Maria rămâne în sesiune
+    patient = main.store().get_patient(ion)
+    sched = main.build_schedule(patient, main.store().list_meds(ion), date.fromisoformat(DAY), main.kb())
+    assert sched["moments"], "Ion are nevoie de cel puțin un moment în program"
+    first = sched["moments"][0]
+    maria_doses = main.store().list_doses("pat_demo")
+
+    assert client.post("/acasa/doze", data={"moment": first["time"]}).status_code == 303
+    client.post("/acasa/cutiuta", data={"day": DAY, "label": first["label"], "prepared": 1})
+
+    ion_doses = main.store().list_doses(ion)
+    assert {d["med_id"] for d in ion_doses if d["status"] == "taken"} == {d["med_id"] for d in first["doses"]}
+    assert main.store().pillbox(ion, DAY, DAY) != {}
+    assert main.store().list_doses("pat_demo") == maria_doses
+    assert main.store().pillbox("pat_demo", DAY, DAY) == {}
+
+    # înapoi la Maria: bifele lui Ion nu apar la ea
+    assert client.post("/acasa/pacient", data={"pid": "pat_demo"}).status_code == 303
+    assert "✓ Pregătit" not in client.get("/acasa/saptamana?cutiuta=1").text

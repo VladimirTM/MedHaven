@@ -914,7 +914,7 @@ Criterii de acceptare: pe un iPhone (Safari), o decizie se ia și se schimbă di
 - [x] T-QA4-03 Enter în notă: niciun request, mesajul apare; 500 simulat → mesajul pentru server.
 - [x] T-QA4-04 `/` cerut de pe `127.0.0.1` arată IP-ul din rețea, nu `localhost`.
 - [x] T-QA4-05 Playwright la 375 px, `hasTouch`: nicio țintă interactivă sub 44 px.
-- [ ] T-QA4-06 Manual: decizia luată și schimbată pe iPhone, apoi văzută în aplicația aparținătorului.
+- [x] T-QA4-06 Manual: decizia luată și schimbată pe iPhone, apoi văzută în aplicația aparținătorului. *(15.11.2026, `EdgeCaseTour.testSyncDoctorDecision`: în Noutăți singură, în < 30 s; pe alertă doar după tragerea listei sau redeschiderea aplicației, vezi Q4-02 în 14.7)*
 
 ### 14.5 QA5 · Funcționalitățile pentru demo (opțional, doar înainte de S4)
 
@@ -987,7 +987,7 @@ Criterii de acceptare: pe iPhone, Nurofen adăugat și apoi editat (posologia sc
 **Teste**
 - [x] T-E0-01 XCTest: corpul PATCH conține cheile `raw`, `name`, `specialty` cu `null`. *(15.11.2026, `ShareDemoTests.swift`, verde pe iPhone 18 Pro, pe `main` la #63)*
 - [x] T-E0-02 pytest: PATCH parțial pe `dosage` / `prescriber` păstrează câmpurile nesetate; `null` explicit se salvează. *(14.11.2026, `backend/tests/test_e0.py`)*
-- [ ] T-E0-03 Manual, pe iPhone: Nurofen (fără rețetă) și Sintrom (cu rețetă) editate, salvate, alertele recalculate.
+- [x] T-E0-03 Manual, pe iPhone: Nurofen (fără rețetă) și Sintrom (cu rețetă) editate, salvate, alertele recalculate. *(15.11.2026, pe simulator: `EdgeCaseTour.testSyncEditBothMeds`, verde; runner-ul face rolul browserului pe `/acasa` și în portal)*
 
 #### E1 · Orele zilei se pot schimba
 
@@ -1012,7 +1012,7 @@ Criterii de acceptare: cina mutată de la 19:00 la 20:00 → dozele de seară ap
 - [x] T-E1-01 pytest: anchors în altă ordine → 422; anchors schimbați → `/schedule` are orele noi, programul Mariei cu anchors inițiali = `expected_schedule.json`. *(14.11.2026, `backend/tests/test_e1.py`)*
 - [x] T-E1-02 pytest: doză de dimineață bifată, apoi cina mutată → doza rămâne `taken` în ziua de azi; dozele de ieri neschimbate. *(14.11.2026, `test_e1.py`; mutarea în `schedule/move.py`, după a câta apariție a medicamentului în zi)*
 - [x] T-E1-03 XCTest: după salvare, `Reminders` primește programul nou (nicio notificare la ora veche). *(15.11.2026, `SeniorTests.remindersFollowMovedDinner`: cina 19:00 → 20:00, nicio cerere `pg.moment.*T19:00`; `replaceAll` scoate cererile vechi, iar modul senior le reface după `scheduleSignature`)*
-- [ ] T-E1-04 Manual: ora schimbată în aplicație se vede pe web fără reîncărcarea serverului, și invers.
+- [x] T-E1-04 Manual: ora schimbată în aplicație se vede pe web fără reîncărcarea serverului, și invers. *(15.11.2026: web → aplicație în `EdgeCaseTour.testSyncDayHoursFromWeb`, cina 20:00 ajunge în „Ziua de azi”; aplicație → server în `ReviewTour.testDayHours`, iar `/acasa/ore` citește aceleași ore, `test_e1.py`)*
 
 #### E2 · Pagina familiei pe web: „Azi”, „Medicamentele mele”, „De verificat”
 
@@ -1041,7 +1041,7 @@ Criterii de acceptare: pe un iPhone (Safari) și pe laptop, cele trei tab-uri ar
 - [x] T-E2-02 pytest: „Am luat” pe web de 2 ori în paralel → o singură doză, aceeași cheie ca `POST /doses`. *(14.11.2026, `test_e2_family.py`; aceeași cheie UTC ca `POST /doses`)*
 - [x] T-E2-03 pytest: pentru Maria, „Azi” are aceleași momente și doze ca `expected_schedule.json`, „De verificat” aceleași alerte ca `/analysis`, în ordinea din 11.3; HTML-ul nu conține `kb/`. *(14.11.2026, `test_e2_family.py`; ordinea ca în `AlertSections.swift`, fără `minor`)*
 - [ ] T-E2-04 Playwright la 375 px, `hasTouch`: nicio țintă sub 44 px, h1 pe fiecare tab, bara de tab-uri jos.
-- [ ] T-E2-05 Manual: bifă în aplicație → apare pe web în < 5 s; bifă pe web → apare în modul senior.
+- [x] T-E2-05 Manual: bifă în aplicație → apare pe web în < 5 s; bifă pe web → apare în modul senior. *(15.11.2026, pe simulator: `EdgeCaseTour.testSyncTakenWithWeb`, verde; runner-ul face rolul browserului pe `/acasa` și în portal)*
 
 #### E3 · „Calendar săptămânal” și „Pregătesc cutiuța”
 
@@ -1144,7 +1144,7 @@ Criterii de acceptare: Maria și Ion (din make demo) în același browser, fieca
 
 **Teste**
 - [x] T-E6-01 pytest: două linkuri în aceeași sesiune → doi pacienți; un al treilea id în URL → 404 „nu e în lista dumneavoastră”. *(14.11.2026, `test_e3_e6.py`: pacientul se alege din cookie, nu din URL; un id fără sesiune în acest browser e ignorat, iar ieșirea închide doar pacientul de pe ecran)*
-- [ ] T-E6-02 pytest: dozele și cutiuța rămân separate pe pacient.
+- [x] T-E6-02 pytest: dozele și cutiuța rămân separate pe pacient. *(15.11.2026, `test_e3_e6.test_doses_and_pillbox_stay_per_patient`)*
 
 ### 14.7 Testele rămase înainte de S4
 
@@ -1158,17 +1158,19 @@ Starea la 15.11.2026, 06:00, pe `main` la #63. **Verde, rulat acum:** `make chec
 | 2 | ✅ turul `make review Q=Q3f5 ONLY="testCaregiverMeds testScanBoxFake testGraph testOnboarding" CONFIGS="Light AX" NO_VIDEO=1`; `testOnboarding` trece acum și prin prezentarea MedHaven și pasul „Despre sănătate” | T-Q3F5-01 |
 | 3 | ✅ scris (`SeniorTests.remindersFollowMovedDinner`) și verde. Inițial: T-E1-03 nu era scris: un XCTest care salvează orele noi și verifică `Reminders.plan` pe programul nou (nicio notificare la ora veche); dacă nu intră în 15 min, rămâne manual (punctul 2.3) | T-E1-03 |
 
-**2. Pe iPhone, manual (amândoi, ~40 min, cu `make demo` pornit pe laptop)**
+**2. Pe iPhone, manual → făcute pe simulator (15.11, 07:15)**
+
+Cu un singur iPhone la îndemână, testele 1–4 și 7 au devenit teste automate în `EdgeCaseTour` (`testSync*`), în care runner-ul face rolul browserului (intră pe `/acasa` cu linkul cerut din aplicație și în portal cu `medic-demo`). Rulare: `make review Q=sync TOUR=EdgeCaseTour ONLY="testSyncEditBothMeds testSyncProfileToPortal testSyncTakenWithWeb testSyncDayHoursFromWeb testSyncDoctorDecision" CONFIGS=Light NO_VIDEO=1 AUDIT=0` (~5 min), toate verzi. Rămân pe telefon doar 5 (camera) și 6 (o privire pe graf).
 
 | # | Ce | Închide |
 |---|---|---|
-| 1 | Nurofen (fără rețetă) și Sintrom (cu rețetă) editați din detaliu, salvați din prima, alertele recalculate | T-E0-03 |
-| 2 | **Nou (#62), T-P-01:** aplicația ștearsă și reinstalată (J-1) → prezentarea MedHaven → onboarding cu „Despre sănătate” completat, apoi sărit la a doua instalare; profilul schimbat din Setări → apare pe fișa din portal și pe tipărire; un profil gol nu lasă rânduri goale | T-P-01 |
-| 3 | cina mutată din Setări (19:00 → 20:00): dozele de seară se mută în aplicație, pe `/acasa` și în portal, „Am luat” de dimineață rămâne bifat, nicio notificare la 19:00; invers, ora schimbată pe `/acasa/ore` apare în aplicație | T-E1-04 (și T-E1-03, dacă nu e XCTest) |
-| 4 | „Am luat” în modul senior → apare pe `/acasa` în < 5 s; bifă pe `/acasa` → apare în modul senior la următorul polling (≤ 30 s) | T-E2-05 |
+| 1 | ✅ Nurofen (fără rețetă) și Sintrom (cu rețetă) editați din detaliu, salvați din prima, alertele recalculate | T-E0-03 |
+| 2 | ✅ **Nou (#62), T-P-01:** aplicația ștearsă și reinstalată (J-1) → prezentarea MedHaven → onboarding cu „Despre sănătate” completat, apoi sărit la a doua instalare; profilul schimbat din Setări → apare pe fișa din portal și pe tipărire; un profil gol nu lasă rânduri goale | T-P-01 |
+| 3 | ✅ cina mutată din Setări (19:00 → 20:00): dozele de seară se mută în aplicație, pe `/acasa` și în portal, „Am luat” de dimineață rămâne bifat, nicio notificare la 19:00; invers, ora schimbată pe `/acasa/ore` apare în aplicație | T-E1-04 (și T-E1-03, dacă nu e XCTest) |
+| 4 | ✅ „Am luat” în modul senior → apare pe `/acasa` în < 5 s; bifă pe `/acasa` → apare în modul senior la următorul polling (≤ 30 s) | T-E2-05 |
 | 5 | poza unei pastile făcută din detaliul medicamentului → apare pe „Acum” la Maria și pe `/acasa` | T-E5-03 |
 | 6 | graful Mariei în aplicație și în Safari pe același iPhone, light și dark, unul lângă altul (după #62 paleta severităților e nouă, în ambele) | T-QA2-05 |
-| 7 | decizia medicului luată și schimbată în portal pe iPhone → văzută în aplicația Anei, pe alertă și în Noutăți | T-QA4-06 |
+| 7 | ✅ decizia medicului luată și schimbată în portal pe iPhone → văzută în aplicația Anei, pe alertă și în Noutăți | T-QA4-06 |
 
 **3. În browser (Dev B, ~30 min)**
 
@@ -1176,12 +1178,14 @@ Starea la 15.11.2026, 06:00, pe `main` la #63. **Verde, rulat acum:** `make chec
 |---|---|---|
 | 1 | `/acasa` la 375 px cu atingere (Playwright cu `hasTouch` sau, mai repede, Safari → Responsive Design Mode): nicio țintă sub 44 px, h1 pe fiecare tab, bara de tab-uri jos | T-E2-04 |
 | 2 | „Calendar” la 375 px: lista pe zile, dialogul cutiuței se închide cu Escape și cu butonul, fără „Am luat” | T-E3-03 |
-| 3 | T-E6-02 nu e scris: un pytest în `test_e3_e6.py`, Maria și Ion în aceeași sesiune, „Am luat” și o bifă de cutiuță pe Ion nu apar la Maria (~10 min) | T-E6-02 |
+| 3 | ✅ scris și verde (`test_doses_and_pillbox_stay_per_patient`) | T-E6-02 |
 | 4 | foaia de tipărit după #60: Print Preview în Safari și Chrome, 2 pagini A4, fără antetul și subsolul browserului, cu profilul pacientului | regresia #60 / #62 |
 
 **4. Fizic, în sală (J-7, B-7)**
 - T-A2-03: 3 cutii reale + rețeta tipărită, scanate pe iPhone în lumina sălii.
 - Check-in-ul demo dictat de 3 ori (15.4).
+
+**Constatare nouă (Q4-02, din T-QA4-06):** în aplicația aparținătorului, decizia medicului apare în Noutăți în < 10 s, dar tab-ul Alerte rămâne cu „Nediscutată încă cu medicul de familie” până la tragerea listei sau redeschiderea aplicației (`FeedModel.poll` nu reîncarcă analiza). Fix propus (~3 rânduri): la un eveniment nou `doctor_reviewed`, `store.reloadAnalysis()`. De decis înainte de S4: pe scenă, la 2:30, Ana ar vedea decizia doar în Noutăți.
 
 **Nu mai sunt de testat înainte de S4:** T-E4-01…05 (E4 tăiat), T-E5-02 și T-QA5-03 (mutate în 19 cu funcționalitățile lor). După lista de mai sus urmează Q4 (J-3, 15.1), care reia și scenariul de 2 ori pe simulator (T-Q-03).
 
