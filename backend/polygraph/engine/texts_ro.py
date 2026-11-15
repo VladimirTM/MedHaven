@@ -216,7 +216,7 @@ def unverified_patient_text(brand: str) -> str:
 
 
 def unverified_detail(brand: str, names: list[str]) -> str:
-    what = f"substanța activă ({', '.join(names)}) nu e în baza de date PolyGraph" if names else "substanța activă nu e cunoscută"
+    what = f"substanța activă ({', '.join(names)}) nu e în baza de date MedHaven" if names else "substanța activă nu e cunoscută"
     return f"Nu am putut verifica {brand}: {what}. Interacțiunile lui nu sunt incluse."
 
 

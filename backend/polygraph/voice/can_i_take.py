@@ -32,7 +32,7 @@ SOURCES = {
     "acb": "scala ACB",
     "curated": "lista verificată de echipă",
     "rcp": "RCP (prospectul oficial)",
-    "app": "aceeași clasă de medicamente (PolyGraph)",
+    "app": "aceeași clasă de medicamente (MedHaven)",
 }
 
 

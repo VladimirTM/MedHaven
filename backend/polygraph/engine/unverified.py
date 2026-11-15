@@ -28,7 +28,7 @@ def check(ctx: Ctx) -> list[dict]:
                 detail=T.unverified_detail(b, names),
                 recommendation=T.UNVERIFIED_RECOMMENDATION,
                 action="ask_doctor",
-                source={"db": "app", "ref": "substanța activă lipsește din baza de date PolyGraph", "url": None},
+                source={"db": "app", "ref": "substanța activă lipsește din baza de date MedHaven", "url": None},
             )
         )
     return out

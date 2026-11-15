@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}{% if used %}Linkul nu mai e valabil{% else %}Deschideți linkul din aplicație{% endif %} · PolyGraph{% endblock %}
+{% block title %}{% if used %}Linkul nu mai e valabil{% else %}Deschideți linkul din aplicație{% endif %} · MedHaven{% endblock %}
 {% block body_class %}expired{% endblock %}
 {% block body %}
 <main class="center">
@@ -9,7 +9,7 @@
   <p>Linkul către pagina familiei merge o singură dată și doar 10 minute, ca datele să nu rămână accesibile oricui îl primește.</p>
   {% else %}
   <h1 class="page-title">Deschideți linkul din aplicație</h1>
-  <p>Pagina familiei arată programul de azi, medicamentele și ce e de verificat, ca în aplicația PolyGraph.</p>
+  <p>Pagina familiei arată programul de azi, medicamentele și ce e de verificat, ca în aplicația MedHaven.</p>
   {% endif %}
   <p>În aplicație: <strong>Setări → Deschide pe web</strong>, apoi scanați codul QR cu acest dispozitiv sau copiați linkul aici.</p>
 </main>

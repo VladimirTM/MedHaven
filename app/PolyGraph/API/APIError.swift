@@ -23,7 +23,7 @@ nonisolated enum APIError: LocalizedError {
                 return "Serverul răspunde greu. Încercați din nou peste câteva secunde."
             case .notConnectedToInternet where Self.isLocalHost(error.failingURL):
                 // iOS dă tot -1009 când refuză permisiunea Rețea locală („Local network prohibited”), deși Wi-Fi-ul merge
-                return "Nu pot ajunge la serverul din rețeaua locală. Permiteți „Rețea locală” pentru PolyGraph în Configurări → Confidențialitate și securitate, apoi redeschideți aplicația."
+                return "Nu pot ajunge la serverul din rețeaua locală. Permiteți „Rețea locală” pentru MedHaven în Configurări → Confidențialitate și securitate, apoi redeschideți aplicația."
             case .notConnectedToInternet, .networkConnectionLost, .dataNotAllowed:
                 return "Telefonul nu e conectat la rețea."
             case .cannotConnectToHost, .cannotFindHost, .dnsLookupFailed:

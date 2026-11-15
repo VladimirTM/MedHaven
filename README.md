@@ -1,6 +1,6 @@
-# PolyGraph
+# MedHaven
 
-PolyGraph e o aplicație iOS și un portal web care ajută familia unui vârstnic cu mai multe medicamente să țină lista completă într-un singur loc: pozezi cutiile și rețetele, iar aplicația construiește graful terapeutic și găsește interacțiunile, dublurile și medicamentele nepotrivite vârstei. Alertele vin exclusiv din baze de date și reguli deterministe, cu sursa afișată; un LLM intervine doar ca rezervă la citirea pozei sau a textului. Pacientul primește un program zilnic simplu și poate spune cu voce cum se simte, iar familia și medicul de familie văd aceeași fișă.
+MedHaven e o aplicație iOS și un portal web care ajută familia unui vârstnic cu mai multe medicamente să țină lista completă într-un singur loc: pozezi cutiile și rețetele, iar aplicația construiește graful terapeutic și găsește interacțiunile, dublurile și medicamentele nepotrivite vârstei. Alertele vin exclusiv din baze de date și reguli deterministe, cu sursa afișată; un LLM intervine doar ca rezervă la citirea pozei sau a textului. Pacientul primește un program zilnic simplu și poate spune cu voce cum se simte, iar familia și medicul de familie văd aceeași fișă.
 
 UniHack 2026 · The Bloom → Medical Renaissance · iOS nativ (SwiftUI) + backend Python (FastAPI).
 

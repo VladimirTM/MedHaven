@@ -7,7 +7,7 @@
     <img class="login-logo" src="/static/share/logo.svg" alt="" width="64" height="64">
     <h1 class="page-title">Portalul medicului de familie</h1>
     {% if adding %}<p>Autentificați-vă ca să adăugați pacientul în lista dumneavoastră.</p>
-    {% else %}<p class="muted">Lista pacienților care v-au partajat tratamentul prin PolyGraph.</p>{% endif %}
+    {% else %}<p class="muted">Lista pacienților care v-au partajat tratamentul prin MedHaven.</p>{% endif %}
     <form class="login-form" method="post" action="/portal/login">
       <label for="code">Codul de acces</label>
       <input class="note-input" id="code" name="code" type="password" autocomplete="current-password" required autofocus>
@@ -16,6 +16,6 @@
       <button class="btn btn-large" type="submit">Intrați</button>
     </form>
   </div>
-  <p class="login-foot muted"><a href="/">Ce este PolyGraph?</a></p>
+  <p class="login-foot muted"><a href="/">Ce este MedHaven?</a></p>
 </main>
 {% endblock %}

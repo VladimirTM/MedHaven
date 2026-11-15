@@ -167,7 +167,7 @@ async def lifespan(_: FastAPI):
     yield
 
 
-app = FastAPI(title="PolyGraph", version="1.0.0", lifespan=lifespan)
+app = FastAPI(title="MedHaven", version="1.0.0", lifespan=lifespan)
 app.mount("/static/share", StaticFiles(directory=STATIC_DIR), name="share-static")
 
 

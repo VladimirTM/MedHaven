@@ -89,7 +89,7 @@ def readiness() -> list[str]:
 
 def banner(usable: list[str], unusable: list[str], port: int, code: str) -> list[str]:
     """Capul de afișaj din `make demo`: QR-ul și adresele, cea bună prima; fără QR dacă nu e nicio adresă folosibilă."""
-    lines = ["", "PolyGraph · demo", ""]
+    lines = ["", "MedHaven · demo", ""]
     if usable:
         url = f"http://{usable[0]}:{port}"
         lines += ["   " + line for line in qr_lines(url)]

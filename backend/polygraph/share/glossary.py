@@ -26,7 +26,7 @@ GLOSSARY: dict[str, tuple[str, str]] = {
     "pattern": (
         "Ce înseamnă 1-0-1?",
         "Câte pastile se iau dimineața, la prânz și seara (uneori și la culcare). 1-0-1 înseamnă una dimineața și una seara; "
-        "½ înseamnă jumătate de pastilă. PolyGraph scrie schema în cuvinte, dar pe cutie sau pe rețetă o găsiți așa.",
+        "½ înseamnă jumătate de pastilă. MedHaven scrie schema în cuvinte, dar pe cutie sau pe rețetă o găsiți așa.",
     ),
     "as_needed": (
         "Ce înseamnă „la nevoie”?",

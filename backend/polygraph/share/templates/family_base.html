@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {# E2: pagina familiei pe web. Același CSS și același accent ca portalul; bara de tab-uri jos pe telefon, sus pe ecrane late. #}
-{% block title %}{% block page_title %}{% endblock %} · {{ patient.name }} · PolyGraph{% endblock %}
+{% block title %}{% block page_title %}{% endblock %} · {{ patient.name }} · MedHaven{% endblock %}
 {% block body_class %}family{% endblock %}
 {% block body %}
 <header class="family-bar">
@@ -20,7 +20,7 @@
       </div>
     </details>
     {% else %}
-    <a class="wordmark family-wordmark" href="/acasa" aria-label="PolyGraph, pagina de azi">
+    <a class="wordmark family-wordmark" href="/acasa" aria-label="MedHaven, pagina de azi">
       <img class="wordmark-logo" src="/static/share/logo.svg" alt="" width="28" height="28">
       <span class="family-patient">{{ patient.name }}</span>
     </a>
@@ -43,7 +43,7 @@
   </div>
   {% block main %}{% endblock %}
   <footer class="family-foot">
-    <p class="small muted">PolyGraph nu înlocuiește medicul de familie. Nu opriți și nu schimbați un medicament fără acordul medicului.</p>
+    <p class="small muted">MedHaven nu înlocuiește medicul de familie. Nu opriți și nu schimbați un medicament fără acordul medicului.</p>
     <form method="post" action="/acasa/iesire"><button class="btn btn-secondary" type="submit">{% if patients | length > 1 %}Închide pagina lui {{ patient.name }} pe acest dispozitiv{% else %}Ieșire de pe acest dispozitiv{% endif %}</button></form>
   </footer>
 </main>

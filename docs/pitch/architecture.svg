@@ -1,5 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 970" width="1600" height="970" role="img" aria-labelledby="t d" font-family="-apple-system, 'Helvetica Neue', Arial, sans-serif">
-  <title id="t">Arhitectura PolyGraph: LLM doar la margini</title>
+  <title id="t">Arhitectura MedHaven: LLM doar la margini</title>
   <desc id="d">Două telefoane trimit JSON către backend-ul cu motor determinist, solver și kb.sqlite; portalul medicului citește același backend; un LLM e folosit doar ca rezervă la citirea pozei sau a textului; sursele de date sunt DDInter 2.0, nomenclatorul românesc și Beers, STOPP, ACB.</desc>
   <defs>
     <marker id="ar" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#1a1a1a"/></marker>
@@ -7,7 +7,7 @@
   </defs>
 
   <rect width="1600" height="970" fill="#f7f5f2"/>
-  <text x="40" y="62" font-size="42" font-weight="700" fill="#1a1a1a">PolyGraph: decizia medicală e deterministă</text>
+  <text x="40" y="62" font-size="42" font-weight="700" fill="#1a1a1a">MedHaven: decizia medicală e deterministă</text>
 
   <!-- telefoane -->
   <g stroke="#0e6b68" stroke-width="3" fill="#ffffff">

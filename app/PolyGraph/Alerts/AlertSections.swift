@@ -77,8 +77,8 @@ extension Source {
         case .stopp: "Criteriile STOPP/START v3"
         case .acb: "Scala ACB (încărcarea anticolinergică)"
         case .rcp: "Rezumatul caracteristicilor produsului (RCP)"
-        case .schedule: "Regulile de programare PolyGraph"
-        case .app: "PolyGraph"
+        case .schedule: "Regulile de programare MedHaven"
+        case .app: "MedHaven"
         }
     }
 }
