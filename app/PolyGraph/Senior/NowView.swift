@@ -98,7 +98,7 @@ struct NowView: View {
 
                 if pinnedTime == nil {
                     SeniorButton(
-                        "Ziua de azi", systemImage: "calendar", prominence: .secondary,
+                        "Calendar", systemImage: "calendar", prominence: .secondary,
                         identifier: "now.dayButton", action: onShowDay)
                     SeniorButton(
                         "Spuneți-mi cum vă simțiți", systemImage: "mic", prominence: .secondary,
