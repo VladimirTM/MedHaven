@@ -4,8 +4,8 @@ import UIKit
 /// Lista de medicamente (aparținător): secțiuni pe medic, swipe-to-delete cu „Anulează” 5 s,
 /// adăugarea prin cameră, detaliul la atingere.
 struct MedsListView: View {
-    /// „Vezi” din mesajul de finalizare trece pe tab-ul Alerte
-    private let showAlerts: () -> Void
+    /// „Vezi” din mesajul de finalizare și cifrele din cardul zilei trec pe alt tab
+    private let showTab: (CaregiverTab) -> Void
 
     @Environment(AppStore.self) private var store
     @Environment(\.pgReduceMotion) private var reduceMotion
@@ -15,8 +15,8 @@ struct MedsListView: View {
     @State private var isPreparing = false
     @State private var completion: ScanOutcome?
 
-    init(showAlerts: @escaping () -> Void = {}) {
-        self.showAlerts = showAlerts
+    init(showTab: @escaping (CaregiverTab) -> Void = { _ in }) {
+        self.showTab = showTab
     }
 
     var body: some View {
@@ -145,6 +145,11 @@ struct MedsListView: View {
             }
         } else {
             List {
+                if store.patient != nil {
+                    Section {
+                        todayCard
+                    }
+                }
                 if let error = store.deletions.lastError {
                     Section {
                         Label(error, systemImage: "exclamationmark.circle")
@@ -172,6 +177,27 @@ struct MedsListView: View {
             }
             .listStyle(.insetGrouped)
             .accessibilityIdentifier("meds.list")
+        }
+    }
+
+    /// Se redesenează la fiecare minut, ca momentul următor și dozele ratate să țină pasul cu ceasul.
+    private var todayCard: some View {
+        TimelineView(.everyMinute) { _ in
+            let now = store.clock.now
+            let day = store.schedule?.date ?? PgFormat.isoDay(now)
+            CaregiverTodayCard(
+                today: CaregiverToday(
+                    patientName: store.patient?.name,
+                    moments: store.schedule?.moments ?? [],
+                    alerts: store.analysis?.alerts ?? [],
+                    events: store.feed.events + store.feed.pendingNew,
+                    nowMinutes: SeniorDay.minutes(of: now),
+                    status: { time, medID in store.doseLog.status(day: day, time: time, medID: medID) }
+                ),
+                now: now,
+                medName: { store.med(id: $0)?.product.brand },
+                open: showTab
+            )
         }
     }
 
@@ -213,7 +239,7 @@ struct MedsListView: View {
             if !outcome.newAlerts.isEmpty {
                 Button("Vezi") {
                     withPgAnimation(.pgStandard) { completion = nil }
-                    showAlerts()
+                    showTab(.alerts)
                 }
                 .pgProminentButton()
                 .accessibilityIdentifier("meds.savedBanner.showAlerts")
@@ -242,7 +268,7 @@ private struct MedRow: View {
     let worst: Alert?
 
     @Environment(AppStore.self) private var store
-    @ScaledMetric(relativeTo: .body) private var thumbnail: CGFloat = 48
+    @ScaledMetric(relativeTo: .body) private var thumbnail: CGFloat = 56
 
     var body: some View {
         HStack(spacing: Spacing.s) {
