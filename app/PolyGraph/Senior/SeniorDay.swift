@@ -141,6 +141,28 @@ enum SeniorDay {
         return "\(first) Următoarele pastile sunt la \(spokenClock(next.time))."
     }
 
+    /// „Bună dimineața, Elena”: salutul după ora telefonului, cu prenumele (primul cuvânt din nume).
+    static func greeting(name: String?, nowMinutes: Int) -> String {
+        let hello: String =
+            switch nowMinutes {
+            case 300..<660: "Bună dimineața"  // 05:00–10:59
+            case 660..<1080: "Bună ziua"  // 11:00–17:59
+            default: "Bună seara"
+            }
+        let first = name?.split(separator: " ").first.map(String.init) ?? ""
+        return first.isEmpty ? hello : "\(hello), \(first)"
+    }
+
+    /// „Duminică, 15 noiembrie”, sub salut
+    static func todayLine(_ date: Date) -> String {
+        sentence(PgFormat.longDay(date))
+    }
+
+    /// „2 din 5 gata”, lângă punctele zilei (momentele luate sau sărite)
+    static func progressLine(done: Int, total: Int) -> String {
+        "\(done) din \(total) gata"
+    }
+
     /// „pe stomacul gol” → „Pe stomacul gol”
     static func sentence(_ text: String) -> String {
         guard let first = text.first else { return text }

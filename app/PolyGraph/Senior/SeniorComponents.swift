@@ -6,21 +6,34 @@ enum CheckFlight {
     static func id(_ time: String) -> String { "check.\(time)" }
 }
 
-/// Rândul de puncte de sus: un punct per moment al zilei, plin cu bifă când e luat.
+/// Rândul de sus: un punct per moment al zilei, plin cu bifă când e luat, cu ora dedesubt
+/// (fără ore, cele cinci cercuri nu spuneau ce sunt). La textul de accesibilitate orele dispar, ca rândul să încapă.
 struct TimelineDots: View {
     let moments: [Moment]
     let current: String?
     /// momentul a cărui bifă încă zboară: punctul lui rămâne gol până aterizează
     let flying: String?
     let namespace: Namespace.ID
+    var showsTimes = true
     let status: (Moment) -> MomentStatus
 
     @ScaledMetric(relativeTo: .title2) private var size: CGFloat = 28
+    @ScaledMetric(relativeTo: .body) private var timeSize: CGFloat = 15
 
     var body: some View {
-        HStack(spacing: Spacing.s) {
+        HStack(alignment: .top, spacing: Spacing.s) {
             ForEach(moments) { moment in
-                dot(moment)
+                VStack(spacing: Spacing.xxs) {
+                    dot(moment)
+                    if showsTimes {
+                        Text(moment.time)
+                            .font(.system(size: timeSize, weight: moment.time == current ? .semibold : .regular))
+                            .monospacedDigit()
+                            .foregroundStyle(moment.time == current ? PgColor.accent : PgColor.textSecondary)
+                            .lineLimit(1)
+                            .fixedSize()
+                    }
+                }
             }
         }
         .accessibilityElement(children: .ignore)
@@ -75,20 +88,23 @@ struct QuantityIcon: View {
     }
 }
 
-/// Un medicament din moment: poza cutiei pe toată lățimea, numele, cât și cum. Un singur element VoiceOver.
-/// La textul de accesibilitate numele vine înaintea pozei, ca ora și pastila să încapă pe primul ecran (Q3-02).
-/// E5: dacă familia a fotografiat pastila, cutia și pastila stau una lângă alta, la aceeași înălțime, cu etichete.
+/// Un medicament din moment. Un singur element VoiceOver.
+/// Cu poza pastilei (E5), pastila e vedeta: ea se recunoaște în palmă; cutia stă mică lângă nume.
+/// Fără poza pastilei, cutia sus, mai scundă decât înainte, ca numele și doza să încapă fără derulare.
+/// Pozele se văd întregi (`scaledToFit`), nu tăiate: o capsulă lungă sau o cutie lată nu-și pierd capetele.
+/// La textul de accesibilitate numele vine înaintea pozei, iar miniatura cutiei dispare (Q3-02).
 struct DoseCard: View {
     let dose: DoseElement
     let med: MedicationItem?
     let photoURL: URL?
-    /// E5: nil = fără poza pastilei; cardul arată exact ca înainte
+    /// E5: nil = fără poza pastilei
     let pillPhotoURL: URL?
 
     @Environment(\.dynamicTypeSize) private var typeSize
     @ScaledMetric(relativeTo: .title) private var nameSize: CGFloat = 28
     @ScaledMetric(relativeTo: .title2) private var textSize: CGFloat = 22
-    @ScaledMetric(relativeTo: .title3) private var captionSize: CGFloat = 20
+    @ScaledMetric(relativeTo: .title3) private var captionSize: CGFloat = 17
+    @ScaledMetric(relativeTo: .title) private var thumbSize: CGFloat = 72
 
     /// Explicit, ca apelurile vechi (fără poza pastilei) să rămână valide.
     init(dose: DoseElement, med: MedicationItem?, photoURL: URL?, pillPhotoURL: URL? = nil) {
@@ -102,9 +118,9 @@ struct DoseCard: View {
         VStack(alignment: .leading, spacing: 0) {
             if typeSize.isAccessibilitySize {
                 details
-                photo
+                hero
             } else {
-                photo
+                hero
                 details
             }
         }
@@ -114,17 +130,27 @@ struct DoseCard: View {
         .accessibilityIdentifier("now.dose.\(dose.medid)")
     }
 
+    private var brand: String { med?.product.brand ?? "Medicament" }
+
     private var details: some View {
-        VStack(alignment: .leading, spacing: Spacing.xs) {
-            Text(med?.product.brand ?? "Medicament")
-                .font(.system(size: nameSize, weight: .semibold))
-            HStack(alignment: .firstTextBaseline, spacing: Spacing.xs) {
-                QuantityIcon(qty: dose.qty)
-                Text(SeniorDay.quantityWords(dose.qty, form: med?.product.form))
+        VStack(alignment: .leading, spacing: Spacing.s) {
+            HStack(alignment: .center, spacing: Spacing.s) {
+                if pillPhotoURL != nil && !typeSize.isAccessibilitySize {
+                    boxThumbnail
+                }
+                VStack(alignment: .leading, spacing: Spacing.xxs) {
+                    Text(brand)
+                        .font(.system(size: nameSize, weight: .semibold))
+                    HStack(alignment: .firstTextBaseline, spacing: Spacing.xs) {
+                        QuantityIcon(qty: dose.qty)
+                        Text(SeniorDay.quantityWords(dose.qty, form: med?.product.form))
+                    }
+                    .font(.system(size: textSize, weight: .medium))
+                }
             }
-            .font(.system(size: textSize, weight: .medium))
             Text(SeniorDay.sentence(dose.instruction))
                 .font(.system(size: textSize))
+                .foregroundStyle(PgColor.textSecondary)
         }
         .foregroundStyle(PgColor.textPrimary)
         .fixedSize(horizontal: false, vertical: true)
@@ -133,66 +159,48 @@ struct DoseCard: View {
     }
 
     @ViewBuilder
-    private var photo: some View {
+    private var hero: some View {
         if let pillPhotoURL {
-            photoPair(pillURL: pillPhotoURL)
+            pillHero(pillPhotoURL)
         } else {
-            boxPhoto
+            boxHero
         }
     }
 
-    /// Cutia și pastila, două pătrate egale (deci aceeași înălțime), fiecare cu eticheta dedesubt.
-    /// Doar pastila intră în textul VoiceOver („Pastila de Sintrom”); cutia rămâne ascunsă, ca până acum.
-    private func photoPair(pillURL: URL) -> some View {
-        HStack(alignment: .top, spacing: Spacing.xs) {
-            labeledSquare(url: photoURL, caption: PillPhoto.boxCaption, placeholder: "pills")
-                .accessibilityHidden(true)
-            labeledSquare(url: pillURL, caption: PillPhoto.pillCaption, placeholder: nil)
-                .accessibilityElement(children: .ignore)
-                .accessibilityLabel(PillPhoto.accessibilityLabel(brand: med?.product.brand ?? "medicament"))
-                .accessibilityAddTraits(.isImage)
-                .accessibilityIdentifier("now.pillPhoto.\(dose.medid)")
-        }
-        .padding(Spacing.xs)
-    }
-
-    /// Fără poză reușită: la cutie, pictograma de până acum; la pastilă, doar fundalul (nu se desenează o pastilă).
-    private func labeledSquare(url: URL?, caption: String, placeholder: String?) -> some View {
-        VStack(spacing: Spacing.xxs) {
-            Color.clear
-                .aspectRatio(1, contentMode: .fit)
-                .overlay {
-                    AsyncImage(url: url) { phase in
-                        if let image = phase.image {
-                            image.resizable().scaledToFill()
-                        } else {
-                            ZStack {
-                                PgColor.calmCard
-                                if let placeholder {
-                                    Image(systemName: placeholder)
-                                        .font(.system(size: 40))
-                                        .foregroundStyle(PgColor.textSecondary)
-                                }
-                            }
-                        }
+    /// Pastila mare, întreagă, pe banda nisipie, cu eticheta „Pastila” în colț.
+    /// Fără poză reușită, doar banda: nu se desenează o pastilă în locul ei.
+    private func pillHero(_ url: URL) -> some View {
+        Color.clear
+            .aspectRatio(16 / 9, contentMode: .fit)
+            .overlay {
+                AsyncImage(url: url) { phase in
+                    if let image = phase.image {
+                        image
+                            .resizable()
+                            .scaledToFit()
+                            .clipShape(RoundedRectangle(cornerRadius: Radius.card, style: .continuous))
+                    } else {
+                        Color.clear
                     }
                 }
-                .clipShape(RoundedRectangle(cornerRadius: Radius.card, style: .continuous))
-            Text(caption)
-                .font(.system(size: captionSize, weight: .semibold))
-                .foregroundStyle(PgColor.textSecondary)
-                .fixedSize(horizontal: false, vertical: true)
-        }
-        .frame(maxWidth: .infinity)
+                .padding(Spacing.m)
+            }
+            .background(PgColor.calmCard)
+            .overlay(alignment: .topLeading) { caption(PillPhoto.pillCaption) }
+            .accessibilityElement(children: .ignore)
+            .accessibilityLabel(PillPhoto.accessibilityLabel(brand: med?.product.brand ?? "medicament"))
+            .accessibilityAddTraits(.isImage)
+            .accessibilityIdentifier("now.pillPhoto.\(dose.medid)")
     }
 
-    private var boxPhoto: some View {
+    /// Fără poza pastilei: cutia, întreagă, pe fundalul cardului.
+    private var boxHero: some View {
         Color.clear
-            .aspectRatio(4 / 3, contentMode: .fit)
+            .aspectRatio(16 / 9, contentMode: .fit)
             .overlay {
                 AsyncImage(url: photoURL) { phase in
                     if let image = phase.image {
-                        image.resizable().scaledToFill()
+                        image.resizable().scaledToFit().padding(Spacing.m)
                     } else {
                         Image(systemName: "pills")
                             .font(.system(size: 56))
@@ -205,6 +213,71 @@ struct DoseCard: View {
             .clipped()
             .accessibilityHidden(true)
     }
+
+    /// Cutia, mică, lângă nume: ajută la recunoaștere, dar nu mai ocupă tot cardul.
+    private var boxThumbnail: some View {
+        AsyncImage(url: photoURL) { phase in
+            if let image = phase.image {
+                image.resizable().scaledToFit().padding(Spacing.xxs)
+            } else {
+                Image(systemName: "pills")
+                    .font(.system(size: thumbSize * 0.4))
+                    .foregroundStyle(PgColor.textSecondary)
+            }
+        }
+        .frame(width: thumbSize, height: thumbSize)
+        .background(
+            RoundedRectangle(cornerRadius: Radius.card, style: .continuous)
+                .strokeBorder(PgColor.calmCard, lineWidth: 2))
+        .accessibilityHidden(true)
+    }
+
+    private func caption(_ text: String) -> some View {
+        Text(text)
+            .font(.system(size: captionSize, weight: .semibold))
+            .foregroundStyle(PgColor.textPrimary)
+            .padding(.horizontal, Spacing.s)
+            .padding(.vertical, Spacing.xxs)
+            .background(Capsule().fill(PgColor.surface))
+            .padding(Spacing.s)
+            .accessibilityHidden(true)
+    }
+}
+
+/// Un mesaj liniștit pentru pacient: pictogramă în cerc, textul, apoi butoanele. Fără roșu, fără avertizare.
+private struct CalmNotice<Actions: View>: View {
+    let systemImage: String
+    let text: String
+    let textIdentifier: String?
+    @ViewBuilder let actions: Actions
+
+    @ScaledMetric(relativeTo: .title2) private var textSize: CGFloat = 22
+    @ScaledMetric(relativeTo: .title2) private var iconSize: CGFloat = 44
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: Spacing.m) {
+            HStack(alignment: .top, spacing: Spacing.s) {
+                Image(systemName: systemImage)
+                    .font(.system(size: iconSize * 0.45, weight: .semibold))
+                    .foregroundStyle(PgColor.accent)
+                    .frame(width: iconSize, height: iconSize)
+                    .background(Circle().fill(PgColor.surface))
+                    .accessibilityHidden(true)
+                Text(text)
+                    .font(.system(size: textSize, weight: .medium))
+                    .foregroundStyle(PgColor.textPrimary)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .accessibilityIdentifier(textIdentifier ?? "")
+            }
+            actions
+        }
+        .padding(Spacing.l)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(
+            RoundedRectangle(cornerRadius: Radius.seniorCard, style: .continuous)
+                .fill(PgColor.calmCard))
+    }
 }
 
 /// Cardul liniștit pentru o alertă trimisă și pacientului: fără roșu, fără pictogramă de avertizare.
@@ -212,58 +285,47 @@ struct PatientNoticeCard: View {
     let caregiverName: String?
     let onDismiss: () -> Void
 
-    @ScaledMetric(relativeTo: .title2) private var textSize: CGFloat = 22
-
     var body: some View {
-        VStack(alignment: .leading, spacing: Spacing.m) {
-            Text(message)
-                .font(.system(size: textSize, weight: .medium))
-                .foregroundStyle(PgColor.textPrimary)
-                .fixedSize(horizontal: false, vertical: true)
-                .accessibilityIdentifier("now.patientNotice.text")
+        CalmNotice(systemImage: "phone.fill", text: message, textIdentifier: "now.patientNotice.text") {
             SeniorButton("Am înțeles", prominence: .secondary, identifier: "now.patientNotice.okButton", action: onDismiss)
         }
-        .padding(Spacing.l)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(
-            RoundedRectangle(cornerRadius: Radius.seniorCard, style: .continuous)
-                .fill(PgColor.calmCard))
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier("now.patientNotice")
     }
 
     private var message: String {
         if let name = caregiverName, !name.isEmpty {
-            return "Am observat ceva la pastile și am anunțat-o pe \(name). Nu schimbați nimic până vă sună."
+            return "Am anunțat-o pe \(name) despre pastile. Nu schimbați nimic până vă sună."
         }
-        return "Am observat ceva la pastile și am anunțat familia. Nu schimbați nimic până vă sună cineva."
+        return "Am anunțat familia despre pastile. Nu schimbați nimic până vă sună cineva."
     }
 }
 
 /// Permisiunea pentru notificări, cerută o singură dată, cu motivul spus înainte.
+/// Cele două butoane stau alături când încap, ca întrebarea să nu ocupe jumătate de ecran.
 struct ReminderAskCard: View {
     let onAllow: () -> Void
     let onLater: () -> Void
 
-    @ScaledMetric(relativeTo: .title2) private var textSize: CGFloat = 22
-
     var body: some View {
-        VStack(alignment: .leading, spacing: Spacing.m) {
-            Text("Vă pot aminti cu un sunet când e ora pastilelor, chiar dacă telefonul e închis.")
-                .font(.system(size: textSize, weight: .medium))
-                .foregroundStyle(PgColor.textPrimary)
-                .fixedSize(horizontal: false, vertical: true)
-            SeniorButton("Da, amintiți-mi", systemImage: "bell", prominence: .secondary,
-                         identifier: "now.reminders.allowButton", action: onAllow)
-            SeniorButton("Nu acum", prominence: .secondary, identifier: "now.reminders.laterButton", action: onLater)
+        CalmNotice(
+            systemImage: "bell.fill", text: "Vreți să sune telefonul la ora pastilelor, chiar dacă e închis?",
+            textIdentifier: nil
+        ) {
+            ViewThatFits(in: .horizontal) {
+                HStack(spacing: Spacing.s) { buttons }
+                VStack(spacing: Spacing.s) { buttons }
+            }
         }
-        .padding(Spacing.l)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(
-            RoundedRectangle(cornerRadius: Radius.seniorCard, style: .continuous)
-                .fill(PgColor.calmCard))
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier("now.reminders")
+    }
+
+    @ViewBuilder
+    private var buttons: some View {
+        SeniorButton("Da", systemImage: "bell", prominence: .secondary,
+                     identifier: "now.reminders.allowButton", action: onAllow)
+        SeniorButton("Nu acum", prominence: .secondary, identifier: "now.reminders.laterButton", action: onLater)
     }
 }
 
