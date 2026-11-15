@@ -13,7 +13,7 @@
   </div>
 </header>
 
-<main class="sheet" data-sheet>
+<main class="sheet">
 
   <header class="sheet-head">
     <h1 class="page-title">Lista completă a medicamentelor</h1>
@@ -25,15 +25,13 @@
   <section>
     <h2>Medicamente, pe prescriptori</h2>
     {% if by_prescriber %}
-    {% set ns = namespace(n=0) %}
     <table class="meds compact">
-      <colgroup><col class="c-nr"><col class="c-med"><col class="c-dci"><col class="c-pos"><col class="c-since"></colgroup>
-      <thead><tr><th scope="col">Nr.</th><th scope="col">Medicament</th><th scope="col">DCI · ATC</th><th scope="col">Posologie</th><th scope="col">De când</th></tr></thead>
+      <thead><tr><th scope="col">Medicament</th><th scope="col">DCI · ATC</th><th scope="col">Posologie</th><th scope="col">De când</th></tr></thead>
       {% for who, rows in by_prescriber %}
       <tbody>
-        <tr class="group"><th colspan="5" scope="rowgroup">{{ who if who.startswith("Fără") else "Prescris de: " ~ who }}</th></tr>
-        {% for m in rows %}{% set ns.n = ns.n + 1 %}
-        <tr><td class="nr">{{ ns.n }}</td><th scope="row">{{ m.name }}</th><td>{{ m.dci }} · {{ m.atc }}</td><td>{{ m.print_posology }}</td><td class="nowrap">{{ m.since }}</td></tr>
+        <tr class="group"><th colspan="4" scope="rowgroup">{{ who }}</th></tr>
+        {% for m in rows %}
+        <tr><th scope="row">{{ m.name }}</th><td>{{ m.dci }} · <span class="mono">{{ m.atc }}</span></td><td>{{ m.print_posology }}</td><td class="nowrap">{{ m.since }}</td></tr>
         {% endfor %}
       </tbody>
       {% endfor %}
@@ -58,12 +56,10 @@
     {% set rest = other | selectattr("severity", "equalto", "moderate") | list %}
     {% if rest %}
     <table class="problems compact">
-      <caption>Alerte moderate ({{ rest | length }})</caption>
-      <colgroup><col class="c-nr"><col class="c-alert"><col class="c-src"></colgroup>
-      <thead><tr><th scope="col">Nr.</th><th scope="col">Alertă</th><th scope="col">Sursa</th></tr></thead>
+      <caption>Moderate ({{ rest | length }})</caption>
       <tbody>
       {% for a in rest %}
-        <tr><td class="nr">{{ loop.index }}</td><td>{{ a.title }}{% if a.reviewed %} <span class="tag">{{ a.family_decision_label or a.decision_label or "revizuit" }}</span>{% endif %}</td><td>{{ a.source_label }}</td></tr>
+        <tr><td>{{ a.title }}{% if a.reviewed %} <span class="tag">{{ a.family_decision_label or a.decision_label or "revizuit" }}</span>{% endif %}</td><td class="small">{{ a.source_label }}</td></tr>
       {% endfor %}
       </tbody>
     </table>
@@ -90,5 +86,4 @@
   </section>
 </main>
 <script src="/static/share/share.js" defer></script>
-<script src="/static/share/print.js" defer></script>
 {% endblock %}
