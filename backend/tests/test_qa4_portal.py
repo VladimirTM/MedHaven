@@ -233,9 +233,9 @@ def test_t_qa4_05_accessibility_h1_logout_avatars_and_44px_touch_targets(doctor)
         html = doctor.get(path).text
         assert "<h1" in html and "Graful terapeutic" in html
 
-    # „Ieșire” și „← Pacienții mei” / „← Înapoi la fișă” pe fișă și pe tipărire
+    # „Ieșire” și „‹ Pacienții mei” (back-link) / „← Înapoi la fișă” pe fișă și pe tipărire
     page_html = doctor.get(PORTAL).text
-    assert 'action="/portal/logout"' in page_html and "Ieșire" in page_html and "← Pacienții mei" in page_html
+    assert 'action="/portal/logout"' in page_html and "Ieșire" in page_html and 'class="back-link" href="/portal"' in page_html and "Pacienții mei</a>" in page_html
     print_html = doctor.get(f"{PORTAL}/print").text
     assert 'action="/portal/logout"' in print_html and "Ieșire" in print_html and "← Înapoi la fișă" in print_html
 
