@@ -1,0 +1,65 @@
+{% extends "family_base.html" %}
+{# Fișa trimisă de medicul de familie din portal: o copie fixă, de la momentul trimiterii. #}
+{% block page_title %}Fișa de la medic{% endblock %}
+{% block main %}
+<div class="family-head">
+  <p class="crumb"><a class="back-link" href="/acasa"><svg class="back-chevron" viewBox="0 0 12 20" aria-hidden="true"><path d="M10 2 2 10l8 8"/></svg>Azi</a></p>
+  <h1 class="page-title">Fișa de la medicul de familie</h1>
+  {% if sheet %}<p class="muted">Trimisă de {{ sheet.doctor }} {{ when }}{% if not is_latest %} · nu e cea mai nouă{% endif %}</p>{% endif %}
+</div>
+{% if not sheet %}
+<p class="family-empty">Medicul de familie nu a trimis încă nicio fișă. Când o trimite din portal, apare aici și în Noutăți, în aplicație.</p>
+{% else %}
+{% if sheet.note %}
+<div class="family-todo sheet-note">
+  <p class="family-todo-head">Mesajul medicului</p>
+  <p>„{{ sheet.note }}”</p>
+</div>
+{% endif %}
+
+<section class="sheet-part" aria-labelledby="h-decisions">
+  <h2 id="h-decisions">Deciziile medicului</h2>
+  {% if sheet.decisions %}
+  <ul class="sheet-decisions">
+    {% for d in sheet.decisions %}
+    <li class="sheet-decision">
+      <p class="sheet-decision-title">{{ d.title }}</p>
+      {% if d.meds %}<p class="alert-meds">{{ d.meds | join(" · ") }}</p>{% endif %}
+      <p class="family-decision"><strong>{{ d.label }}</strong>{% if d.note %}<br><span class="note">„{{ d.note }}”</span>{% endif %}</p>
+    </li>
+    {% endfor %}
+  </ul>
+  {% else %}
+  <p class="muted">Medicul nu a luat decizii pe alerte în această fișă.</p>
+  {% endif %}
+  {% if open_text %}<p class="small muted">Încă {{ open_text }} de discutat cu medicul, la <a href="/acasa/verificat">De verificat</a>.</p>{% endif %}
+</section>
+
+<section class="sheet-part" aria-labelledby="h-sheet-meds">
+  <h2 id="h-sheet-meds">Medicamentele, cum se iau</h2>
+  {% if sheet.meds %}
+  <ul class="med-list">
+    {% for m in sheet.meds %}
+    <li class="med">
+      <p class="med-name">{{ m.name }}</p>
+      <p class="med-how">{{ m.how }}</p>
+      <p class="med-who">{{ m.who }}</p>
+    </li>
+    {% endfor %}
+  </ul>
+  {% else %}
+  <p class="muted">Fișa nu are medicamente.</p>
+  {% endif %}
+  <p class="small muted">Lista e cea din ziua trimiterii. Lista de acum e la <a href="/acasa/medicamente">Medicamentele mele</a>.</p>
+</section>
+
+{% if older %}
+<section class="sheet-part" aria-labelledby="h-older">
+  <h2 id="h-older">Alte fișe</h2>
+  <ul class="sheet-older">
+    {% for o in older %}<li><a href="/acasa/fisa?id={{ o.id }}">De la {{ o.doctor }}, {{ o.when }}</a></li>{% endfor %}
+  </ul>
+</section>
+{% endif %}
+{% endif %}
+{% endblock %}

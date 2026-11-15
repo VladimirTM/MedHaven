@@ -6,6 +6,15 @@
   <h1 class="page-title">Azi</h1>
   {% if progress %}<p class="muted">{{ progress }}{% if all_done %} · ați terminat pastilele de azi{% endif %}</p>{% endif %}
 </div>
+{% if sheet_banner %}
+<a class="sheet-banner" href="/acasa/fisa">
+  <span class="sheet-banner-text">
+    <span class="sheet-banner-title">Fișa de la medicul de familie</span>
+    <span class="small muted">Trimisă de {{ sheet_banner.doctor }} {{ sheet_banner.when }}</span>
+  </span>
+  <svg class="sheet-banner-chevron" viewBox="0 0 12 20" aria-hidden="true"><path d="m2 2 8 8-8 8"/></svg>
+</a>
+{% endif %}
 {% if empty %}
 <p class="family-empty">{{ empty_text }}</p>
 {% else %}

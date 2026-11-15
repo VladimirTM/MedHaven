@@ -537,6 +537,53 @@ def review_event(alert: Json, decision: str, note: str, at: str, suffix: str, *,
     }
 
 
+SHEET_EVENT_BODY = "Lista de medicamente și deciziile medicului sunt pe pagina familiei (Setări → Deschide pe web)."
+
+
+def sheet_snapshot(ctx: Json, doctor_name: str, note: str, at: str, suffix: str) -> Json:
+    """Fișa trimisă familiei: o copie fixă a fișei de consultație (`page_context`), în cuvintele familiei. Doar
+    medicamentele active, posologia în cuvinte și deciziile medicului; alertele grave nediscutate apar doar ca număr."""
+    alerts = ctx["alerts"]
+    return {
+        "id": f"sh_{suffix}",
+        "sent_at": at,
+        "doctor": doctor_name,
+        "note": note,
+        "meds": [
+            {"name": m["name"], "how": m["how"] if m["how"] != "–" else m["posology"], "who": m["who"]} for m in ctx["meds"]
+        ],
+        "decisions": [
+            {
+                "title": a["title"],
+                "meds": a["meds"],
+                "label": a["family_decision_label"],
+                "note": (a.get("resolution") or {}).get("note") or "",
+            }
+            for a in alerts
+            if a["reviewed"] and a["family_decision_label"]
+        ],
+        # doar cele grave: cele moderate (multe cu mâncarea) sunt oricum la „De verificat”
+        "open": sum(1 for a in alerts if not a["reviewed"] and a["grave"]),
+    }
+
+
+def sheet_event(sheet: Json) -> Json:
+    """Evenimentul din Noutăți pentru fișa trimisă. Tipul `doctor_reviewed` din contract, fără alertă și fără
+    severitate, ca aplicația să-l arate fără schimbări de contract („Decizia medicului de familie”)."""
+    who = sheet["doctor"][:1].upper() + sheet["doctor"][1:]
+    return {
+        "id": f"ev_sheet_{sheet['id'].removeprefix('sh_')}",
+        "at": sheet["sent_at"],
+        "type": "doctor_reviewed",
+        "severity": None,
+        "title": f"{who} a trimis fișa de la consultație",
+        "body": (f"„{sheet['note']}” " if sheet["note"] else "") + SHEET_EVENT_BODY,
+        "med_ids": [],
+        "alert_id": None,
+        "checkin_id": None,
+    }
+
+
 def _number(n: int) -> str:
     """„3”, „20 de” (aceeași regulă ca `plural`)."""
     return str(n) if n == 0 or 0 < n % 100 < 20 else f"{n} de"

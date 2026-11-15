@@ -13,6 +13,21 @@
   </div>
 </header>
 
+<section class="send-sheet screen-only" id="trimite" aria-labelledby="h-send">
+  <h2 id="h-send">Trimiteți fișa familiei</h2>
+  <p class="muted">Familia primește o copie de acum: medicamentele, cu posologia în cuvinte, și deciziile dumneavoastră pe alerte. O vede pe pagina web a familiei și în Noutăți, în aplicație.</p>
+  {% if sent %}
+  <p class="send-sheet-state" role="status">✓ Trimisă familiei{% if last_sent %} {{ last_sent }}{% endif %}.</p>
+  {% elif last_sent %}
+  <p class="small muted">Ultima trimisă {{ last_sent }}.</p>
+  {% endif %}
+  <form class="send-sheet-form" method="post" action="{{ base }}/send-sheet">
+    <label for="sheet-note">Mesaj pentru pacient și familie <span class="muted">(opțional)</span></label>
+    <textarea class="note-input" id="sheet-note" name="note" rows="3" maxlength="1000" placeholder="De exemplu: revenim la control peste o lună, cu analizele."></textarea>
+    <button class="btn" type="submit">Trimite familiei</button>
+  </form>
+</section>
+
 <main class="sheet">
 
   <header class="sheet-head">

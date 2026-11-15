@@ -57,6 +57,10 @@ CREATE TABLE IF NOT EXISTS pillbox(
     patient_id TEXT NOT NULL REFERENCES patients(id) ON DELETE CASCADE, day TEXT NOT NULL, moment_label TEXT NOT NULL,
     signature TEXT NOT NULL, prepared_at TEXT NOT NULL, PRIMARY KEY (patient_id, day, moment_label)
 );
+CREATE TABLE IF NOT EXISTS doctor_sheets(
+    patient_id TEXT NOT NULL REFERENCES patients(id) ON DELETE CASCADE, id TEXT NOT NULL, sent_at TEXT NOT NULL,
+    data TEXT NOT NULL, PRIMARY KEY (patient_id, id)
+);
 CREATE TABLE IF NOT EXISTS gtin_cache(gtin TEXT PRIMARY KEY, product TEXT NOT NULL);
 CREATE TABLE IF NOT EXISTS doctors(id TEXT PRIMARY KEY, name TEXT NOT NULL, code_hash TEXT NOT NULL UNIQUE);
 CREATE TABLE IF NOT EXISTS doctor_sessions(
@@ -289,11 +293,40 @@ class Store:
                 "SELECT count(*), max(rowid) FROM feed_events WHERE patient_id = ?",
                 "SELECT alert_id, status, resolution FROM alert_state WHERE patient_id = ? ORDER BY alert_id",
                 "SELECT day, moment_label, signature FROM pillbox WHERE patient_id = ? ORDER BY day, moment_label",
+                "SELECT count(*), max(rowid) FROM doctor_sheets WHERE patient_id = ?",
             ):
                 for row in self._conn.execute(sql, (pid,)):
                     h.update(repr(row).encode())
                 h.update(b"|")
         return h.hexdigest()
+
+    # ---------------------------------------------------------------- fișa trimisă familiei de medicul de familie
+
+    def send_sheet(self, pid: str, sheet: Json, event: Json) -> tuple[Json, bool]:
+        """Fișa (o copie fixă, de la momentul trimiterii) și evenimentul din Noutăți, sub același lock. Dacă ultima fișă
+        trimisă are același conținut (dublu-click, reîncercare), nu se adaugă nimic: întoarce fișa salvată și False."""
+        with self._lock, self._conn:
+            row = self._conn.execute(
+                "SELECT data FROM doctor_sheets WHERE patient_id = ? ORDER BY sent_at DESC, rowid DESC LIMIT 1", (pid,)
+            ).fetchone()
+            if row:
+                saved = json.loads(row[0])
+                if _sheet_content(saved) == _sheet_content(sheet):
+                    return saved, False
+            self._conn.execute(
+                "INSERT INTO doctor_sheets(patient_id, id, sent_at, data) VALUES (?, ?, ?, ?)",
+                (pid, sheet["id"], sheet["sent_at"], _dump(sheet)),
+            )
+            self._conn.execute(
+                "INSERT OR REPLACE INTO feed_events(patient_id, id, at, data) VALUES (?, ?, ?, ?)",
+                (pid, event["id"], event["at"], _dump(event)),
+            )
+        return sheet, True
+
+    def list_sheets(self, pid: str) -> list[Json]:
+        """Fișele trimise, cea mai nouă prima."""
+        rows = self._q("SELECT data FROM doctor_sheets WHERE patient_id = ? ORDER BY sent_at DESC, rowid DESC", (pid,))
+        return [json.loads(r[0]) for r in rows]
 
     # ---------------------------------------------------------------- cutiuța săptămânală (E3)
 
@@ -392,6 +425,10 @@ class Store:
 
 def _code_hash(code: str) -> str:
     return hashlib.sha256(code.strip().encode()).hexdigest()
+
+
+def _sheet_content(sheet: Json) -> Json:
+    return {k: v for k, v in sheet.items() if k not in ("id", "sent_at")}
 
 
 def _dump(obj: Any) -> str:

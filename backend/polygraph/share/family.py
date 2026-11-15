@@ -366,3 +366,35 @@ def quantity_total(doses: list[Json]) -> str:
     if whole == 1 and not half:
         return "1 pastilă"
     return f"{whole}{' ½' if half else ''} pastile"
+
+
+def sent_when(raw: str, today: date) -> str:
+    """„azi, 11:52” / „joi, 12 nov., 14:00”: `relative_day` în mijlocul propoziției."""
+    text = relative_day(raw, today)
+    return text[:1].lower() + text[1:]
+
+
+def sheet_context(sheets: list[Json], wanted: str | None, today: date) -> Json | None:
+    """Pagina „Fișa de la medic”: fișa cerută (implicit cea mai nouă) și lista celorlalte. None dacă nu e nicio fișă
+    sau id-ul nu e al acestui pacient."""
+    if not sheets:
+        return None
+    sheet = next((s for s in sheets if s["id"] == wanted), None) if wanted else sheets[0]
+    if sheet is None:
+        return None
+    return {
+        "sheet": sheet,
+        "when": sent_when(sheet["sent_at"], today),
+        "is_latest": sheet["id"] == sheets[0]["id"],
+        "open_text": plural(sheet["open"], "alertă gravă", "alerte grave") if sheet["open"] else None,
+        "older": [
+            {"id": s["id"], "doctor": s["doctor"], "when": sent_when(s["sent_at"], today)} for s in sheets if s is not sheet
+        ],
+    }
+
+
+def sheet_banner(sheets: list[Json], today: date) -> Json | None:
+    """Cardul de pe „Azi” pentru ultima fișă trimisă de medic."""
+    if not sheets:
+        return None
+    return {"doctor": sheets[0]["doctor"], "when": sent_when(sheets[0]["sent_at"], today)}

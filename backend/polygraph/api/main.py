@@ -57,11 +57,22 @@ from polygraph.share.family import (  # noqa: E402
     dose_key,
     hours_context,
     meds_context,
+    sent_when,
+    sheet_banner,
+    sheet_context,
     today_context,
     week_context,
     week_start,
 )
-from polygraph.share.view import page_context, patient_card, portal_summary, review_event, whatif_context  # noqa: E402
+from polygraph.share.view import (  # noqa: E402
+    page_context,
+    patient_card,
+    portal_summary,
+    review_event,
+    sheet_event,
+    sheet_snapshot,
+    whatif_context,
+)
 from polygraph.store import MedIdTaken, Store  # noqa: E402
 from polygraph.voice import can_i_take  # noqa: E402
 from polygraph.voice.correlate import correlate, feed_event, reply_text  # noqa: E402
@@ -884,10 +895,26 @@ def portal_patient(pid: str, request: Request) -> HTMLResponse:
 
 
 @app.get("/portal/patients/{pid}/print", response_class=HTMLResponse)
-def portal_print(pid: str, request: Request) -> HTMLResponse:
+def portal_print(pid: str, request: Request, trimisa: int = 0) -> HTMLResponse:
     if doctor_patient(request, pid) is None:
         return expired_page(not_in_list=True) if current_doctor(request) else login_page(f"/portal/patients/{pid}/print")
-    return page("print.html", base=f"/portal/patients/{pid}", **patient_context(pid))
+    sheets = store().list_sheets(pid)
+    last_sent = sent_when(sheets[0]["sent_at"], today()) if sheets else None
+    return page("print.html", base=f"/portal/patients/{pid}", sent=bool(trimisa), last_sent=last_sent, **patient_context(pid))
+
+
+@app.post("/portal/patients/{pid}/send-sheet")
+def portal_send_sheet(pid: str, request: Request, note: Annotated[str, Form(max_length=1000)] = "") -> Response:
+    """Trimite familiei o copie fixă a fișei de consultație: pagina familiei („Fișa de la medic”) și Noutăți în
+    aplicație. Rută internă a portalului (formular, Post/Redirect/Get), nu face parte din API-ul aplicației."""
+    doctor = doctor_patient(request, pid)
+    if doctor is None:
+        return expired_page(not_in_list=True) if current_doctor(request) else login_page(f"/portal/patients/{pid}/print")
+    at = datetime.now(TZ).replace(microsecond=0).isoformat()
+    sheet = sheet_snapshot(patient_context(pid), doctor["name"], note.strip(), at, secrets.token_hex(4))
+    _, added = store().send_sheet(pid, sheet, sheet_event(sheet))
+    LOG.info("FIȘĂ      %s, trimisă familiei%s", pid, "" if added else " (aceeași ca ultima, nimic nou)")
+    return RedirectResponse(f"/portal/patients/{pid}/print?trimisa=1#trimite", status_code=303)
 
 
 @app.get("/portal/patients/{pid}/graph", response_class=HTMLResponse)
@@ -1145,8 +1172,23 @@ def home_today(request: Request) -> HTMLResponse:
     meds = store().list_meds(pid)
     sched = build_schedule(patient, meds, today(), kb())
     return home_page(
-        "family_today.html", patient, "today", request, **today_context(sched, meds, store().list_doses(pid), datetime.now(TZ))
+        "family_today.html",
+        patient,
+        "today",
+        request,
+        sheet_banner=sheet_banner(store().list_sheets(pid), today()),
+        **today_context(sched, meds, store().list_doses(pid), datetime.now(TZ)),
     )
+
+
+@app.get("/acasa/fisa", response_class=HTMLResponse)
+def home_sheet(request: Request, sheet_id: Annotated[str | None, Query(alias="id", max_length=64)] = None) -> HTMLResponse:
+    """Fișa trimisă de medicul de familie din portal (implicit cea mai nouă; `id` pentru una mai veche)."""
+    patient = home_patient(request)
+    if patient is None:
+        return home_enter_page()
+    ctx = sheet_context(store().list_sheets(patient["id"]), sheet_id, today())
+    return home_page("family_sheet.html", patient, "sheet", request, **(ctx or {"sheet": None}))
 
 
 @app.post("/acasa/doze")
