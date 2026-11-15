@@ -1,4 +1,4 @@
-# Reguli pentru agenții de cod (PolyGraph)
+# Reguli pentru agenții de cod (MedHaven)
 
 Citește întâi [`CONTRIBUTING.md`](CONTRIBUTING.md) și tot folderul `contracts/` (sursa de adevăr; nu-l modifica decât dacă task-ul o cere explicit). Planul, cu prompturile fiecărei etape, e în [`docs/PLAN.md`](docs/PLAN.md).
 

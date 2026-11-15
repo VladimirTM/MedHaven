@@ -38,7 +38,7 @@ Maria, 78 de ani, are rețete de la cinci medici și ia și ce cumpără singur�
 
 **De spus**
 
-Pozezi cutiile și rețeta; PolyGraph construiește graful terapeutic și găsește interacțiunile, dublurile și medicamentele nepotrivite vârstei. Maria primește un program cu cât mai puține momente pe zi și poate spune cu voce cum se simte. Ana și medicul de familie văd aceeași fișă, cu aceleași alerte.
+Pozezi cutiile și rețeta; MedHaven construiește graful terapeutic și găsește interacțiunile, dublurile și medicamentele nepotrivite vârstei. Maria primește un program cu cât mai puține momente pe zi și poate spune cu voce cum se simte. Ana și medicul de familie văd aceeași fișă, cu aceleași alerte.
 
 ## 4. Demo (3 minute)
 
@@ -48,7 +48,7 @@ Pozezi cutiile și rețeta; PolyGraph construiește graful terapeutic și găse�
 
 **De spus** (scenariul din secțiunea 16: scanare → alerte și graf → programul Mariei → check-in vocal → rețeta ORL → portalul medicului → fișa de tipărit)
 
-Maria are 78 de ani, cinci medici și opt cutii. Vă arătăm cum le scanează Ana, ce găsește PolyGraph, ce vede Maria și ce vede medicul de familie. Plan B pentru orice pas: modul demo și video-ul de rezervă.
+Maria are 78 de ani, cinci medici și opt cutii. Vă arătăm cum le scanează Ana, ce găsește MedHaven, ce vede Maria și ce vede medicul de familie. Plan B pentru orice pas: modul demo și video-ul de rezervă.
 
 ## 5. Cum e construit
 
@@ -87,4 +87,4 @@ Familia plătește un abonament mic; medicul de familie primește gratuit portal
 
 **De spus**
 
-PolyGraph nu pune diagnostice și nu spune „opriți medicamentul”; spune „discutați cu medicul de familie”. Datele de sănătate se partajează doar cu un token care expiră în 72 de ore. Știm că un software care dă informații pentru decizii terapeutice poate fi dispozitiv medical și pregătim drumul spre conformitate MDR, cu un specialist în reglementare.
+MedHaven nu pune diagnostice și nu spune „opriți medicamentul”; spune „discutați cu medicul de familie”. Datele de sănătate se partajează doar cu un token care expiră în 72 de ore. Știm că un software care dă informații pentru decizii terapeutice poate fi dispozitiv medical și pregătim drumul spre conformitate MDR, cu un specialist în reglementare.

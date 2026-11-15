@@ -1,10 +1,12 @@
-# PolyGraph: planul proiectului pentru hackathon (~30 h de lucru, 2 developeri, iOS nativ)
+# MedHaven: planul proiectului pentru hackathon (~30 h de lucru, 2 developeri, iOS nativ)
+
+Numele produsului: MedHaven (fost PolyGraph). Numele intern din cod rămâne polygraph.
 
 **Track:** The Bloom (Connected Communities, Mobility & Healthcare) → **Medical Renaissance**
 **Platformă:** aplicație **iOS nativă (SwiftUI)**, backend Python. Fără Android: echipa are două MacBook-uri și două iPhone-uri, iar demo-ul se face pe iPhone.
-**Repo:** [github.com/VladimirTM/PolyGraph](https://github.com/VladimirTM/PolyGraph) (local: `~/Git/PolyGraph`)
+**Repo:** [github.com/VladimirTM/MedHaven](https://github.com/VladimirTM/MedHaven) (local: `~/Git/PolyGraph`)
 
-> **Pe scurt (15.11.2026, 02:15, `main` la [#58](https://github.com/VladimirTM/PolyGraph/pull/58)):** tot MVP-ul (F1–F10), bonusurile X1 și X2, reparațiile din Q3 (Q3F0–Q3F6), QA1–QA4, QA5.1–QA5.2, J-1 (rețeaua locală, #52, #53), **E0, E1, E2, E3, E6** ([#55](https://github.com/VladimirTM/PolyGraph/pull/55), cu turul de review în [#57](https://github.com/VladimirTM/PolyGraph/pull/57)), **E5** ([#58](https://github.com/VladimirTM/PolyGraph/pull/58), fără pozele demo) și reparația Q4-01 (durata lipită de posologie, [#56](https://github.com/VladimirTM/PolyGraph/pull/56)) sunt în `main`. **E4 (stocul) e tăiat:** contractul nu era gata la 00:15, deci trece în secțiunea 19 (regula din 14.6). **Urmează:** testele rămase din E pe iPhone și pe simulator (14.6), apoi S4 (feature freeze, D 09:30), Q4, D1 și D2. Statusul complet e în [secțiunea 7](#7-statusul-pe-scurt), iar ce are de făcut fiecare în [Partea III](#partea-iii--ce-e-de-făcut).
+> **Pe scurt (15.11.2026, 02:15, `main` la [#58](https://github.com/VladimirTM/MedHaven/pull/58)):** tot MVP-ul (F1–F10), bonusurile X1 și X2, reparațiile din Q3 (Q3F0–Q3F6), QA1–QA4, QA5.1–QA5.2, J-1 (rețeaua locală, #52, #53), **E0, E1, E2, E3, E6** ([#55](https://github.com/VladimirTM/MedHaven/pull/55), cu turul de review în [#57](https://github.com/VladimirTM/MedHaven/pull/57)), **E5** ([#58](https://github.com/VladimirTM/MedHaven/pull/58), fără pozele demo) și reparația Q4-01 (durata lipită de posologie, [#56](https://github.com/VladimirTM/MedHaven/pull/56)) sunt în `main`. **E4 (stocul) e tăiat:** contractul nu era gata la 00:15, deci trece în secțiunea 19 (regula din 14.6). **Urmează:** testele rămase din E pe iPhone și pe simulator (14.6), apoi S4 (feature freeze, D 09:30), Q4, D1 și D2. Statusul complet e în [secțiunea 7](#7-statusul-pe-scurt), iar ce are de făcut fiecare în [Partea III](#partea-iii--ce-e-de-făcut).
 
 ## Cum e organizat documentul
 
@@ -87,7 +89,7 @@ Le spunem explicit, în pitch și în aplicație (secțiunea 2.4):
 - „Opresc medicamentul X?” / „Ce doză iau?”: nu răspundem; trimitem la medicul de familie.
 - „Ce boală am?” din simptome: nu diagnosticăm; corelăm doar cu medicamentele și escaladăm.
 - „Pot să iau X?” cu răspunsul „da”: lipsa unei alerte nu înseamnă că un medicament e sigur (decizia de la 5.2).
-- Farmacistul ca utilizator: pagina lui a ieșit din produs la B6 ([PR #23](https://github.com/VladimirTM/PolyGraph/pull/23)); singurul utilizator profesionist e medicul de familie.
+- Farmacistul ca utilizator: pagina lui a ieșit din produs la B6 ([PR #23](https://github.com/VladimirTM/MedHaven/pull/23)); singurul utilizator profesionist e medicul de familie.
 - Importul automat din rețeta electronică CNAS: nu la hackathon (secțiunea 6).
 
 ## 4. Rolurile și cum circulă datele
@@ -186,53 +188,53 @@ Cele două surse se completează: CNAS are lista oficială a rețetelor, PolyGra
 
 ## 7. Statusul pe scurt
 
-**15.11.2026, 02:15, `main` la [#58](https://github.com/VladimirTM/PolyGraph/pull/58).** S0–S3 sunt trecute (S1–S3 de facto, fără review Q, pentru că Q0 nu era gata). `make check` are 437 de teste după #55 (353 după Q3F4), `make demo-check` e verde cu pasul X1, iar `PolyGraphTests` sunt verzi pe simulator. Detaliile fiecărei etape (checklist, prompt, teste) sunt în Anexa B (etapele A / B) și Anexa C (QA și Q3).
+**15.11.2026, 02:15, `main` la [#58](https://github.com/VladimirTM/MedHaven/pull/58).** S0–S3 sunt trecute (S1–S3 de facto, fără review Q, pentru că Q0 nu era gata). `make check` are 437 de teste după #55 (353 după Q3F4), `make demo-check` e verde cu pasul X1, iar `PolyGraphTests` sunt verzi pe simulator. Detaliile fiecărei etape (checklist, prompt, teste) sunt în Anexa B (etapele A / B) și Anexa C (QA și Q3).
 
 ### 7.1 Etapele, pe rând
 
 | Etapa | Cine | Status | PR | Ce a ieșit / ce rămâne |
 |---|---|---|---|---|
-| P0 repo, contracte, mock | amândoi | ✅ | [#1](https://github.com/VladimirTM/PolyGraph/pull/1), [#2](https://github.com/VladimirTM/PolyGraph/pull/2) | `contracts/`, mock server, Makefile, CI, proiectul Xcode pe ambele iPhone-uri |
-| A1 schelet iOS, tokeni, client API | Dev A | ✅ | [#8](https://github.com/VladimirTM/PolyGraph/pull/8) | aplicația pe mock, pe ambele iPhone-uri și pe simulator |
-| B1 `kb.sqlite` | Dev B | ✅ | [#4](https://github.com/VladimirTM/PolyGraph/pull/4) | `make kb` în ~1,5 s; `brands.txt` pentru OCR |
-| A2 scanarea | Dev A | ✅ | [#15](https://github.com/VladimirTM/PolyGraph/pull/15) | cutie (DataMatrix + poză) și rețetă, confirmarea, avertizările; **rămân cutiile fizice în lumina sălii (T-A2-03)** |
-| B2 motorul + graful | Dev B | ✅ | [#7](https://github.com/VladimirTM/PolyGraph/pull/7) | exact `expected_alerts.json` (27 / 33 cu Fromilid) în ~10 ms |
-| B3 extracția | Dev B | ✅ | [#9](https://github.com/VladimirTM/PolyGraph/pull/9), [#11](https://github.com/VladimirTM/PolyGraph/pull/11), [#17](https://github.com/VladimirTM/PolyGraph/pull/17) | capturile OCR din `demo/ocr/` potrivite fără Gemini |
-| A3 medicamente, alerte, graf | Dev A | ✅ | [#19](https://github.com/VladimirTM/PolyGraph/pull/19) | modul aparținător; graful local, offline |
-| B4 solverul de program | Dev B | ✅ | [#12](https://github.com/VladimirTM/PolyGraph/pull/12), [#13](https://github.com/VladimirTM/PolyGraph/pull/13) | exact `expected_schedule.json` (5 momente) în ~4 ms; `POST /doses` idempotent |
-| A4 modul senior | Dev A | ✅ | [#20](https://github.com/VladimirTM/PolyGraph/pull/20) | „Acum”, „Ziua de azi”, „Am luat”, vocea, notificările |
-| B5 simptomele | Dev B | ✅ | [#16](https://github.com/VladimirTM/PolyGraph/pull/16) | `/checkins`, `/feed` reale |
-| A5 check-in vocal + Noutăți | Dev A | ✅ | [#22](https://github.com/VladimirTM/PolyGraph/pull/22) | încercat pe două iPhone-uri |
-| B6 portalul medicului + tipărirea | Dev B | ✅ | [#21](https://github.com/VladimirTM/PolyGraph/pull/21), [#23](https://github.com/VladimirTM/PolyGraph/pull/23) | `/portal` cu cod, lista, decizia + nota, tipărirea în 2 pagini A4, QR-ul |
-| A6 QR, modul demo, accesibilitatea | Dev A | ✅ | [#25](https://github.com/VladimirTM/PolyGraph/pull/25) | T-A6-01/02 verzi |
-| B7 demo hardening | Dev B | ✅ | [#26](https://github.com/VladimirTM/PolyGraph/pull/26) | `make demo`, `make demo-check`, istoricul demo, `/demo/missed-dose` |
-| X1 „Pot să iau…?” | Dev B | ✅ | [#30](https://github.com/VladimirTM/PolyGraph/pull/30) | răspunsul pe severități (5.2); merge fără schimbări în app |
+| P0 repo, contracte, mock | amândoi | ✅ | [#1](https://github.com/VladimirTM/MedHaven/pull/1), [#2](https://github.com/VladimirTM/MedHaven/pull/2) | `contracts/`, mock server, Makefile, CI, proiectul Xcode pe ambele iPhone-uri |
+| A1 schelet iOS, tokeni, client API | Dev A | ✅ | [#8](https://github.com/VladimirTM/MedHaven/pull/8) | aplicația pe mock, pe ambele iPhone-uri și pe simulator |
+| B1 `kb.sqlite` | Dev B | ✅ | [#4](https://github.com/VladimirTM/MedHaven/pull/4) | `make kb` în ~1,5 s; `brands.txt` pentru OCR |
+| A2 scanarea | Dev A | ✅ | [#15](https://github.com/VladimirTM/MedHaven/pull/15) | cutie (DataMatrix + poză) și rețetă, confirmarea, avertizările; **rămân cutiile fizice în lumina sălii (T-A2-03)** |
+| B2 motorul + graful | Dev B | ✅ | [#7](https://github.com/VladimirTM/MedHaven/pull/7) | exact `expected_alerts.json` (27 / 33 cu Fromilid) în ~10 ms |
+| B3 extracția | Dev B | ✅ | [#9](https://github.com/VladimirTM/MedHaven/pull/9), [#11](https://github.com/VladimirTM/MedHaven/pull/11), [#17](https://github.com/VladimirTM/MedHaven/pull/17) | capturile OCR din `demo/ocr/` potrivite fără Gemini |
+| A3 medicamente, alerte, graf | Dev A | ✅ | [#19](https://github.com/VladimirTM/MedHaven/pull/19) | modul aparținător; graful local, offline |
+| B4 solverul de program | Dev B | ✅ | [#12](https://github.com/VladimirTM/MedHaven/pull/12), [#13](https://github.com/VladimirTM/MedHaven/pull/13) | exact `expected_schedule.json` (5 momente) în ~4 ms; `POST /doses` idempotent |
+| A4 modul senior | Dev A | ✅ | [#20](https://github.com/VladimirTM/MedHaven/pull/20) | „Acum”, „Ziua de azi”, „Am luat”, vocea, notificările |
+| B5 simptomele | Dev B | ✅ | [#16](https://github.com/VladimirTM/MedHaven/pull/16) | `/checkins`, `/feed` reale |
+| A5 check-in vocal + Noutăți | Dev A | ✅ | [#22](https://github.com/VladimirTM/MedHaven/pull/22) | încercat pe două iPhone-uri |
+| B6 portalul medicului + tipărirea | Dev B | ✅ | [#21](https://github.com/VladimirTM/MedHaven/pull/21), [#23](https://github.com/VladimirTM/MedHaven/pull/23) | `/portal` cu cod, lista, decizia + nota, tipărirea în 2 pagini A4, QR-ul |
+| A6 QR, modul demo, accesibilitatea | Dev A | ✅ | [#25](https://github.com/VladimirTM/MedHaven/pull/25) | T-A6-01/02 verzi |
+| B7 demo hardening | Dev B | ✅ | [#26](https://github.com/VladimirTM/MedHaven/pull/26) | `make demo`, `make demo-check`, istoricul demo, `/demo/missed-dose` |
+| X1 „Pot să iau…?” | Dev B | ✅ | [#30](https://github.com/VladimirTM/MedHaven/pull/30) | răspunsul pe severități (5.2); merge fără schimbări în app |
 | X2 „medic nou” live | – | ✅ | (B7) | alertele grave după Fromilid ajung în Noutăți și în portal |
 | X3 stocul · X4 explicații LLM | – | ⚠️ sărite | – | decizia de la 5.2 |
-| Q0 infrastructura de review | agent | ✅ | [#31](https://github.com/VladimirTM/PolyGraph/pull/31) | `make review Q=…`, `TOUR=EdgeCaseTour` |
+| Q0 infrastructura de review | agent | ✅ | [#31](https://github.com/VladimirTM/MedHaven/pull/31) | `make review Q=…`, `TOUR=EdgeCaseTour` |
 | Q1, Q2 | agent | ⚠️ nerulate | – | S1 și S2 trecute de facto; Q3 a acoperit tot MVP-ul |
-| Q3 turul agresiv pe aplicație | agent | ✅ | [#32](https://github.com/VladimirTM/PolyGraph/pull/32) | 41 de constatări; reparațiile Q3F0–Q3F6 |
-| Paginile web refăcute + skill-ul readus + QA0 | Dev B | ✅ | [#33](https://github.com/VladimirTM/PolyGraph/pull/33) | vezi 7.2 |
-| Q3F0 `kb.sqlite` la zi | Dev B | ✅ | [#34](https://github.com/VladimirTM/PolyGraph/pull/34) | `make demo` avertizează când `kb.sqlite` e vechi |
-| Q3F2 vocea și scanarea pe backend | Dev B | ✅ | [#35](https://github.com/VladimirTM/PolyGraph/pull/35) | simptome în cuvinte obișnuite, rețete pe DCI |
-| Q3F1 modul senior | Dev A | ✅ | [#36](https://github.com/VladimirTM/PolyGraph/pull/36) | „Încearcă din nou”, `dayDone` adevărat, coada persistată |
-| Q3F3 robustețea API | Dev B | ✅ | [#37](https://github.com/VladimirTM/PolyGraph/pull/37) | `since` inclusiv, `POST /meds` concurent, erorile în română |
-| Q3F4 aparținătorul și consistența cu web-ul | Dev A (+ B) | ✅ | [#38](https://github.com/VladimirTM/PolyGraph/pull/38), [#48](https://github.com/VladimirTM/PolyGraph/pull/48) | T-Q3F4-03 închis în #48 (textul din bare în culoarea etichetelor; „Contrast failed” din audit pe sticlă acceptat ca fals pozitiv, 14.11) |
-| Q3F5 polish | Dev A | ✅ | [#39](https://github.com/VladimirTM/PolyGraph/pull/39) | **amânate Q3-36 și Q3-37; turul T-Q3F5-01 la final** |
-| Q3F6 regresia pentru Q4 | Dev A (agent) | ✅ | [#40](https://github.com/VladimirTM/PolyGraph/pull/40), [#48](https://github.com/VladimirTM/PolyGraph/pull/48) | Dark stabil; `testSeniorHugeTextDark` rulează în configurația `DarkAX` (#48) |
-| QA1 robustețea backend-ului | Dev B (+ A) | ✅ | [#43](https://github.com/VladimirTM/PolyGraph/pull/43) | backend gata: T-QA1-01…07 verzi (`backend/tests/test_qa1.py`); build-ul iOS și testele unitare verzi |
-| QA2 · QA3 · QA4 | Dev B (+ A) | ✅ | [#44](https://github.com/VladimirTM/PolyGraph/pull/44) | graful comun (`graph-core.js`), textele comune (`posology_words.json`), portalul UX |
-| Scanarea cutiilor + GTIN-uri românești | Dev A + B | ✅ | [#45](https://github.com/VladimirTM/PolyGraph/pull/45) | kb/ro_gtins.csv, BoxBarcode.swift |
-| QA5 funcționalitățile pentru demo | Dev B | ✅ 5.1, 5.2 | [#49](https://github.com/VladimirTM/PolyGraph/pull/49), [#51](https://github.com/VladimirTM/PolyGraph/pull/51) | portalul se actualizează singur (`GET /portal/events`, SSE + polling la 5 s), „Dacă prescriu…” pe fișă; T-QA5-01/02 verzi; QA5.3 („Ce s-a schimbat”) mutat în secțiunea 19 |
-| J-1 rețeaua locală pe al doilea iPhone | Dev A + B | ✅ | [#52](https://github.com/VladimirTM/PolyGraph/pull/52), [#53](https://github.com/VladimirTM/PolyGraph/pull/53) | mesajul „Rețea locală” în loc de „offline”; IP-urile ordonate după rețea (`bridge100` primul) |
-| E0 bug: editarea unui medicament → 422 | Dev A + B | ✅ în `main` | [#55](https://github.com/VladimirTM/PolyGraph/pull/55), [#57](https://github.com/VladimirTM/PolyGraph/pull/57) | backend verde (T-E0-02); rămân `make check-ios` (T-E0-01) și editarea pe iPhone (T-E0-03) |
-| E1–E3, E6 ideile din 14.11 seara | amândoi | ✅ în `main` | [#55](https://github.com/VladimirTM/PolyGraph/pull/55), [#57](https://github.com/VladimirTM/PolyGraph/pull/57) | orele zilei (app + web), pagina familiei (`/acasa`), calendarul și cutiuța, mai mulți pacienți; contract nou: `POST /web-link`, `GET /doses`; rămân T-E1-03/04, T-E2-04/05, T-E3-03, T-E6-02 |
-| E5 poza pastilei | amândoi | ✅ în `main` | [#58](https://github.com/VladimirTM/PolyGraph/pull/58) | contract (`pill_photo_url`, `POST` / `DELETE …/pill-photo`), backend și web verzi (T-E5-01); rămâne T-E5-03 pe iPhone; pasul din ConfirmSheet, pozele demo și T-E5-02 mutate în 19 |
+| Q3 turul agresiv pe aplicație | agent | ✅ | [#32](https://github.com/VladimirTM/MedHaven/pull/32) | 41 de constatări; reparațiile Q3F0–Q3F6 |
+| Paginile web refăcute + skill-ul readus + QA0 | Dev B | ✅ | [#33](https://github.com/VladimirTM/MedHaven/pull/33) | vezi 7.2 |
+| Q3F0 `kb.sqlite` la zi | Dev B | ✅ | [#34](https://github.com/VladimirTM/MedHaven/pull/34) | `make demo` avertizează când `kb.sqlite` e vechi |
+| Q3F2 vocea și scanarea pe backend | Dev B | ✅ | [#35](https://github.com/VladimirTM/MedHaven/pull/35) | simptome în cuvinte obișnuite, rețete pe DCI |
+| Q3F1 modul senior | Dev A | ✅ | [#36](https://github.com/VladimirTM/MedHaven/pull/36) | „Încearcă din nou”, `dayDone` adevărat, coada persistată |
+| Q3F3 robustețea API | Dev B | ✅ | [#37](https://github.com/VladimirTM/MedHaven/pull/37) | `since` inclusiv, `POST /meds` concurent, erorile în română |
+| Q3F4 aparținătorul și consistența cu web-ul | Dev A (+ B) | ✅ | [#38](https://github.com/VladimirTM/MedHaven/pull/38), [#48](https://github.com/VladimirTM/MedHaven/pull/48) | T-Q3F4-03 închis în #48 (textul din bare în culoarea etichetelor; „Contrast failed” din audit pe sticlă acceptat ca fals pozitiv, 14.11) |
+| Q3F5 polish | Dev A | ✅ | [#39](https://github.com/VladimirTM/MedHaven/pull/39) | **amânate Q3-36 și Q3-37; turul T-Q3F5-01 la final** |
+| Q3F6 regresia pentru Q4 | Dev A (agent) | ✅ | [#40](https://github.com/VladimirTM/MedHaven/pull/40), [#48](https://github.com/VladimirTM/MedHaven/pull/48) | Dark stabil; `testSeniorHugeTextDark` rulează în configurația `DarkAX` (#48) |
+| QA1 robustețea backend-ului | Dev B (+ A) | ✅ | [#43](https://github.com/VladimirTM/MedHaven/pull/43) | backend gata: T-QA1-01…07 verzi (`backend/tests/test_qa1.py`); build-ul iOS și testele unitare verzi |
+| QA2 · QA3 · QA4 | Dev B (+ A) | ✅ | [#44](https://github.com/VladimirTM/MedHaven/pull/44) | graful comun (`graph-core.js`), textele comune (`posology_words.json`), portalul UX |
+| Scanarea cutiilor + GTIN-uri românești | Dev A + B | ✅ | [#45](https://github.com/VladimirTM/MedHaven/pull/45) | kb/ro_gtins.csv, BoxBarcode.swift |
+| QA5 funcționalitățile pentru demo | Dev B | ✅ 5.1, 5.2 | [#49](https://github.com/VladimirTM/MedHaven/pull/49), [#51](https://github.com/VladimirTM/MedHaven/pull/51) | portalul se actualizează singur (`GET /portal/events`, SSE + polling la 5 s), „Dacă prescriu…” pe fișă; T-QA5-01/02 verzi; QA5.3 („Ce s-a schimbat”) mutat în secțiunea 19 |
+| J-1 rețeaua locală pe al doilea iPhone | Dev A + B | ✅ | [#52](https://github.com/VladimirTM/MedHaven/pull/52), [#53](https://github.com/VladimirTM/MedHaven/pull/53) | mesajul „Rețea locală” în loc de „offline”; IP-urile ordonate după rețea (`bridge100` primul) |
+| E0 bug: editarea unui medicament → 422 | Dev A + B | ✅ în `main` | [#55](https://github.com/VladimirTM/MedHaven/pull/55), [#57](https://github.com/VladimirTM/MedHaven/pull/57) | backend verde (T-E0-02); rămân `make check-ios` (T-E0-01) și editarea pe iPhone (T-E0-03) |
+| E1–E3, E6 ideile din 14.11 seara | amândoi | ✅ în `main` | [#55](https://github.com/VladimirTM/MedHaven/pull/55), [#57](https://github.com/VladimirTM/MedHaven/pull/57) | orele zilei (app + web), pagina familiei (`/acasa`), calendarul și cutiuța, mai mulți pacienți; contract nou: `POST /web-link`, `GET /doses`; rămân T-E1-03/04, T-E2-04/05, T-E3-03, T-E6-02 |
+| E5 poza pastilei | amândoi | ✅ în `main` | [#58](https://github.com/VladimirTM/MedHaven/pull/58) | contract (`pill_photo_url`, `POST` / `DELETE …/pill-photo`), backend și web verzi (T-E5-01); rămâne T-E5-03 pe iPhone; pasul din ConfirmSheet, pozele demo și T-E5-02 mutate în 19 |
 | E4 stocul | amândoi | ⚠️ tăiat | – | contractul nu era în `main` la 00:15 (regula din 14.6); mutat în secțiunea 19 |
-| Q4-01 durata lipită de posologie („1-0-1,7 zile”) | Dev B | ✅ | [#56](https://github.com/VladimirTM/PolyGraph/pull/56) | „N zile” după virgulă e durată; doza pe moment doar în sferturi de comprimat, altfel goală și marcată |
+| Q4-01 durata lipită de posologie („1-0-1,7 zile”) | Dev B | ✅ | [#56](https://github.com/VladimirTM/MedHaven/pull/56) | „N zile” după virgulă e durată; doza pe moment doar în sferturi de comprimat, altfel goală și marcată |
 | S4 + Q4 · D1 · D2 | amândoi | ⬜ | – | secțiunea 15 |
 
-### 7.2 Livrate în afara etapelor (14.11.2026, [PR #33](https://github.com/VladimirTM/PolyGraph/pull/33))
+### 7.2 Livrate în afara etapelor (14.11.2026, [PR #33](https://github.com/VladimirTM/MedHaven/pull/33))
 
 - `.claude/skills/apple-design/SKILL.md` readus neschimbat (commit `4061b67` din emilkowalski/skills, cu `LICENSE`, MIT).
 - **Fișa pacientului** (`templates/page.html`, `view.py`, `static/share.css`, `static/share.js`): rezumatul în 4 cifre mari, posologia în cuvinte (`plain_posology`: „1-0-1” → „1 dimineața, 1 seara”), detaliile tehnice (DCI, ATC, mecanism, sursa completă, analogia de clasă) după butonul „i” și cele 22 de alerte moderate strânse sub „Arată cele 22 de alerte”.
@@ -387,7 +389,7 @@ Statusul pe etape e în secțiunea 7; tabelele de mai jos sunt planul inițial p
 | **S0** | amândoi | W1.5 | V 19:30 | ✅ | contracte în `main`, mock pornit, Xcode pe ambele telefoane |
 | A1 schelet iOS, tokeni, client API | Dev A | W1.5–W4 | V 19:30–22:00 | ✅ | app pe mock, pe ambele iPhone-uri (`make check-ios` verde, 18 teste) |
 | B1 ingestia `kb.sqlite` + potrivirea | Dev B | W1.5–W8 | V 19:30–02:00 | ✅ | `make kb`, substanțele demo găsite |
-| Q0 infrastructura de review | agent (worktree) | în paralel cu A2 | V seara | ✅ | `make review Q=…` ([PR #31](https://github.com/VladimirTM/PolyGraph/pull/31)); `TOUR=EdgeCaseTour` din Q3 |
+| Q0 infrastructura de review | agent (worktree) | în paralel cu A2 | V seara | ✅ | `make review Q=…` ([PR #31](https://github.com/VladimirTM/MedHaven/pull/31)); `TOUR=EdgeCaseTour` din Q3 |
 | A2 scanarea (DataMatrix, poză, rețetă, confirmare) | Dev A | W4–W8 | V 22:00–02:00 | ✅ | `make check-ios` verde, merge pe iPhone cu cutiile de test; rămân cutiile fizice în sală (T-A2-03) |
 | B2 motorul de interacțiuni + graful | Dev B | W4–W12 | V 22:00–S 13:00 | ✅ | golden test = `expected_alerts.json` |
 | **S1** | amândoi | W8 | S 02:00 | ✅ | trecut de facto (14.11.2026), fără review Q |
@@ -400,7 +402,7 @@ Statusul pe etape e în secțiunea 7; tabelele de mai jos sunt planul inițial p
 | **S3** (MVP complet) | amândoi | W19 | S 21:30 | ✅ | trecut de facto (14.11.2026), fără review Q |
 | A5 check-in vocal + Noutăți | Dev A | W19–W23 | S 21:30–D 02:00 | ✅ | `make check-ios` verde, încercat pe două iPhone-uri; X1 merge fără card (backend, PR #30), `reply_text` e citit cu voce |
 | B6 portalul medicului de familie + tipărire | Dev B | W19–W23 | S 21:30–D 02:00 | ✅ | portalul real (`/portal`): login cu cod, lista pacienților, fișa cu decizie + notă → alertă + Noutăți, tipărire în 2 pagini A4, QR care adaugă pacientul; `/graph?embed=1`; T-B6-04 încercat pe iPhone și la zoom 200% (14.11.2026) |
-| Q3 review (noaptea) | agent | somn | D 02:00–08:00 | ✅ | rulat ziua, pe 14.11.2026 ([PR #32](https://github.com/VladimirTM/PolyGraph/pull/32), `docs/reviews/Q3.md`): 1 blocker, 12 major, 15 minor, 13 polish; reparațiile în etapele Q3F0–Q3F6 (după QA) |
+| Q3 review (noaptea) | agent | somn | D 02:00–08:00 | ✅ | rulat ziua, pe 14.11.2026 ([PR #32](https://github.com/VladimirTM/MedHaven/pull/32), `docs/reviews/Q3.md`): 1 blocker, 12 major, 15 minor, 13 polish; reparațiile în etapele Q3F0–Q3F6 (după QA) |
 | A6 QR, modul demo · B7 demo hardening | A · B | W23–W24.5 | D 08:00–09:30 | ✅ | B7 gata: `make demo`, `make demo-check` verde, istoricul demo, `/demo/missed-dose`. A6 gata (PR #25): QR pentru medic (aparținător + pacient), rețeta ORL și doza ratată în modul demo, iconița, trecerea de accesibilitate, T-A6-01/02 verzi. T-B7-06 (Wi-Fi oprit) încercat pe 14.11.2026. Q3F0–Q3F6 în `main` (#34–#40, 14.11.2026); rămân QA1–QA4 înainte de S4 (secțiunea 14) |
 | **S4** feature freeze + Q4 | amândoi | W24.5 | D 09:30 | ⬜ | după S4 nu se mai scrie cod nou |
 | D1 integrare, repetiții, video de rezervă | amândoi | W24.5–W27.5 | D 09:30–12:30 | ⬜ | |
@@ -721,12 +723,12 @@ Ordinea ține cont de S4 (feature freeze, D 09:30): ce e marcat „înainte de S
 
 | # | Ce | Când | Durată | Status | Detalii |
 |---|---|---|---|---|---|
-| B-1 | **QA1** robustețea backend-ului: bugetul solverului (QA-02), alerta `unverified` (QA-03), decizia idempotentă (QA-07), validările (QA-08, QA-09), `maxLength` pe nume (QA-11), login-ul cu 303 (QA-15) | înainte de S4, primul | ~1,5 h (T-QA1-05 e gata) | ✅ ([#43](https://github.com/VladimirTM/PolyGraph/pull/43)) | 14.1 |
-| B-2 | **QA2** graful comun (QA-01, 04, 05, 12, Q3-12), împreună cu Dev A | înainte de S4 | 2,5 h | ✅ ([#44](https://github.com/VladimirTM/PolyGraph/pull/44)) | 14.2 |
-| B-3 | **QA3** textele comune (severitatea, decizia, recomandarea pentru medic, posologia, stările goale, sursele fără căi, pacientul care nu e în listă) | înainte de S4 | 1,5 h | ✅ ([#44](https://github.com/VladimirTM/PolyGraph/pull/44)) | 14.3 |
-| B-4 | **QA4** portalul: deciziile fără stil primar, „Schimbă decizia”, mesajele de eroare, IP-ul din rețea pe `/`, țintele de 44 px | înainte de S4 | 2,5 h | ✅ ([#44](https://github.com/VladimirTM/PolyGraph/pull/44)) | 14.4 |
-| B-5 | QA5: portalul care se actualizează singur (5.1), „Dacă prescriu…” (5.2); „Ce s-a schimbat” (5.3) mutat în secțiunea 19 | opțional | 2,5 h | ✅ ([#49](https://github.com/VladimirTM/PolyGraph/pull/49), [#51](https://github.com/VladimirTM/PolyGraph/pull/51)) | 14.5 |
-| B-6 | **Pitch-ul:** slide-ul 5 („Cum e construit”: diagrama din 8.1, „LLM doar la margini”, o captură cu logurile `SCAN` / `ALERTĂ` din `make demo`); cifrele de pe slide-ul 1 verificate în sursele originale; câte 2 fraze pentru fiecare întrebare probabilă a juriului, inclusiv CNAS (6.4) | înainte de D2 | 1 h | ✅ ([#46](https://github.com/VladimirTM/PolyGraph/pull/46)) | 17 |
+| B-1 | **QA1** robustețea backend-ului: bugetul solverului (QA-02), alerta `unverified` (QA-03), decizia idempotentă (QA-07), validările (QA-08, QA-09), `maxLength` pe nume (QA-11), login-ul cu 303 (QA-15) | înainte de S4, primul | ~1,5 h (T-QA1-05 e gata) | ✅ ([#43](https://github.com/VladimirTM/MedHaven/pull/43)) | 14.1 |
+| B-2 | **QA2** graful comun (QA-01, 04, 05, 12, Q3-12), împreună cu Dev A | înainte de S4 | 2,5 h | ✅ ([#44](https://github.com/VladimirTM/MedHaven/pull/44)) | 14.2 |
+| B-3 | **QA3** textele comune (severitatea, decizia, recomandarea pentru medic, posologia, stările goale, sursele fără căi, pacientul care nu e în listă) | înainte de S4 | 1,5 h | ✅ ([#44](https://github.com/VladimirTM/MedHaven/pull/44)) | 14.3 |
+| B-4 | **QA4** portalul: deciziile fără stil primar, „Schimbă decizia”, mesajele de eroare, IP-ul din rețea pe `/`, țintele de 44 px | înainte de S4 | 2,5 h | ✅ ([#44](https://github.com/VladimirTM/MedHaven/pull/44)) | 14.4 |
+| B-5 | QA5: portalul care se actualizează singur (5.1), „Dacă prescriu…” (5.2); „Ce s-a schimbat” (5.3) mutat în secțiunea 19 | opțional | 2,5 h | ✅ ([#49](https://github.com/VladimirTM/MedHaven/pull/49), [#51](https://github.com/VladimirTM/MedHaven/pull/51)) | 14.5 |
+| B-6 | **Pitch-ul:** slide-ul 5 („Cum e construit”: diagrama din 8.1, „LLM doar la margini”, o captură cu logurile `SCAN` / `ALERTĂ` din `make demo`); cifrele de pe slide-ul 1 verificate în sursele originale; câte 2 fraze pentru fiecare întrebare probabilă a juriului, inclusiv CNAS (6.4) | înainte de D2 | 1 h | ✅ ([#46](https://github.com/VladimirTM/MedHaven/pull/46)) | 17 |
 | B-7 | **Materialele:** Nurofen se cumpără fără rețetă; Sintrom e pe rețetă, deci se tipărește cutia de test `demo/datamatrix/test_sintrom.png`; rețeta ORL tipărită (`demo/rx/reteta_demo_fromilid.pdf`, A4, scala 100%) | înainte de D1 | 30 min | ⬜ | 15.4 |
 | B-8 | Pregătirea pentru Q4 (rulează pe Mac-ul lui Dev B): `make check-ios` verde pe Mac-ul lui, laptopul la priză și fără sleep (`caffeinate`) | înainte de S4 | 15 min | ✅ | 15.1 |
 | B-9 | **E0** `PATCH /meds` combină obiectele de nivel doi; mesajul 422 tradus | înainte de S4, primul | 20 min | ✅ (#55) | 14.6, E0 |
@@ -790,7 +792,7 @@ Constatările QA-nn și Q3-nn citate în prompturi sunt în Anexa C. QA0 e gata 
 
 | Etapa | Ce rezolvă | Cine | Durată | Branch |
 |---|---|---|---|---|
-| QA0 | QA-06 | Dev B | 10 min | ✅ în `main` ([#33](https://github.com/VladimirTM/PolyGraph/pull/33)) |
+| QA0 | QA-06 | Dev B | 10 min | ✅ în `main` ([#33](https://github.com/VladimirTM/MedHaven/pull/33)) |
 | QA1 | QA-02, 03, 07–11, 15: robustețea backend-ului | Dev B (+ Dev A pentru kind-ul nou) | 2 h | `fix/qa1-backend-robustness` |
 | QA2 | QA-01, 04, 05, 12: graful comun | Dev B + Dev A | 2,5 h | ✅ `fix/qa2-shared-graph` |
 | QA3 | textele comune și QA-13 | Dev B (+ Dev A pentru Noutăți) | 1,5 h | ✅ `fix/qa2-shared-graph` |
@@ -798,7 +800,7 @@ Constatările QA-nn și Q3-nn citate în prompturi sunt în Anexa C. QA0 e gata 
 | QA5 | funcționalitățile pentru demo (opțional) | Dev B | 2–4 h | `feature/qa5-…` |
 | E0–E6 | ideile din 14.11 seara: bug-ul de editare, orele zilei, pagina familiei, cutiuța, stocul, poza pastilei, mai mulți pacienți | Dev A + Dev B | 30 min – 3,5 h fiecare | `fix/e0-…`, `feature/e1-…` … (14.6) |
 
-Status la 15.11.2026, 02:15: QA0 ✅ (#33); QA1 ✅ (#43); QA2–QA4 ✅ (#44); QA5.1 și QA5.2 ✅ ([#49](https://github.com/VladimirTM/PolyGraph/pull/49), [#51](https://github.com/VladimirTM/PolyGraph/pull/51)), QA5.3 mutat în secțiunea 19; E0–E3 și E6 ✅ ([#55](https://github.com/VladimirTM/PolyGraph/pull/55), turul în [#57](https://github.com/VladimirTM/PolyGraph/pull/57)), E5 ✅ ([#58](https://github.com/VladimirTM/PolyGraph/pull/58)), E4 ⚠️ tăiat (mutat în 19); rămân testele manuale și de simulator din 14.6. Dependențele: QA2 și QA3 după QA1, QA4 după QA3, QA5 după QA2 și QA4; E1, E2 și E4 după E0, E3 și E6 după E2, E5 cu contractul lui (`pill_photo_url`), făcut separat de E4.
+Status la 15.11.2026, 02:15: QA0 ✅ (#33); QA1 ✅ (#43); QA2–QA4 ✅ (#44); QA5.1 și QA5.2 ✅ ([#49](https://github.com/VladimirTM/MedHaven/pull/49), [#51](https://github.com/VladimirTM/MedHaven/pull/51)), QA5.3 mutat în secțiunea 19; E0–E3 și E6 ✅ ([#55](https://github.com/VladimirTM/MedHaven/pull/55), turul în [#57](https://github.com/VladimirTM/MedHaven/pull/57)), E5 ✅ ([#58](https://github.com/VladimirTM/MedHaven/pull/58)), E4 ⚠️ tăiat (mutat în 19); rămân testele manuale și de simulator din 14.6. Dependențele: QA2 și QA3 după QA1, QA4 după QA3, QA5 după QA2 și QA4; E1, E2 și E4 după E0, E3 și E6 după E2, E5 cu contractul lui (`pill_photo_url`), făcut separat de E4.
 
 ### 14.1 QA1 · Robustețea backend-ului
 
@@ -1100,7 +1102,7 @@ Criterii de acceptare: Sintrom cu 10 comprimate, ½ pe zi → „Mai aveți pent
 
 Pastila se fotografiază de familie, o dată, nu se recunoaște și nu se desenează: o imagine inventată a unei pastile e mai periculoasă decât niciuna. Fără poză, nu apare nimic în locul ei.
 
-**Status (15.11, noaptea):** 🔄 în [#58](https://github.com/VladimirTM/PolyGraph/pull/58) (branch `feature/e5-poza-pastilei`), cu scopul redus: contractul (`pill_photo_url` opțional, `POST` / `DELETE /meds/{mid}/pill-photo`) într-un commit separat; backend-ul (JPEG ≤ 5 MB, micșorat la 1024 px, fără EXIF; erorile 422 în română); web-ul („Azi” și „Medicamentele mele”, cu „Cutia” / „Pastila”; tipărirea nu); aplicația („Fotografiați o pastilă” doar în MedDetailView; „Acum” și „Ziua de azi” în modul senior). Lăsate deoparte, în secțiunea 19: pasul opțional din ConfirmSheet (fluxul de scanare e pe scenă la 0:15) și pozele demo din `demo/pills/`. Pacientul demo rămâne fără poze de pastile; dacă juriul întreabă, Ana fotografiază una pe loc din detaliul medicamentului.
+**Status (15.11, noaptea):** 🔄 în [#58](https://github.com/VladimirTM/MedHaven/pull/58) (branch `feature/e5-poza-pastilei`), cu scopul redus: contractul (`pill_photo_url` opțional, `POST` / `DELETE /meds/{mid}/pill-photo`) într-un commit separat; backend-ul (JPEG ≤ 5 MB, micșorat la 1024 px, fără EXIF; erorile 422 în română); web-ul („Azi” și „Medicamentele mele”, cu „Cutia” / „Pastila”; tipărirea nu); aplicația („Fotografiați o pastilă” doar în MedDetailView; „Acum” și „Ziua de azi” în modul senior). Lăsate deoparte, în secțiunea 19: pasul opțional din ConfirmSheet (fluxul de scanare e pe scenă la 0:15) și pozele demo din `demo/pills/`. Pacientul demo rămâne fără poze de pastile; dacă juriul întreabă, Ana fotografiază una pe loc din detaliul medicamentului.
 
 ~~~text
 [WORKFLOW] Branch: feature/e5-poza-pastilei. Folosește pill_photo_url din PR-ul de contract E4. Citește .claude/skills/apple-design/SKILL.md și docs/DESIGN.md. Nu edita project.pbxproj; fără dependențe externe în iOS.
@@ -1699,7 +1701,7 @@ Criterii de acceptare: scenariul din secțiunea 16 rulează de 3 ori la rând, c
 
 ### B1 · Ingestia datelor: `kb.sqlite`
 
-**Status:** ✅ Integrat în `main` ([PR #4](https://github.com/VladimirTM/PolyGraph/pull/4)).
+**Status:** ✅ Integrat în `main` ([PR #4](https://github.com/VladimirTM/MedHaven/pull/4)).
 
 **Responsabil:** Dev B · **Depinde de:** P0, datele descărcate la pregătire · **Durată:** 5 h · **Branch:** `feature/b1-kb-ingest`
 
@@ -1748,7 +1750,7 @@ Nu face: motorul de alerte (B2).
 
 ### B2 · Motorul de interacțiuni și graful
 
-**Status:** ✅ Integrat în `main` ([PR #7](https://github.com/VladimirTM/PolyGraph/pull/7)).
+**Status:** ✅ Integrat în `main` ([PR #7](https://github.com/VladimirTM/MedHaven/pull/7)).
 
 **Responsabil:** Dev B · **Depinde de:** B1 · **Durată:** 5 h · **Branch:** `feature/b2-engine`
 
@@ -1828,7 +1830,7 @@ Obiectiv: POST /v1/patients/{id}/scan întoarce candidați corecți pentru cutii
 Criterii de acceptare: tests/test_extract_demo.py pe textele OCR salvate de pe pozele demo (demo/ocr/*.json, produse la A2 cu telefonul): fiecare cutie → produsul corect pe calea ocr_match, fără Gemini; rețeta tipărită → toate medicamentele, cu pattern-ul corect; fără internet și fără potrivire → warning „nu am putut citi cutia, completați manual”, nu eroare 500.
 ~~~
 
-**Status:** ✅ Backend integrat în `main` ([PR #9](https://github.com/VladimirTM/PolyGraph/pull/9)) și verificat cu cele patru capturi OCR reale din A2 și cazurile GS1 suplimentare din Swift. `/scan` și `/v1/kb/search` afișează câmpurile normalizate. Fotografiile încărcate sunt disponibile prin `GET /media/{name}`.
+**Status:** ✅ Backend integrat în `main` ([PR #9](https://github.com/VladimirTM/MedHaven/pull/9)) și verificat cu cele patru capturi OCR reale din A2 și cazurile GS1 suplimentare din Swift. `/scan` și `/v1/kb/search` afișează câmpurile normalizate. Fotografiile încărcate sunt disponibile prin `GET /media/{name}`.
 
 Cache-ul GTIN se golește la `/demo/reset`. După `make kb`, backend-ul încarcă noul catalog și ignoră asocierile legate de versiunea anterioară.
 
@@ -2025,7 +2027,7 @@ Nota de sub cifra „alerte revizuite” trece la singular / plural ca eticheta 
 
 ### Q3 · Turul agresiv pe aplicație (14.11.2026) și planul de reparații
 
-**Ce este.** Pe 14.11.2026, după X1, un agent a rulat turul complet pe simulator (`make review Q=Q3`) și un tur agresiv nou (`EdgeCaseTour`: apăsări repetate, anulări la limită, ore la marginea zilei, rețea căzută în mijlocul fluxului, check-in-uri limită, valuri de Noutăți, text uriaș + dark), plus ~80 de cereri curl pe API. QA (mai sus) verifică web-ul și backend-ul; Q3 verifică aplicația, iar constatările care țin de backend sunt puse lângă etapele QA, ca să nu se repare de două ori. Raportul complet, cu capturi, pași de reproducere și prompturi: [`docs/reviews/Q3.md`](reviews/Q3.md) ([PR #32](https://github.com/VladimirTM/PolyGraph/pull/32)).
+**Ce este.** Pe 14.11.2026, după X1, un agent a rulat turul complet pe simulator (`make review Q=Q3`) și un tur agresiv nou (`EdgeCaseTour`: apăsări repetate, anulări la limită, ore la marginea zilei, rețea căzută în mijlocul fluxului, check-in-uri limită, valuri de Noutăți, text uriaș + dark), plus ~80 de cereri curl pe API. QA (mai sus) verifică web-ul și backend-ul; Q3 verifică aplicația, iar constatările care țin de backend sunt puse lângă etapele QA, ca să nu se repare de două ori. Raportul complet, cu capturi, pași de reproducere și prompturi: [`docs/reviews/Q3.md`](reviews/Q3.md) ([PR #32](https://github.com/VladimirTM/MedHaven/pull/32)).
 
 **Cum s-a testat:**
 - **Simulator, turul de bază:** 17 teste × Light / Dark / AX / Motion / Contrast, 246 de capturi, 406 probleme de audit, 17 min.

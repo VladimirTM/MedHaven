@@ -1,4 +1,4 @@
-# PolyGraph: instrucțiuni pentru Claude Code
+# MedHaven: instrucțiuni pentru Claude Code
 
 Regulile sunt aceleași ca pentru ceilalți agenți: urmează [`AGENTS.md`](AGENTS.md) (care trimite la `CONTRIBUTING.md`, `contracts/` și `docs/PLAN.md`).
 
