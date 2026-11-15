@@ -50,7 +50,7 @@ struct PatientProfile: Equatable {
 
     init(_ patient: Patient) {
         heightText = patient.heightCm.map(String.init) ?? ""
-        weightText = patient.weightKg.map(Self.weightString) ?? ""
+        weightText = patient.weightKg.map { Self.weightString($0) } ?? ""
         conditions = Set(patient.conditions ?? [])
         note = patient.conditionsNote ?? ""
     }
@@ -67,10 +67,10 @@ struct PatientProfile: Equatable {
     var problem: String? {
         let height = heightText.trimmingCharacters(in: .whitespaces)
         let weight = weightText.trimmingCharacters(in: .whitespaces)
-        if !height.isEmpty, heightCm.map { Self.heightRange.contains($0) } != true {
+        if !height.isEmpty, heightCm.map({ Self.heightRange.contains($0) }) != true {
             return "Înălțimea se scrie în centimetri, între \(Self.heightRange.lowerBound) și \(Self.heightRange.upperBound)."
         }
-        if !weight.isEmpty, weightKg.map { Self.weightRange.contains($0) } != true {
+        if !weight.isEmpty, weightKg.map({ Self.weightRange.contains($0) }) != true {
             return "Greutatea se scrie în kilograme, între 25 și 250."
         }
         if note.count > 200 { return "Alte afecțiuni: cel mult 200 de caractere." }
