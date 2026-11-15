@@ -1,0 +1,101 @@
+{% extends "family_base.html" %}
+{# Fișa trimisă de medicul de familie din portal: o copie fixă, de la momentul trimiterii. #}
+{% from "alerts.html" import info %}
+{% block page_title %}Fișa de la medic{% endblock %}
+{% macro why(a) %}
+<details class="why">
+  <summary>De ce văd asta?</summary>
+  <dl class="facts">
+    <dt>Explicația</dt><dd>{{ a.detail }}</dd>
+    <dt>Sursa</dt><dd>{{ a.source }}{% if a.ref %}<br><span class="small muted">{{ a.ref }}</span>{% endif %}</dd>
+    {% if a.analogy %}<dt>De confirmat</dt><dd>Dedusă prin analogie cu un medicament din aceeași clasă; medicul de familie o poate confirma.</dd>{% endif %}
+  </dl>
+</details>
+{% endmacro %}
+{% block main %}
+<div class="family-head">
+  <p class="crumb"><a class="back-link" href="/acasa"><svg class="back-chevron" viewBox="0 0 12 20" aria-hidden="true"><path d="M10 2 2 10l8 8"/></svg>Azi</a></p>
+  <h1 class="page-title">Fișa de la medicul de familie</h1>
+  {% if sheet %}<p class="muted">Trimisă de {{ sheet.doctor }} {{ when }}{% if not is_latest %} · nu e cea mai nouă{% endif %}</p>{% endif %}
+</div>
+{% if not sheet %}
+<p class="family-empty">Medicul de familie nu a trimis încă nicio fișă. Când o trimite din portal, apare aici și în Noutăți, în aplicație.</p>
+{% else %}
+{% if sheet.note %}
+<div class="family-todo sheet-note">
+  <p class="family-todo-head">Mesajul medicului</p>
+  <p>„{{ sheet.note }}”</p>
+</div>
+{% endif %}
+
+<section class="sheet-part" aria-labelledby="h-decisions">
+  <h2 id="h-decisions">Deciziile medicului</h2>
+  {% if sheet.decisions %}
+  <ul class="sheet-decisions">
+    {% for d in sheet.decisions %}
+    <li class="sheet-decision">
+      <p class="sheet-decision-title">{{ d.title }}</p>
+      {% if d.meds %}<p class="alert-meds">{{ d.meds | join(" · ") }}</p>{% endif %}
+      <p class="family-decision"><strong>{{ d.label }}</strong>{% if d.note %}<br><span class="note">„{{ d.note }}”</span>{% endif %}</p>
+      {{ why(d) }}
+    </li>
+    {% endfor %}
+  </ul>
+  {% else %}
+  <p class="muted">Medicul nu a luat decizii pe alerte în această fișă.</p>
+  {% endif %}
+</section>
+
+{% if sheet.pending %}
+<section class="sheet-part" aria-labelledby="h-pending">
+  <h2 id="h-pending">Încă de discutat cu medicul <span class="count">{{ sheet.pending | length }}</span></h2>
+  <p class="muted">Alerte grave pe care medicul nu le-a discutat încă în această fișă. Nimic de aici nu înseamnă „opriți medicamentul”.</p>
+  <ul class="sheet-decisions">
+    {% for a in sheet.pending %}
+    <li class="sheet-decision">
+      <p class="sheet-decision-title">{{ a.title }}</p>
+      {% if a.meds %}<p class="alert-meds">{{ a.meds | join(" · ") }}</p>{% endif %}
+      {{ why(a) }}
+    </li>
+    {% endfor %}
+  </ul>
+  <p class="small muted">Ce puteți face pentru fiecare, la <a href="/acasa/verificat">De verificat</a>.</p>
+</section>
+{% endif %}
+
+<section class="sheet-part" aria-labelledby="h-sheet-meds">
+  <h2 id="h-sheet-meds">Medicamentele, cum se iau</h2>
+  {% if sheet.meds %}
+  <ul class="med-list">
+    {% for m in sheet.meds %}
+    <li class="med">
+      <p class="med-name">{{ m.name }}</p>
+      <p class="med-how">{{ m.how }}</p>
+      <p class="med-who">{{ m.who }}</p>
+      {% if m.substances or m.since %}
+      {% call info("Mai multe despre " ~ m.name) %}
+        <dl class="facts">
+          {% if m.substances %}<dt>Substanța activă</dt><dd>{{ m.substances }}</dd>{% endif %}
+          {% if m.since %}<dt>Ia din</dt><dd>{{ m.since }}</dd>{% endif %}
+        </dl>
+      {% endcall %}
+      {% endif %}
+    </li>
+    {% endfor %}
+  </ul>
+  {% else %}
+  <p class="muted">Fișa nu are medicamente.</p>
+  {% endif %}
+  <p class="small muted">Lista e cea din ziua trimiterii. Lista de acum e la <a href="/acasa/medicamente">Medicamentele mele</a>.</p>
+</section>
+
+{% if older %}
+<section class="sheet-part" aria-labelledby="h-older">
+  <h2 id="h-older">Alte fișe</h2>
+  <ul class="sheet-older">
+    {% for o in older %}<li><a href="/acasa/fisa?id={{ o.id }}">De la {{ o.doctor }}, {{ o.when }}</a></li>{% endfor %}
+  </ul>
+</section>
+{% endif %}
+{% endif %}
+{% endblock %}
