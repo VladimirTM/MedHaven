@@ -116,7 +116,7 @@ struct ScanView: View {
             case .denied:
                 unavailable(
                     "Aplicația nu are acces la cameră",
-                    message: "Permiteți accesul din Setări → PolyGraph → Cameră, sau completați medicamentul de mână.",
+                    message: "Permiteți accesul din Setări → MedHaven → Cameră, sau completați medicamentul de mână.",
                     showsSettings: true)
             case .granted:
                 switch model.mode {

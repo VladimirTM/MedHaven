@@ -1566,13 +1566,21 @@ struct PatientCreate: Codable {
     let anchors: Anchors?
     let birthYear: Int
     let caregiverName: String?
+    let conditions: [Condition]?
+    let conditionsNote: String?
+    let heightCm: Int?
     let name: String
+    let weightKg: Double?
 
     enum CodingKeys: String, CodingKey {
         case anchors
         case birthYear = "birth_year"
         case caregiverName = "caregiver_name"
+        case conditions
+        case conditionsNote = "conditions_note"
+        case heightCm = "height_cm"
         case name
+        case weightKg = "weight_kg"
     }
 }
 
@@ -1598,13 +1606,21 @@ extension PatientCreate {
         anchors: Anchors?? = nil,
         birthYear: Int? = nil,
         caregiverName: String?? = nil,
-        name: String? = nil
+        conditions: [Condition]?? = nil,
+        conditionsNote: String?? = nil,
+        heightCm: Int?? = nil,
+        name: String? = nil,
+        weightKg: Double?? = nil
     ) -> PatientCreate {
         return PatientCreate(
             anchors: anchors ?? self.anchors,
             birthYear: birthYear ?? self.birthYear,
             caregiverName: caregiverName ?? self.caregiverName,
-            name: name ?? self.name
+            conditions: conditions ?? self.conditions,
+            conditionsNote: conditionsNote ?? self.conditionsNote,
+            heightCm: heightCm ?? self.heightCm,
+            name: name ?? self.name,
+            weightKg: weightKg ?? self.weightKg
         )
     }
 
@@ -1666,6 +1682,32 @@ extension Anchors {
     }
 }
 
+/// Afecțiunile din profilul pacientului (lista din aplicație și din portal). Deocamdată doar
+/// se arată; regulile boală–medicament vin după hackathon.
+enum Condition: String, Codable {
+    case arthritis = "arthritis"
+    case atrialFibrillation = "atrial_fibrillation"
+    case chronicKidneyDisease = "chronic_kidney_disease"
+    case copdAsthma = "copd_asthma"
+    case coronaryDisease = "coronary_disease"
+    case dementia = "dementia"
+    case depression = "depression"
+    case diabetes = "diabetes"
+    case epilepsy = "epilepsy"
+    case falls = "falls"
+    case gastricUlcer = "gastric_ulcer"
+    case glaucoma = "glaucoma"
+    case heartFailure = "heart_failure"
+    case highCholesterol = "high_cholesterol"
+    case hypertension = "hypertension"
+    case hypothyroidism = "hypothyroidism"
+    case liverDisease = "liver_disease"
+    case osteoporosis = "osteoporosis"
+    case parkinson = "parkinson"
+    case prostate = "prostate"
+    case stroke = "stroke"
+}
+
 // MARK: - PatientCreated
 struct PatientCreated: Codable {
     let id: String
@@ -1724,14 +1766,26 @@ struct Patient: Codable {
     let birthYear: Int
     /// numele aparținătorului, folosit în texte („Am anunțat-o pe Ana”)
     let caregiverName: String?
+    /// afecțiunile alese din listă; etichetele în română sunt în fixtures/conditions.json
+    let conditions: [Condition]?
+    /// alte afecțiuni, scrise liber
+    let conditionsNote: String?
+    /// înălțimea în centimetri; null = necompletată
+    let heightCm: Int?
     let id: String
     let name: String
+    /// greutatea în kilograme; null = necompletată
+    let weightKg: Double?
 
     enum CodingKeys: String, CodingKey {
         case anchors
         case birthYear = "birth_year"
         case caregiverName = "caregiver_name"
+        case conditions
+        case conditionsNote = "conditions_note"
+        case heightCm = "height_cm"
         case id, name
+        case weightKg = "weight_kg"
     }
 }
 
@@ -1757,15 +1811,23 @@ extension Patient {
         anchors: Anchors? = nil,
         birthYear: Int? = nil,
         caregiverName: String?? = nil,
+        conditions: [Condition]?? = nil,
+        conditionsNote: String?? = nil,
+        heightCm: Int?? = nil,
         id: String? = nil,
-        name: String? = nil
+        name: String? = nil,
+        weightKg: Double?? = nil
     ) -> Patient {
         return Patient(
             anchors: anchors ?? self.anchors,
             birthYear: birthYear ?? self.birthYear,
             caregiverName: caregiverName ?? self.caregiverName,
+            conditions: conditions ?? self.conditions,
+            conditionsNote: conditionsNote ?? self.conditionsNote,
+            heightCm: heightCm ?? self.heightCm,
             id: id ?? self.id,
-            name: name ?? self.name
+            name: name ?? self.name,
+            weightKg: weightKg ?? self.weightKg
         )
     }
 

@@ -16,6 +16,8 @@ enum Radius {
     static let seniorCard: CGFloat = 20
     /// poza cutiei din rândul listei de medicamente
     static let thumbnail: CGFloat = 8
+    /// colțurile logo-ului din ecranul de bun venit, ca proporție din latură (forma iconiței iOS)
+    static let logoRatio: CGFloat = 0.2237
 }
 
 enum ControlHeight {
@@ -37,16 +39,22 @@ enum PgColor {
     static let calmCard = Color("PGCalmCard")
     /// galben deschis sub câmpurile marcate „verificați” la confirmarea scanării (doar aparținător)
     static let review = Color.yellow.opacity(0.22)
+    /// avertizări inline (cutie expirată, „verificați”): același ocru ca severitatea moderată
+    static let warning = Color("PGSeverityModerate")
+    /// erori inline: același cărămiziu ca severitatea gravă, nu roșul de sistem
+    static let error = Color("PGSeverityMajor")
 }
 
 extension Severity {
     /// Doar pentru aparținător și medicul de familie; pacientul nu vede culori de severitate.
+    /// Tonuri așezate, potrivite cu teal-ul și nisipul aplicației (cărămiziu, ocru, gri cald, albastru-ardezie),
+    /// aceleași ca în paleta grafului (`graph-core.js`), cu variante light / dark / contrast mare.
     var color: Color {
         switch self {
-        case .critical, .major: .red
-        case .moderate: .orange
-        case .minor: .gray
-        case .info: .blue
+        case .critical, .major: Color("PGSeverityMajor")
+        case .moderate: Color("PGSeverityModerate")
+        case .minor: Color("PGSeverityMinor")
+        case .info: Color("PGSeverityInfo")
         }
     }
 

@@ -17,13 +17,16 @@ final class ReviewTour: ReviewTestCase {
     func testOnboarding() {
         launch("onboarding", role: nil, reset: false, defaults: ["pg.demoMode": "YES"])
         // telefonul poate fi deja legat de un pacient din testul anterior: ne deconectăm din Setări
-        if !element("onboarding.role.caregiver").waitForExistence(timeout: 1) {
+        if !element("onboarding.startButton").waitForExistence(timeout: 1) {
             if tap("settings.openButton"), let signOut = scrollTo("settings.signOutButton") {
                 signOut.tap()
                 tap("settings.confirmSignOutButton")
             }
         }
-        guard expect("onboarding.role.caregiver", timeout: 8) != nil else { return }
+        guard expect("onboarding.startButton", timeout: 8) != nil else { return }
+        step("intro", audit: true)
+        tap("onboarding.startButton")
+        guard expect("onboarding.role.caregiver") != nil else { return }
         step("welcome", audit: true)
         tap("onboarding.role.caregiver")
         if let name = expect("onboarding.nameField") {
@@ -34,6 +37,9 @@ final class ReviewTour: ReviewTestCase {
         tap("onboarding.nextButton")
         expect("onboarding.birthYearPicker")
         step("birthYear", audit: true)
+        tap("onboarding.nextButton")
+        expect("onboarding.heightField")
+        step("health", audit: true)
         tap("onboarding.nextButton")
         expect("onboarding.wakeTime")
         step("meals", audit: true)
@@ -277,8 +283,9 @@ final class ReviewTour: ReviewTestCase {
         launch("settings", role: .caregiver, defaults: ["pg.demoMode": "YES"])
         expect("meds.list", timeout: 10)
         guard tap("settings.openButton") else { return }
-        expect("settings.baseURLField")
         step("settings", audit: true)
+        openAdvancedSettings()
+        expect("settings.baseURLField")
         tap("settings.checkConnectionButton")
         expect("settings.connectionStatus", timeout: 5)
         step("connection")

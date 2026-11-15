@@ -118,7 +118,7 @@ struct ConfirmSheet: View {
                         "Cutia pare expirată (\(expiry.formatted(.dateTime.day().month(.wide).year().locale(PgFormat.romanian)))). Verificați data înainte de salvare.",
                         systemImage: "exclamationmark.triangle.fill")
                         .font(.subheadline)
-                        .foregroundStyle(.orange)
+                        .foregroundStyle(PgColor.warning)
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .accessibilityIdentifier("confirm.expiredWarning")
                 }
@@ -127,7 +127,7 @@ struct ConfirmSheet: View {
                         "\(existing.displayName) e deja în listă. Verificați să nu-l adăugați de două ori.",
                         systemImage: "exclamationmark.triangle.fill")
                         .font(.subheadline)
-                        .foregroundStyle(.orange)
+                        .foregroundStyle(PgColor.warning)
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .accessibilityIdentifier("confirm.duplicateWarning")
                 }
@@ -141,7 +141,7 @@ struct ConfirmSheet: View {
             if let saveError {
                 Label(saveError, systemImage: "exclamationmark.circle")
                     .font(.subheadline)
-                    .foregroundStyle(.red)
+                    .foregroundStyle(PgColor.error)
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .accessibilityIdentifier("confirm.error")
             }
@@ -307,14 +307,14 @@ private struct DraftForm: View {
                     "Concentrația nu se mai potrivește cu catalogul. Căutați medicamentul în catalog, ca substanțele să aibă doza corectă.",
                     systemImage: "exclamationmark.triangle.fill")
                     .font(.subheadline)
-                    .foregroundStyle(.orange)
+                    .foregroundStyle(PgColor.warning)
                     .accessibilityIdentifier("confirm.strengthWarning")
             } else if draft.strengthLooksUnusual {
                 Label(
                     "Concentrația pare neobișnuită pentru acest medicament. Verificați ce scrie pe cutie.",
                     systemImage: "exclamationmark.triangle.fill")
                     .font(.subheadline)
-                    .foregroundStyle(.orange)
+                    .foregroundStyle(PgColor.warning)
                     .accessibilityIdentifier("confirm.unusualStrengthWarning")
             }
 
@@ -398,8 +398,8 @@ private struct DraftForm: View {
             TextField("Numele medicului", text: $draft.prescriberName)
                 .textInputAutocapitalization(.words)
                 .accessibilityIdentifier("confirm.prescriberField")
-            TextField("Specialitatea (ex. cardiologie)", text: $draft.specialty)
-                .accessibilityIdentifier("confirm.specialtyField")
+            SpecialtyPicker(specialty: $draft.specialty)
+                .id(draft.id)
         }
     }
 
@@ -438,7 +438,7 @@ private struct ReviewHeader: View {
             if flagged {
                 Label("verificați", systemImage: "exclamationmark.triangle.fill")
                     .labelStyle(.titleAndIcon)
-                    .foregroundStyle(.orange)
+                    .foregroundStyle(PgColor.warning)
                     .textCase(nil)
                     .accessibilityIdentifier("confirm.reviewBadge")
             }

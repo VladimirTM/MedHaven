@@ -18,6 +18,10 @@ struct GraphView: View {
     /// crește la fiecare „Recentrează”; pagina revine la tot graful, centrat
     @State private var resetCount = 0
     @Environment(\.pgReduceMotion) private var reduceMotion
+    /// înălțimea textului din „Pe scurt”, măsurată
+    @State private var summaryHeight: CGFloat = 0
+    /// cât poate ocupa „Pe scurt”; restul rămâne pentru graf
+    @ScaledMetric(relativeTo: .body) private var summaryMaxHeight: CGFloat = 220
 
     var body: some View {
         content
@@ -48,7 +52,13 @@ struct GraphView: View {
                         StaleBanner(identifier: "graph", retryIdentifier: "graph.retryButton") { await store.refreshAll() }
                     }
                 }
-                .safeAreaInset(edge: .bottom, spacing: 0) { bottomBar }
+                .safeAreaInset(edge: .bottom, spacing: 0) {
+                    VStack(spacing: 0) {
+                        summaryPanel
+                        bottomBar
+                    }
+                    .background(.bar)
+                }
                 .task(id: Self.usesSharePage) {
                     guard Self.usesSharePage, remoteURL == nil else { return }
                     do {
@@ -97,6 +107,105 @@ struct GraphView: View {
         }
     }
 
+    // MARK: - „Pe scurt”: graful explicat în cuvinte
+
+    private var summary: GraphSummary {
+        GraphSummary(alerts: store.analysis?.alerts ?? [], graph: store.analysis?.graph, meds: store.visibleMeds)
+    }
+
+    /// Sub graf, ce înseamnă desenul, pe înțelesul oricui. Panoul crește cât textul, până la
+    /// `summaryMaxHeight`; peste, se derulează, ca graful să rămână vizibil.
+    private var summaryPanel: some View {
+        let summary = summary
+        return ScrollView {
+            VStack(alignment: .leading, spacing: Spacing.s) {
+                Text("Pe scurt")
+                    .font(.headline)
+                    .foregroundStyle(PgColor.textPrimary)
+                    .accessibilityAddTraits(.isHeader)
+
+                if summary.isEmpty {
+                    summaryRow(.icon("checkmark.circle", PgColor.accent), "graph.summary.none",
+                        "Nu am găsit combinații de discutat între medicamentele de pe listă.")
+                }
+
+                if let hub = summary.hub {
+                    Button {
+                        open(.med(id: hub.medID))
+                    } label: {
+                        summaryRow(.icon("point.3.connected.trianglepath.dotted", PgColor.accent), "graph.summary.hub",
+                            "Cele mai multe legături le are **\(hub.name)**: "
+                                + GraphSummary.combinations(hub.count, "cu alte medicamente", "cu alte medicamente") + ".")
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityHint("Deschide medicamentul")
+                }
+
+                if !summary.serious.isEmpty {
+                    summaryRow(.line(Severity.major.color), "graph.summary.serious",
+                        "**\(GraphSummary.combinations(summary.serious.count, "gravă", "grave").capitalizedFirst)**: "
+                            + summary.serious.map(\.text).joined(separator: "; ")
+                            + ". Vorbiți cu medicul cât mai curând.")
+                }
+
+                if summary.moderateCount > 0 {
+                    summaryRow(.line(Severity.moderate.color), "graph.summary.moderate",
+                        "**\(GraphSummary.combinations(summary.moderateCount, "de discutat", "de discutat").capitalizedFirst)** "
+                            + "la următoarea vizită la medicul de familie.")
+                }
+
+                if !summary.foods.isEmpty {
+                    summaryRow(.icon("fork.knife", PgColor.textSecondary), "graph.summary.food",
+                        "**Atenție la**: "
+                            + summary.foods.prefix(4).map { "\($0.label) (\($0.meds))" }.joined(separator: ", ")
+                            + (summary.foods.count > 4 ? " și altele, în tab-ul Alerte." : "."))
+                }
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(.horizontal, Spacing.m)
+            .padding(.top, Spacing.s)
+            .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { summaryHeight = $0 }
+        }
+        .scrollBounceBehavior(.basedOnSize)
+        .frame(height: min(summaryHeight, summaryMaxHeight))
+        .accessibilityIdentifier("graph.summary")
+    }
+
+    private enum SummaryMark {
+        /// linia colorată din graf, ca legătura dintre desen și text să fie evidentă
+        case line(Color)
+        case icon(String, Color)
+    }
+
+    /// `text` e Markdown: doar `**…**` pentru cuvintele care contează
+    private func summaryRow(_ mark: SummaryMark, _ identifier: String, _ text: String) -> some View {
+        HStack(alignment: .firstTextBaseline, spacing: Spacing.s) {
+            Group {
+                switch mark {
+                case .line(let color):
+                    Capsule()
+                        .fill(color)
+                        .frame(width: 18, height: 4)
+                        .alignmentGuide(.firstTextBaseline) { $0[VerticalAlignment.center] + 4 }
+                case .icon(let name, let tint):
+                    Image(systemName: name)
+                        .font(.subheadline.weight(.semibold))
+                        .foregroundStyle(tint)
+                        .frame(width: 18)
+                }
+            }
+            .accessibilityHidden(true)
+            Text(LocalizedStringKey(text))
+                .font(.subheadline)
+                .foregroundStyle(PgColor.textPrimary)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .contentShape(Rectangle())
+        .accessibilityElement(children: .combine)
+        .accessibilityIdentifier(identifier)
+    }
+
     /// Legenda (severitatea spusă în cuvinte, nu doar prin culoare) și „Recentrează”, sub graf, ca să nu-l acopere.
     private var bottomBar: some View {
         HStack(alignment: .center, spacing: Spacing.s) {
@@ -122,14 +231,13 @@ struct GraphView: View {
         }
         .padding(.horizontal, Spacing.m)
         .padding(.vertical, Spacing.xs)
-        .background(.bar)
     }
 
     @ViewBuilder
     private var legendRows: some View {
-        legendRow(.major, "Gravă")
-        legendRow(.moderate, "Moderată")
-        legendRow(.minor, "Fără nivel cunoscut")
+        legendRow(.major, "Grav")
+        legendRow(.moderate, "De discutat")
+        legendRow(.minor, "Fără risc stabilit")
     }
 
     private func legendRow(_ severity: Severity, _ text: String) -> some View {
@@ -287,5 +395,12 @@ struct GraphWebView: UIViewRepresentable {
                 break
             }
         }
+    }
+}
+
+private extension String {
+    /// „2 combinații grave” → „2 combinații grave”; „o combinație” → „O combinație”
+    var capitalizedFirst: String {
+        prefix(1).uppercased(with: PgFormat.romanian) + dropFirst()
     }
 }

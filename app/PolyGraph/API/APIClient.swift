@@ -103,6 +103,10 @@ struct APIClient {
         try await send(request("PATCH", "v1/patients/\(id)", body: changes))
     }
 
+    func updateProfile(id: String, _ profile: ProfileUpdate) async throws -> Patient {
+        try await send(request("PATCH", "v1/patients/\(id)", body: profile))
+    }
+
     // MARK: Medicamente
 
     func scan(
