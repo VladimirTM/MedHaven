@@ -19,7 +19,7 @@ struct CaregiverRoot: View {
         TabView(selection: $tab) {
             Tab("Medicamente", systemImage: "pills", value: CaregiverTab.meds) {
                 NavigationStack {
-                    MedsListView(showAlerts: { tab = .alerts })
+                    MedsListView(showTab: { tab = $0 })
                         .caregiverDestinations()
                 }
                 .accessibilityIdentifier("tab.meds")
