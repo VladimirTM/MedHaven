@@ -548,6 +548,17 @@ caption { text-align: left; color: var(--text-2); padding: 0.5rem 0 0.25rem; cap
 .portal-content { max-width: 96rem; padding-left: max(clamp(1rem, 4vw, 3rem), env(safe-area-inset-left)); padding-right: max(clamp(1rem, 4vw, 3rem), env(safe-area-inset-right)); }
 .portal-bar { padding-left: max(clamp(1rem, 4vw, 3rem), env(safe-area-inset-left)); padding-right: max(clamp(1rem, 4vw, 3rem), env(safe-area-inset-right)); }
 .portal-content .welcome-lead { max-width: 44rem; }
+/* antetul portalului se distinge de pagină: opac (ca restul portalului), nuanțat cu accentul, cu o linie dedesubt, mai înalt */
+.portal-bar {
+  background: color-mix(in srgb, var(--accent) 12%, var(--surface));
+  -webkit-backdrop-filter: none; backdrop-filter: none;
+  box-shadow: 0 1px 0 var(--line);
+  padding-top: max(1.125rem, env(safe-area-inset-top)); padding-bottom: 1.125rem;
+}
+.portal-bar .wordmark { font-size: 1.375rem; gap: 0.625rem; }
+.portal-bar .wordmark-logo { width: 2.5rem; height: 2.5rem; }
+.portal-bar .wordmark-sub { font-size: 1.0625rem; }
+.portal-bar .doctor-name { font-size: 1rem; }
 
 .welcome { margin: 1.5rem 0 1.25rem; }
 .welcome-title { font-size: 2.25rem; margin-top: 0.25rem; letter-spacing: -0.03em; }
