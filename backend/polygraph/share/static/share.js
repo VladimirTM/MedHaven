@@ -191,7 +191,7 @@
     card.classList.add("is-highlighted");
   });
 
-  // „Tipăriți sau salvați PDF” pe lista completă: dialogul de tipărire al browserului (are și „Salvează ca PDF”)
+  // „Tipăriți sau salvați PDF” pe fișa pentru consultație: dialogul de tipărire al browserului (are și „Salvează ca PDF”)
   document.addEventListener("click", function (event) {
     if (event.target.closest("[data-print]")) window.print();
   });

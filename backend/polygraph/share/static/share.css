@@ -646,7 +646,7 @@ caption { text-align: left; color: var(--text-2); padding: 0.5rem 0 0.25rem; cap
 
 .sheet { max-width: 48rem; margin: 0 auto; padding: 1.5rem 1rem 3rem; }
 .print-topbar .topbar-inner { align-items: center; }
-/* pe ecran, lista completă arată ca o foaie: un card pe fundalul paginii; la tipărire regulile din @media print o aduc la A4 */
+/* pe ecran, fișa arată ca o foaie: un card pe fundalul paginii; la tipărire regulile din @media print o aduc la A4 */
 @media screen {
   .print .sheet { max-width: 60rem; margin: 2rem auto 4rem; padding: 2.5rem clamp(1.25rem, 4vw, 3rem) 3rem; background: var(--surface); border-radius: 1rem; box-shadow: 0 0 0 1px var(--line), 0 1.5rem 3rem -1.5rem rgb(0 0 0 / 0.35); }
   .print .sheet-head { padding-bottom: 1.25rem; margin-bottom: 0.5rem; border-bottom: 1px solid var(--line); }
@@ -665,11 +665,6 @@ caption { text-align: left; color: var(--text-2); padding: 0.5rem 0 0.25rem; cap
 .problem { padding: 0.5rem 0 0.5rem 0.75rem; border-left: 0.1875rem solid var(--sev-major); margin-bottom: 0.5rem; display: grid; gap: 0.125rem; }
 .problem-title { font-weight: 600; }
 .questions { padding-left: 1.25rem; display: grid; gap: 0.25rem; }
-.lines { display: grid; gap: 1.75rem; margin: 1rem 0 1.5rem; }
-.lines span { border-bottom: 1px solid var(--text-2); height: 0; }
-.sign-row { display: flex; gap: 1.5rem; flex-wrap: wrap; }
-.blank { display: inline-block; width: 10rem; border-bottom: 1px solid var(--text-2); }
-.blank.short { width: 6rem; }
 
 /* ---------------------------------------------------------------- pagina de prezentare (/)
    Aceeași paletă ca portalul; o singură ilustrație (graful, în SVG inline, colorat din variabile),
@@ -929,9 +924,6 @@ caption { text-align: left; color: var(--text-2); padding: 0.5rem 0 0.25rem; cap
   .problem p { margin: 0; }
   table.problems td { padding: 1pt 4pt; }
   .small, caption { font-size: 8pt; }
-  .signature { break-inside: avoid; }
-  .lines { gap: 16pt; margin: 8pt 0 14pt; }
-  .lines span, .blank { border-color: #000; }
   table.meds thead { display: table-header-group; }
   table.meds, table.meds tbody { display: table-row-group; }
   table.meds { display: table; }

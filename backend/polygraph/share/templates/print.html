@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}Lista completă a medicamentelor · {{ patient.name }}{% endblock %}
+{% block title %}Fișa medicației pentru consultație · {{ patient.name }}{% endblock %}
 {% block body_class %}print{% endblock %}
 {% block body %}
 <div class="scroll-sentinel" aria-hidden="true"></div>
@@ -16,7 +16,7 @@
 <main class="sheet">
 
   <header class="sheet-head">
-    <h1 class="page-title">Lista completă a medicamentelor</h1>
+    <h1 class="page-title">Fișa medicației pentru consultație</h1>
     <p><strong>{{ patient.name }}</strong>{% if age %}, {{ age }} de ani{% endif %} · generată la {{ generated }}</p>
     <p class="summary-line">{{ summary | join(" · ") }}</p>
   </header>
@@ -74,15 +74,6 @@
   </section>
   {% endif %}
 
-  <section class="signature">
-    <h2>Concluzia medicului</h2>
-    <div class="lines" aria-hidden="true"><span></span><span></span><span></span></div>
-    <div class="sign-row">
-      <p>Medic: <span class="blank"></span></p>
-      <p>Semnătura și parafa: <span class="blank"></span></p>
-      <p>Data: <span class="blank short"></span></p>
-    </div>
-  </section>
 </main>
 <script src="/static/share/share.js" defer></script>
 {% endblock %}
