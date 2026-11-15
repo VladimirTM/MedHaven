@@ -24,6 +24,8 @@ struct NowView: View {
     @ScaledMetric(relativeTo: .title) private var titleSize: CGFloat = 28
     @ScaledMetric(relativeTo: .title2) private var textSize: CGFloat = 22
     @ScaledMetric(relativeTo: .largeTitle) private var bigCheckSize: CGFloat = 160
+    @ScaledMetric(relativeTo: .body) private var captionSize: CGFloat = 17
+    @ScaledMetric(relativeTo: .largeTitle) private var dayDoneIconSize: CGFloat = 56
 
     init(pinnedTime: String? = nil, onShowDay: @escaping () -> Void = {}, onCheckIn: @escaping () -> Void = {}) {
         self.pinnedTime = pinnedTime
@@ -41,6 +43,14 @@ struct NowView: View {
         .navigationTitle(pinnedTime == nil ? "Acum" : displayedMoment(now: store.clock.now)?.label ?? "Moment")
         .navigationBarTitleDisplayMode(.inline)
         .modifier(SettingsToolbarIf(isOn: pinnedTime == nil))
+        // pe „Acum” salutul din ecran ține loc de titlu; „Acum” rămâne numele ecranului (butonul înapoi, VoiceOver)
+        .toolbar {
+            if pinnedTime == nil {
+                ToolbarItem(placement: .principal) {
+                    Color.clear.frame(width: 1, height: 1).accessibilityHidden(true)
+                }
+            }
+        }
         .refreshable { await store.refreshAll() }
         .sensoryFeedback(.success, trigger: takenCount)
         .task(id: store.schedule?.date) { await readOnOpen() }
@@ -121,9 +131,27 @@ struct NowView: View {
 
     private func header(schedule: Schedule, moment: Moment?, now: Date) -> some View {
         VStack(alignment: .leading, spacing: Spacing.s) {
-            TimelineDots(
-                moments: schedule.moments, current: moment?.time, flying: flyingCheck, namespace: flight
-            ) { log.momentStatus($0, day: schedule.date) }
+            if pinnedTime == nil {
+                greeting(now: now)
+            }
+
+            HStack(alignment: .top, spacing: Spacing.s) {
+                TimelineDots(
+                    moments: schedule.moments, current: moment?.time, flying: flyingCheck, namespace: flight,
+                    showsTimes: !typeSize.isAccessibilitySize
+                ) { log.momentStatus($0, day: schedule.date) }
+                Spacer(minLength: 0)
+                // cu mai mult de 6 momente rândul de puncte ocupă toată lățimea; numărul rămâne în eticheta lor
+                if !typeSize.isAccessibilitySize, schedule.moments.count <= 6 {
+                    Text(SeniorDay.progressLine(done: doneCount(schedule), total: schedule.moments.count))
+                        .font(.system(size: captionSize, weight: .medium))
+                        .foregroundStyle(PgColor.textSecondary)
+                        .lineLimit(1)
+                        .padding(.top, Spacing.xxs)
+                        .accessibilityHidden(true)  // aceeași informație e în eticheta punctelor
+                        .accessibilityIdentifier("now.progress")
+                }
+            }
 
             if log.lastError != nil {
                 Label("Confirmarea pleacă când revine internetul.", systemImage: "arrow.clockwise.icloud")
@@ -160,6 +188,27 @@ struct NowView: View {
         }
     }
 
+    /// „Bună dimineața, Elena” și ziua: orientare înainte de pastile (2.4.1, emoția țintă e liniștea).
+    private func greeting(now: Date) -> some View {
+        VStack(alignment: .leading, spacing: Spacing.xxs) {
+            Text(SeniorDay.greeting(name: store.patient?.name, nowMinutes: SeniorDay.minutes(of: now)))
+                .font(.system(size: textSize, weight: .semibold))
+                .foregroundStyle(PgColor.textPrimary)
+                .accessibilityAddTraits(.isHeader)
+                .accessibilityIdentifier("now.greeting")
+            Text(SeniorDay.todayLine(now))
+                .font(.system(size: captionSize))
+                .foregroundStyle(PgColor.textSecondary)
+                .accessibilityIdentifier("now.today")
+        }
+        .fixedSize(horizontal: false, vertical: true)
+        .padding(.bottom, Spacing.xxs)
+    }
+
+    private func doneCount(_ schedule: Schedule) -> Int {
+        schedule.moments.filter { log.momentStatus($0, day: schedule.date) != .open }.count
+    }
+
     private func speakerButton(moment: Moment?, now: Date) -> some View {
         Button {
             Speaker.shared.speak(speech(for: moment, now: now))
@@ -177,17 +226,32 @@ struct NowView: View {
     }
 
     /// Nimic de luat acum: „Ați terminat” doar dacă totul e confirmat (Q3-04).
+    /// Ziua încheiată are un moment al ei: bifa mare în accent, apoi când sunt primele pastile de mâine.
+    /// Celelalte două stări rămân neutre (lună, cutie goală), fără îndemn la o doză ratată.
     private func dayDone(_ schedule: Schedule) -> some View {
         let end = dayEnd(schedule)
-        return VStack(alignment: .leading, spacing: Spacing.s) {
-            Text(SeniorDay.dayEndTitle(end))
-                .font(.system(size: titleSize, weight: .semibold))
-            if let tomorrow = SeniorDay.tomorrowLine(schedule.moments) {
-                Text(tomorrow)
-                    .font(.system(size: textSize))
+        let icon: String =
+            switch end {
+            case .allDone: "checkmark.circle.fill"
+            case .nothingNow: "moon.stars.fill"
+            case .empty: "tray"
+            }
+        return VStack(alignment: .leading, spacing: Spacing.m) {
+            Image(systemName: icon)
+                .font(.system(size: dayDoneIconSize, weight: .semibold))
+                .foregroundStyle(end == .allDone ? PgColor.accent : PgColor.textSecondary)
+                .accessibilityHidden(true)
+            VStack(alignment: .leading, spacing: Spacing.xs) {
+                Text(SeniorDay.dayEndTitle(end))
+                    .font(.system(size: titleSize, weight: .semibold))
+                    .foregroundStyle(PgColor.textPrimary)
+                if let tomorrow = SeniorDay.tomorrowLine(schedule.moments) {
+                    Label(tomorrow, systemImage: "sunrise")
+                        .font(.system(size: textSize))
+                        .foregroundStyle(PgColor.textSecondary)
+                }
             }
         }
-        .foregroundStyle(PgColor.textPrimary)
         .fixedSize(horizontal: false, vertical: true)
         .padding(Spacing.l)
         .frame(maxWidth: .infinity, alignment: .leading)

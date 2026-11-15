@@ -471,3 +471,33 @@ struct DoseSyncTests {
         #expect(log.status(day: "2026-11-14", time: "20:00", medID: "med_01") == .taken)
     }
 }
+
+
+/// Antetul ecranului „Acum”: salutul, ziua și progresul zilei.
+@MainActor
+struct SeniorHeaderTests {
+    @Test func greetingFollowsTheTimeOfDayAndUsesTheFirstName() throws {
+        #expect(SeniorDay.greeting(name: "Elena Popescu", nowMinutes: try #require(SeniorDay.minutes("07:00")))
+            == "Bună dimineața, Elena")
+        #expect(SeniorDay.greeting(name: "Maria", nowMinutes: try #require(SeniorDay.minutes("13:00"))) == "Bună ziua, Maria")
+        #expect(SeniorDay.greeting(name: "Maria", nowMinutes: try #require(SeniorDay.minutes("19:30"))) == "Bună seara, Maria")
+        #expect(SeniorDay.greeting(name: "Maria", nowMinutes: try #require(SeniorDay.minutes("02:00"))) == "Bună seara, Maria")
+        #expect(SeniorDay.greeting(name: nil, nowMinutes: 600) == "Bună dimineața")
+        #expect(SeniorDay.greeting(name: " ", nowMinutes: 600) == "Bună dimineața")
+    }
+
+    @Test func todayLineStartsWithACapital() throws {
+        var parts = DateComponents()
+        parts.year = 2026
+        parts.month = 11
+        parts.day = 15
+        parts.hour = 12
+        let date = try #require(Calendar.current.date(from: parts))
+        #expect(SeniorDay.todayLine(date) == "Duminică, 15 noiembrie")
+    }
+
+    @Test func progressLineCountsTheConfirmedMoments() {
+        #expect(SeniorDay.progressLine(done: 2, total: 5) == "2 din 5 gata")
+        #expect(SeniorDay.progressLine(done: 0, total: 1) == "0 din 1 gata")
+    }
+}
