@@ -28,7 +28,7 @@ struct CaregiverTodayTests {
         let today = CaregiverToday(
             patientName: "Maria Popescu", moments: moments, alerts: [], events: [], nowMinutes: 10 * 60,
             status: { statuses["\($0)|\($1)"] })
-        #expect(today.title == "Maria azi")
+        #expect(today.title == "Maria, azi")
         #expect(today.dosesTaken == 2 && today.dosesTotal == 5)
         #expect(today.missedMoments == 0)
         #expect(today.next?.time == "13:00")
