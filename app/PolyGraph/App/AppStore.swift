@@ -221,6 +221,12 @@ final class AppStore {
         await rescheduleReminders()
     }
 
+    /// Înălțimea, greutatea și afecțiunile, din Setări → „Profilul de sănătate”.
+    func updateProfile(_ profile: PatientProfile) async throws {
+        let id = try requirePatientID()
+        patient = try await api.updateProfile(id: id, ProfileUpdate(profile))
+    }
+
     // MARK: - Pagina familiei pe web (E2)
 
     func createWebLink() async throws -> WebLink {

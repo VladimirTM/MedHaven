@@ -163,6 +163,12 @@ class ReviewTestCase: XCTestCase {
 
     /// Derulează în jos până apare elementul (listele leneșe nu-l au în ierarhie înainte).
     @discardableResult
+    /// Deschide „Avansat” din Setări (serverul, modul demo), dacă e restrâns.
+    func openAdvancedSettings() {
+        guard !element("settings.baseURLField").waitForExistence(timeout: 1) else { return }
+        scrollTo("settings.advancedToggle")?.tap()
+    }
+
     func scrollTo(_ identifier: String, swipes: Int = 4) -> XCUIElement? {
         let target = element(identifier)
         for _ in 0..<swipes {

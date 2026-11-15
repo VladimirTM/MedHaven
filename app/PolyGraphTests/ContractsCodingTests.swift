@@ -47,6 +47,7 @@ struct ContractsCodingTests {
         case "gs1_cases.json": try roundTrip(GS1CasesFixture.self, data)
         case "date_words.json": try roundTrip(DateWordsFixture.self, data)
         case "posology_words.json": try roundTrip(PosologyWordsFixture.self, data)
+        case "conditions.json": try roundTrip(ConditionsFixture.self, data)
         default:
             Issue.record("Fixture fără model în test: \(name). Adaugă-l în switch.")
         }
@@ -96,6 +97,18 @@ struct ContractsCodingTests {
 }
 
 // MARK: - Învelișurile fixture-urilor (nu sunt tipuri de contract, doar fișiere de test)
+
+@MainActor
+private struct ConditionsFixture: Codable {
+    struct Item: Codable {
+        /// decodat ca `Condition`: un cod care nu e în schemă pică aici
+        let code: Condition
+        let label: String
+    }
+
+    let description: String
+    let conditions: [Item]
+}
 
 @MainActor
 private struct DemoPatientFixture: Codable {
