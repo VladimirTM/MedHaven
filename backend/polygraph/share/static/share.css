@@ -547,6 +547,8 @@ caption { text-align: left; color: var(--text-2); padding: 0.5rem 0 0.25rem; cap
 .portal-bar .topbar-inner { flex-wrap: nowrap; max-width: 96rem; }
 .portal-content { max-width: 96rem; padding-left: max(clamp(1rem, 4vw, 3rem), env(safe-area-inset-left)); padding-right: max(clamp(1rem, 4vw, 3rem), env(safe-area-inset-right)); }
 .portal-bar { padding-left: max(clamp(1rem, 4vw, 3rem), env(safe-area-inset-left)); padding-right: max(clamp(1rem, 4vw, 3rem), env(safe-area-inset-right)); }
+/* fișa pacientului folosește aceeași lățime; paragrafele rămân la o lungime de citit */
+.portal-content p { max-width: 75ch; }
 .portal-content .welcome-lead { max-width: 44rem; }
 /* antetul portalului se distinge de pagină: opac (ca restul portalului), nuanțat cu accentul, cu o linie dedesubt, mai înalt */
 .portal-bar {

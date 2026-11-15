@@ -7,7 +7,7 @@
 
 {% block body %}
 <div class="scroll-sentinel" aria-hidden="true"></div>
-<header class="topbar" data-topbar>
+<header class="topbar portal-bar" data-topbar>
   <div class="topbar-inner">
     <div>
       <p class="crumb"><a href="/portal">← Pacienții mei</a></p>
@@ -21,7 +21,7 @@
   </div>
 </header>
 
-<main class="content" data-live="{{ live }}">
+<main class="content portal-content" data-live="{{ live }}">
   {{ live_stale() }}
   <section class="summary" aria-labelledby="h-summary" id="live-summary" data-live-part>
     <h2 id="h-summary" class="visually-hidden">Rezumat: {{ summary | join(" · ") }}</h2>
