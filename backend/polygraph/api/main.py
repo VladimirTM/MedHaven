@@ -39,7 +39,7 @@ sys.path.insert(0, str(ROOT / "contracts"))
 import validate as contracts  # noqa: E402  (contracts/validate.py: schemele JSON)
 
 from polygraph.api.errors import request_message, schema_message  # noqa: E402
-from polygraph.api.media import get_photo, save_photo, save_pill_photo  # noqa: E402
+from polygraph.api.media import demo_photo_urls, get_photo, save_photo, save_pill_photo  # noqa: E402
 from polygraph.demo.seed import seed_history, simulate_missed_dose  # noqa: E402
 from polygraph.engine import analyze, new_alerts  # noqa: E402
 from polygraph.engine.analyze import make_ctx  # noqa: E402
@@ -314,6 +314,13 @@ def scan_med(
     result = scan(kb(), store(), kind, [OcrLine(line.text, line.height) for line in data], picture, mime, datamatrix)
     for candidate in result["candidates"]:
         candidate["photo_url"] = photo_url
+        # cutiile din demo/photos/gtins.csv primesc pozele pregătite (cutia și pastila), și când telefonul
+        # recunoaște cutia doar din cod, fără poză (gtin_cache)
+        box, pill = demo_photo_urls(candidate["product"].get("gtin"))
+        if box:
+            candidate["photo_url"] = box
+        if pill:
+            candidate["pill_photo_url"] = pill
     return result
 
 

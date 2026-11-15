@@ -15,3 +15,14 @@ def test_public_media_fallback_and_name_validation(tmp_path, monkeypatch):
         assert response.headers["content-type"] == "image/png"
         assert response.content == PLACEHOLDER
         assert client.get("/media/med_01.jpg").headers["content-type"] == "image/jpeg"
+        # pozele pastilelor din demo: pill_NN.jpg e pastila cutiei med_NN.jpg
+        assert client.get("/media/pill_12.jpg").headers["content-type"] == "image/jpeg"
+        assert client.get("/media/pill_1.jpg").status_code in (404, 422)
+
+
+def test_demo_photo_urls_follow_gtins_csv():
+    from polygraph.api.media import demo_photo_urls
+
+    assert demo_photo_urls("05944705004671") == ("/media/med_12.jpg", "/media/pill_12.jpg")
+    assert demo_photo_urls("05949000000014") == (None, None)
+    assert demo_photo_urls(None) == (None, None)

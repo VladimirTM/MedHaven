@@ -1,9 +1,11 @@
 """Stochează fotografiile scanate (cutii, pastile) și servește pozele din fixture-uri."""
 
+import csv
 import os
 import re
 import struct
 import zlib
+from functools import cache
 from hashlib import sha256
 from io import BytesIO
 from pathlib import Path
@@ -14,8 +16,29 @@ from fastapi.responses import FileResponse
 from PIL import Image, ImageOps
 
 ROOT = Path(__file__).resolve().parents[3]
-NAME = re.compile(r"(?:[a-f0-9]{64}\.jpg|med_[0-9]{2}\.(?:jpg|png))")
+NAME = re.compile(r"(?:[a-f0-9]{64}\.jpg|(?:med|pill)_[0-9]{2}\.(?:jpg|png))")
 PNG = b"\x89PNG\r\n\x1a\n"
+DEMO_PHOTOS = ROOT / "demo" / "photos"
+
+
+@cache
+def demo_photos() -> dict[str, tuple[str, str | None]]:
+    """GTIN → (poza cutiei, poza pastilei) din demo/photos/gtins.csv: cutiile pregătite pentru scenă."""
+    path = DEMO_PHOTOS / "gtins.csv"
+    if not path.is_file():
+        return {}
+    with path.open(encoding="utf-8", newline="") as file:
+        return {
+            row["gtin"]: (row["box"], row.get("pill") or None)
+            for row in csv.DictReader(file)
+            if NAME.fullmatch(row["box"]) and (not row.get("pill") or NAME.fullmatch(row["pill"]))
+        }
+
+
+def demo_photo_urls(gtin: str | None) -> tuple[str | None, str | None]:
+    """URL-urile pozelor demo pentru un GTIN; (None, None) dacă cutia nu e în gtins.csv."""
+    box, pill = demo_photos().get(gtin or "", (None, None))
+    return (f"/media/{box}" if box else None, f"/media/{pill}" if pill else None)
 
 
 def media_dir() -> Path:

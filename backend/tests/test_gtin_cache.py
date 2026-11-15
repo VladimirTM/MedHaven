@@ -131,3 +131,28 @@ def test_catalog_gtins_identify_the_pack_before_it_is_saved(mini_kb):
             assert candidate["product"]["expiry"] == "2025-12-31"
     finally:
         main.configure()
+
+
+def test_demo_boxes_get_the_box_and_pill_photos_without_a_picture(mini_kb):
+    """Cutiile din demo/photos/gtins.csv recunoscute doar din cod (gtin_cache, fără poză) primesc pozele pregătite."""
+    with sqlite3.connect(mini_kb.path) as conn:
+        conn.execute(
+            "INSERT INTO product(id, brand, brand_norm, form, strength_text, source)"
+            " VALUES (1, 'PADUDEN SR 300 mg', 'paduden sr', 'CAPS. CU ELIB. PREL.', '300mg', 'extra')"
+        )
+    main.configure(Store(":memory:"), Kb(mini_kb.path))
+    main.reset_demo()
+    try:
+        with TestClient(main.app) as client:
+            response = client.post(SCAN, headers=HEADERS, data={"kind": "box", "datamatrix": "0105944702001390"})
+            assert response.status_code == 200, response.text
+            (candidate,) = response.json()["candidates"]
+            assert candidate["match"]["method"] == "gtin_cache"
+            assert candidate["photo_url"] == "/media/med_11.jpg"
+            assert candidate["pill_photo_url"] == "/media/pill_11.jpg"
+            saved = client.post(MEDS, headers=HEADERS, json=candidate)
+            assert saved.status_code == 201, saved.text
+            assert saved.json()["pill_photo_url"] == "/media/pill_11.jpg"
+            assert client.get("/media/pill_11.jpg").headers["content-type"] == "image/jpeg"
+    finally:
+        main.configure()
