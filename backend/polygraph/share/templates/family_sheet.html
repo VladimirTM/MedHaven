@@ -1,6 +1,17 @@
 {% extends "family_base.html" %}
 {# Fișa trimisă de medicul de familie din portal: o copie fixă, de la momentul trimiterii. #}
+{% from "alerts.html" import info %}
 {% block page_title %}Fișa de la medic{% endblock %}
+{% macro why(a) %}
+<details class="why">
+  <summary>De ce văd asta?</summary>
+  <dl class="facts">
+    <dt>Explicația</dt><dd>{{ a.detail }}</dd>
+    <dt>Sursa</dt><dd>{{ a.source }}{% if a.ref %}<br><span class="small muted">{{ a.ref }}</span>{% endif %}</dd>
+    {% if a.analogy %}<dt>De confirmat</dt><dd>Dedusă prin analogie cu un medicament din aceeași clasă; medicul de familie o poate confirma.</dd>{% endif %}
+  </dl>
+</details>
+{% endmacro %}
 {% block main %}
 <div class="family-head">
   <p class="crumb"><a class="back-link" href="/acasa"><svg class="back-chevron" viewBox="0 0 12 20" aria-hidden="true"><path d="M10 2 2 10l8 8"/></svg>Azi</a></p>
@@ -26,14 +37,31 @@
       <p class="sheet-decision-title">{{ d.title }}</p>
       {% if d.meds %}<p class="alert-meds">{{ d.meds | join(" · ") }}</p>{% endif %}
       <p class="family-decision"><strong>{{ d.label }}</strong>{% if d.note %}<br><span class="note">„{{ d.note }}”</span>{% endif %}</p>
+      {{ why(d) }}
     </li>
     {% endfor %}
   </ul>
   {% else %}
   <p class="muted">Medicul nu a luat decizii pe alerte în această fișă.</p>
   {% endif %}
-  {% if open_text %}<p class="small muted">Încă {{ open_text }} de discutat cu medicul, la <a href="/acasa/verificat">De verificat</a>.</p>{% endif %}
 </section>
+
+{% if sheet.pending %}
+<section class="sheet-part" aria-labelledby="h-pending">
+  <h2 id="h-pending">Încă de discutat cu medicul <span class="count">{{ sheet.pending | length }}</span></h2>
+  <p class="muted">Alerte grave pe care medicul nu le-a discutat încă în această fișă. Nimic de aici nu înseamnă „opriți medicamentul”.</p>
+  <ul class="sheet-decisions">
+    {% for a in sheet.pending %}
+    <li class="sheet-decision">
+      <p class="sheet-decision-title">{{ a.title }}</p>
+      {% if a.meds %}<p class="alert-meds">{{ a.meds | join(" · ") }}</p>{% endif %}
+      {{ why(a) }}
+    </li>
+    {% endfor %}
+  </ul>
+  <p class="small muted">Ce puteți face pentru fiecare, la <a href="/acasa/verificat">De verificat</a>.</p>
+</section>
+{% endif %}
 
 <section class="sheet-part" aria-labelledby="h-sheet-meds">
   <h2 id="h-sheet-meds">Medicamentele, cum se iau</h2>
@@ -44,6 +72,14 @@
       <p class="med-name">{{ m.name }}</p>
       <p class="med-how">{{ m.how }}</p>
       <p class="med-who">{{ m.who }}</p>
+      {% if m.substances or m.since %}
+      {% call info("Mai multe despre " ~ m.name) %}
+        <dl class="facts">
+          {% if m.substances %}<dt>Substanța activă</dt><dd>{{ m.substances }}</dd>{% endif %}
+          {% if m.since %}<dt>Ia din</dt><dd>{{ m.since }}</dd>{% endif %}
+        </dl>
+      {% endcall %}
+      {% endif %}
     </li>
     {% endfor %}
   </ul>

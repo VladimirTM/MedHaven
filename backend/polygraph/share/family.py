@@ -386,7 +386,6 @@ def sheet_context(sheets: list[Json], wanted: str | None, today: date) -> Json |
         "sheet": sheet,
         "when": sent_when(sheet["sent_at"], today),
         "is_latest": sheet["id"] == sheets[0]["id"],
-        "open_text": plural(sheet["open"], "alertă gravă", "alerte grave") if sheet["open"] else None,
         "older": [
             {"id": s["id"], "doctor": s["doctor"], "when": sent_when(s["sent_at"], today)} for s in sheets if s is not sheet
         ],

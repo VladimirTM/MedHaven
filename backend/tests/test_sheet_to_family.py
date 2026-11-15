@@ -101,14 +101,21 @@ def test_family_sees_banner_and_sheet_with_decisions_in_their_words(client):
     assert alert["title"] in html and "Îl modifică la consultație" in html and "Vorbim joi." in html
     # eticheta pentru familie, nu cea a medicului; posologia în cuvinte, nu schema „1-0-1”
     assert "Modific la consultație" not in html
-    grave = sum(1 for a in client.get(f"{P}/analysis", headers=H).json()["alerts"] if a["severity"] in ("critical", "major"))
-    left = grave - 1
-    assert f"Încă {left} {'alertă gravă' if left == 1 else 'alerte grave'} de discutat" in html
+    # fiecare alertă din fișă (decisă sau încă de discutat) are explicația și sursa
+    grave = [a for a in client.get(f"{P}/analysis", headers=H).json()["alerts"] if a["severity"] in ("critical", "major")]
+    pending = [a for a in grave if a["id"] != alert["id"]]
+    assert 'id="h-pending"' in html and f'<span class="count">{len(pending)}</span>' in html
+    assert html.count("De ce văd asta?") == len(grave)
+    for a in grave:
+        assert a["title"] in html and a["detail"] in html
+    # substanța activă și data de început, la „i” pe fiecare medicament
+    assert "Substanța activă" in html and "Ia din" in html
     assert not re.search(r"\b\d+-\d+-\d+\b", html)
     meds = client.get(f"{P}/meds", headers=H).json()
     assert all(m["brand"] in html for m in meds if m.get("brand"))
     # subsolul comun al paginii familiei are avertismentul „Nu opriți…”; conținutul fișei nu
     body = html[: html.index('<footer class="family-foot">')].lower()
+    body = body.replace("nimic de aici nu înseamnă „opriți medicamentul”", "")  # avertismentul, ca pe „de verificat”
     for banned in ("opriți", "nu mai luați"):
         assert banned not in body
 
