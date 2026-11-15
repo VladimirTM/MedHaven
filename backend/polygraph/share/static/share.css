@@ -543,7 +543,11 @@ caption { text-align: left; color: var(--text-2); padding: 0.5rem 0 0.25rem; cap
 .wordmark-sub { font-weight: 500; color: var(--text-2); font-size: 1rem; letter-spacing: 0; }
 .bar-actions { display: flex; align-items: center; gap: 0.75rem; }
 .doctor-name { font-weight: 600; color: var(--text-2); font-size: 0.9375rem; }
-.portal-bar .topbar-inner { flex-wrap: nowrap; max-width: 50rem; }
+/* lista de pacienți ocupă lățimea ecranului (până la 96rem pe monitoarele foarte late); textele lungi își păstrează lățimea de citit */
+.portal-bar .topbar-inner { flex-wrap: nowrap; max-width: 96rem; }
+.portal-content { max-width: 96rem; padding-left: max(clamp(1rem, 4vw, 3rem), env(safe-area-inset-left)); padding-right: max(clamp(1rem, 4vw, 3rem), env(safe-area-inset-right)); }
+.portal-bar { padding-left: max(clamp(1rem, 4vw, 3rem), env(safe-area-inset-left)); padding-right: max(clamp(1rem, 4vw, 3rem), env(safe-area-inset-right)); }
+.portal-content .welcome-lead { max-width: 44rem; }
 
 .welcome { margin: 1.5rem 0 1.25rem; }
 .welcome-title { font-size: 2.25rem; margin-top: 0.25rem; letter-spacing: -0.03em; }
