@@ -27,15 +27,24 @@ final class FeedModel {
     @ObservationIgnored private let fetch: (Date?) async throws -> [FeedEvent]
     @ObservationIgnored private let notify: (FeedEvent) -> Void
     @ObservationIgnored private let notifyBatch: (_ total: Int, _ serious: Int) -> Void
+    /// Q4-02: o decizie a medicului sau o alertă nouă schimbă și tab-ul Alerte, nu doar Noutăți
+    @ObservationIgnored private let onAlertsChanged: () async -> Void
 
     init(
         fetch: @escaping (Date?) async throws -> [FeedEvent] = { _ in [] },
         notify: @escaping (FeedEvent) -> Void = { _ in },
-        notifyBatch: @escaping (_ total: Int, _ serious: Int) -> Void = { _, _ in }
+        notifyBatch: @escaping (_ total: Int, _ serious: Int) -> Void = { _, _ in },
+        onAlertsChanged: @escaping () async -> Void = {}
     ) {
         self.fetch = fetch
         self.notify = notify
         self.notifyBatch = notifyBatch
+        self.onAlertsChanged = onAlertsChanged
+    }
+
+    /// Evenimentele după care alertele de pe telefon sunt vechi: decizia medicului și o alertă nouă.
+    static func changesAlerts(_ event: FeedEvent) -> Bool {
+        event.type == .doctorReviewed || event.type == .alertNew
     }
 
     func event(id: String) -> FeedEvent? {
@@ -54,8 +63,13 @@ final class FeedModel {
         defer { isPolling = false }
         let since = (pendingNew.first ?? events.first)?.at
         do {
-            receive(try await fetch(since))
+            let wasLoaded = hasLoaded
+            let batch = try await fetch(since)
+            // istoricul (primul lot) nu cere reîncărcare: analiza e deja cea de la pornire
+            let reload = wasLoaded && batch.contains { !seen.contains($0.id) && Self.changesAlerts($0) }
+            receive(batch)
             lastError = nil
+            if reload { await onAlertsChanged() }
         } catch {
             lastError = (error as? LocalizedError)?.errorDescription ?? "Nu am putut încărca noutățile."
         }

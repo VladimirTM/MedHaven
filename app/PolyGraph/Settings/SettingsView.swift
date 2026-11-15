@@ -162,9 +162,10 @@ struct SettingsView: View {
                         Toggle("Mod demo", isOn: $settings.demoMode)
                             .accessibilityIdentifier("settings.demoModeToggle")
                     } label: {
+                        // Q4-03: pe DisclosureGroup, identificatorul trecea și pe câmpurile din interior
                         Text("Avansat")
+                            .accessibilityIdentifier("settings.advancedToggle")
                     }
-                    .accessibilityIdentifier("settings.advancedToggle")
                 } footer: {
                     if advancedExpanded {
                         Text("Adresa serverului: pe telefon, adresa Mac-ului din aceeași rețea Wi-Fi, cu portul afișat de „make demo”; pe simulator, http://127.0.0.1 cu același port.")
