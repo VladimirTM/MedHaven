@@ -144,6 +144,28 @@
       <button class="btn btn-secondary" type="button" data-graph-reset>Arată tot graful</button>
       <a href="{{ base }}/graph">Deschideți graful pe tot ecranul</a>
     </p>
+    <div class="graph-key" aria-labelledby="h-graph-key">
+      <h3 id="h-graph-key">Cum se citește graful</h3>
+      <ul>
+        <li><span class="key-sym" aria-hidden="true"><span class="key-patient"></span></span>
+          <span><strong>Cercul plin din centru</strong> e {{ patient.name }}. Liniile subțiri, neutre, leagă pacientul de medicamente și medicamentele de substanțele lor.</span></li>
+        <li><span class="key-sym" aria-hidden="true"><span class="key-product"></span></span>
+          <span><strong>Pătratele</strong> sunt medicamentele, cu numele de pe cutie. Conturul roșu: medicamentul are o alertă gravă; portocaliu: una moderată.</span></li>
+        <li><span class="key-sym" aria-hidden="true"><span class="key-substance">1</span></span>
+          <span><strong>Cercurile numerotate</strong> sunt substanțele active, explicate în lista de deasupra (numărul din cerc). Interacțiunile se trag între substanțe, nu între cutii: două medicamente cu aceeași substanță ajung în același cerc.</span></li>
+        <li><span class="key-sym" aria-hidden="true"><span class="key-line key-major"></span></span>
+          <span><strong>Linie roșie, groasă:</strong> interacțiune gravă (critică sau majoră), de discutat cât mai curând.</span></li>
+        <li><span class="key-sym" aria-hidden="true"><span class="key-line key-moderate"></span></span>
+          <span><strong>Linie portocalie, subțire:</strong> interacțiune moderată, de urmărit la următoarea consultație.</span></li>
+        <li><span class="key-sym" aria-hidden="true"><span class="key-line key-minor"></span></span>
+          <span><strong>Linie gri:</strong> interacțiune minoră; <strong>gri întreruptă:</strong> pereche cunoscută în DDInter, fără un nivel de risc stabilit (fără alertă).</span></li>
+        <li><span class="key-sym" aria-hidden="true"><span class="key-food"></span><span class="key-line key-dashed"></span></span>
+          <span><strong>Etichetele verzi</strong> sunt alimente sau băuturi; linia întreruptă spre o substanță arată interacțiunea cu mâncarea (de exemplu grepfrutul cu simvastatina), colorată după gravitate.</span></li>
+        <li><span class="key-sym" aria-hidden="true"><span class="key-star">☆</span><span class="key-line key-symptom"></span></span>
+          <span><strong>Steluțele mov</strong> sunt simptomele spuse de pacient în ultimele 7 zile; liniile mov întrerupte duc la substanțele care au acel efect advers. E o legătură posibilă, nu o cauză stabilită.</span></li>
+      </ul>
+      <p class="graph-key-tip">Faceți clic pe o linie colorată ca să deschideți alerta ei; „Arată tot graful” revine la vederea întreagă.</p>
+    </div>
   </section>
   {% endif %}
 </main>

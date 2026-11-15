@@ -1122,3 +1122,29 @@ body.family { font-size: 1.0625rem; }
 @media (pointer: coarse) {
   .family .btn, .family-tab, .glossary-item > summary, .why > summary, .family .info > summary.info-btn { min-height: 2.75rem; min-width: 2.75rem; }
 }
+
+/* „Cum se citește graful” (portalul medicului): aceleași culori ca graful (paleta din graph-core.js) */
+.graph-key { --g-accent: #0E6B68; --g-red: #B23A2E; --g-orange: #9A5B0C; --g-gray: #8A857D; --g-purple: #AF52DE; --g-green: #34C759; --g-faint: rgb(60 60 67 / 0.35);
+  margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid var(--line); }
+@media (prefers-color-scheme: dark) {
+  .graph-key { --g-accent: #5CC2BC; --g-red: #E8806F; --g-orange: #E3A24F; --g-gray: #77726B; --g-purple: #BF5AF2; --g-green: #30D158; --g-faint: rgb(235 235 245 / 0.35); }
+}
+.graph-key h3 { margin: 0 0 0.75rem; font-size: 1.0625rem; }
+.graph-key ul { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(22rem, 1fr)); gap: 0.75rem 1.5rem; }
+.graph-key li { display: flex; gap: 0.75rem; align-items: flex-start; line-height: 1.4; }
+.graph-key li > span:last-child { color: var(--text-2); }
+.graph-key li strong { color: var(--text); font-weight: 600; }
+.key-sym { flex: none; width: 3.25rem; min-height: 1.4em; display: inline-flex; align-items: center; justify-content: center; gap: 0.25rem; }
+.key-patient { width: 1.125rem; height: 1.125rem; border-radius: 50%; background: var(--g-accent); }
+.key-product { width: 1rem; height: 1rem; border-radius: 0.25rem; border: 2px solid var(--g-red); }
+.key-substance { width: 1.25rem; height: 1.25rem; border-radius: 50%; border: 2px solid var(--g-orange); display: inline-grid; place-items: center; font-size: 0.6875rem; font-weight: 700; color: var(--text); }
+.key-line { display: inline-block; width: 2rem; border-top: 1.5px solid var(--g-faint); }
+.key-major { border-top: 4px solid var(--g-red); }
+.key-moderate { border-top: 1.5px solid var(--g-orange); }
+.key-minor { border-top: 1.5px solid var(--g-gray); }
+.key-dashed { width: 1.5rem; border-top: 2px dashed var(--g-red); }
+.key-symptom { width: 1.5rem; border-top: 2px dashed var(--g-purple); }
+.key-food { width: 0.875rem; height: 0.875rem; border: 2px solid var(--g-green); border-radius: 0.2rem 50% 50% 0.2rem; }
+.key-star { color: var(--g-purple); font-size: 1.125rem; line-height: 1; }
+.graph-key-tip { margin: 0.875rem 0 0; color: var(--text-2); font-size: 0.875rem; }
+@media print { .graph-key { display: none; } }
