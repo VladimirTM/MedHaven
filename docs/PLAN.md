@@ -82,6 +82,9 @@ Personajele din demo: **Maria** (78 de ani, 8 medicamente de la 5 medici, modul 
 | UC10 | medicul | primește pacientul fără să instaleze nimic | familia arată QR-ul „Arată medicului”; medicul îl scanează din portal și pacientul intră în lista lui, cu datele mereu la zi | F10 | 2:30 |
 | UC11 | medicul | vrea să decidă pe o alertă | „Menține / Modific la consultație / Trimit la specialist” + notă; decizia ajunge la Ana, pe alertă și în Noutăți | F10 | 2:30 |
 | UC12 | Maria, medicul | consultația la cabinet | „Fișa medicației pentru consultație” de tipărit (2 pagini A4), cu toate medicamentele și alertele | F10 | 2:50 |
+| UC13 | Maria, echipajul de urgență | Maria ajunge la urgențe sau vine ambulanța | „Pentru urgențe” (din „Ziua de azi”; la Ana, din meniul de la Medicamente): pe un ecran, anticoagulantele și celelalte grupe cu risc primele, afecțiunile, lista cu posologia, combinațiile grave semnalate; Ana o poate trimite ca text | `Safety/EmergencyCard*` | – |
+| UC14 | Maria, Ana | o programare la stomatolog, o operație, o endoscopie sau o investigație cu contrast | „Am o programare”: alege procedura și vede ce medicamente trebuie spuse medicului și de ce (ex. Sintrom și Nurofen la o extracție); niciodată „opriți”, doar medicul decide | `Safety/ProcedurePrep*` | – |
+| UC15 | Ana, Maria | tratament de la mai mulți medici, pe termen lung, cu cure scurte între ele | „Săptămâna”: luni–duminică, ce se ia în fiecare moment, ce s-a confirmat în zilele trecute și ce începe sau se termină (ex. „Fromilid: ultima zi vineri”); la Ana tab cu banda zilelor și navigare între săptămâni, la Maria zi după zi, cu text mare | `Week/*` | – |
 
 ### 3.2 Ce nu sunt use case-uri valide
 
