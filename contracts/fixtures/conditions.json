@@ -1,0 +1,89 @@
+{
+  "description": "Etichetele în română ale afecțiunilor din patient.schema.json ($defs/condition), în ordinea din listă. Aceleași în aplicație (PatientProfile.swift) și în portal (share/view.py); verificate de validate.py, pytest și XCTest.",
+  "conditions": [
+    {
+      "code": "hypertension",
+      "label": "Hipertensiune arterială"
+    },
+    {
+      "code": "heart_failure",
+      "label": "Insuficiență cardiacă"
+    },
+    {
+      "code": "atrial_fibrillation",
+      "label": "Fibrilație atrială"
+    },
+    {
+      "code": "coronary_disease",
+      "label": "Cardiopatie ischemică (angină, infarct în trecut)"
+    },
+    {
+      "code": "stroke",
+      "label": "Accident vascular cerebral în trecut"
+    },
+    {
+      "code": "high_cholesterol",
+      "label": "Colesterol mărit"
+    },
+    {
+      "code": "diabetes",
+      "label": "Diabet zaharat"
+    },
+    {
+      "code": "hypothyroidism",
+      "label": "Hipotiroidism"
+    },
+    {
+      "code": "chronic_kidney_disease",
+      "label": "Boală cronică de rinichi"
+    },
+    {
+      "code": "liver_disease",
+      "label": "Boală de ficat"
+    },
+    {
+      "code": "copd_asthma",
+      "label": "BPOC sau astm"
+    },
+    {
+      "code": "gastric_ulcer",
+      "label": "Ulcer sau reflux gastric"
+    },
+    {
+      "code": "osteoporosis",
+      "label": "Osteoporoză"
+    },
+    {
+      "code": "arthritis",
+      "label": "Artroză sau artrită"
+    },
+    {
+      "code": "dementia",
+      "label": "Demență sau probleme de memorie"
+    },
+    {
+      "code": "parkinson",
+      "label": "Boala Parkinson"
+    },
+    {
+      "code": "depression",
+      "label": "Depresie sau anxietate"
+    },
+    {
+      "code": "epilepsy",
+      "label": "Epilepsie"
+    },
+    {
+      "code": "glaucoma",
+      "label": "Glaucom"
+    },
+    {
+      "code": "prostate",
+      "label": "Adenom de prostată"
+    },
+    {
+      "code": "falls",
+      "label": "Căderi în ultimul an"
+    }
+  ]
+}

@@ -28,6 +28,18 @@
     },
     "anchors": {
       "$ref": "schedule.schema.json#/$defs/anchors"
+    },
+    "height_cm": {
+      "$ref": "patient.schema.json#/properties/height_cm"
+    },
+    "weight_kg": {
+      "$ref": "patient.schema.json#/properties/weight_kg"
+    },
+    "conditions": {
+      "$ref": "patient.schema.json#/properties/conditions"
+    },
+    "conditions_note": {
+      "$ref": "patient.schema.json#/properties/conditions_note"
     }
   }
 }
