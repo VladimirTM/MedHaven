@@ -11,7 +11,19 @@
       "lunch": "13:00",
       "dinner": "19:00",
       "bed": "22:30"
-    }
+    },
+    "height_cm": 158,
+    "weight_kg": 64,
+    "conditions": [
+      "atrial_fibrillation",
+      "hypertension",
+      "high_cholesterol",
+      "hypothyroidism",
+      "osteoporosis",
+      "gastric_ulcer",
+      "arthritis"
+    ],
+    "conditions_note": null
   },
   "meds": [
     {

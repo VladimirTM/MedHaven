@@ -85,7 +85,7 @@ struct PillPhotoSection: View {
             }
             if let errorText {
                 Text(errorText)
-                    .foregroundStyle(.red)
+                    .foregroundStyle(PgColor.error)
                     .accessibilityIdentifier("medDetail.pillPhotoError")
             }
         } header: {

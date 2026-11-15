@@ -107,6 +107,13 @@ body {
 
 h1, h2, h3, p, ol, ul { margin: 0; }
 
+.patient-profile {
+  margin: 0.25rem 0 0;
+  color: var(--text-2);
+  font-size: 0.9375rem;
+  line-height: 1.35;
+}
+
 .page-title {
   font-size: 1.75rem;
   font-weight: 700;

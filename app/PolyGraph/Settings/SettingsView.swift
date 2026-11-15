@@ -17,6 +17,8 @@ struct SettingsView: View {
     /// mesajul de succes al rețetei ORL rămâne pe ecran și dacă butonul e apăsat din nou (Q3-20)
     @State private var prescriptionStatus: String?
     @State private var webLinkPresented = false
+    /// „Avansat” (serverul, modul demo) e deschis singur doar cât telefonul nu e legat de un pacient
+    @State private var advancedExpanded = false
 
     private enum DemoAction {
         case prescription
@@ -28,35 +30,27 @@ struct SettingsView: View {
 
         NavigationStack {
             Form {
-                Section {
-                    TextField("http://192.168.1.10:8000", text: $baseURL)
-                        .keyboardType(.URL)
-                        .textContentType(.URL)
-                        .textInputAutocapitalization(.never)
-                        .autocorrectionDisabled()
-                        .onSubmit(saveBaseURL)
-                        .accessibilityLabel("Adresa serverului")
-                        .accessibilityIdentifier("settings.baseURLField")
-                    Button {
-                        Task { await checkConnection() }
-                    } label: {
-                        HStack {
-                            Text("Verifică legătura")
-                            Spacer()
-                            if isChecking { ProgressView() }
+                if settings.isSignedIn {
+                    Section("Pacient") {
+                        if let patient = store.patient {
+                            LabeledContent("Nume", value: patient.name)
+                            LabeledContent("Anul nașterii", value: String(patient.birthYear))
+                        }
+                        NavigationLink {
+                            PatientProfileView()
+                        } label: {
+                            LabeledContent("Profilul de sănătate", value: profileSummary)
+                        }
+                        .accessibilityIdentifier("settings.profileButton")
+                        if pendingRole == .caregiver {
+                            NavigationLink {
+                                DayHoursView()
+                            } label: {
+                                LabeledContent("Orele zilei", value: anchorsSummary)
+                            }
+                            .accessibilityIdentifier("settings.dayHoursButton")
                         }
                     }
-                    .disabled(isChecking)
-                    .accessibilityIdentifier("settings.checkConnectionButton")
-                    if let connectionStatus {
-                        Text(connectionStatus)
-                            .foregroundStyle(.secondary)
-                            .accessibilityIdentifier("settings.connectionStatus")
-                    }
-                } header: {
-                    Text("Server")
-                } footer: {
-                    Text("Pe telefon: adresa Mac-ului din aceeași rețea Wi-Fi, cu portul 8000. Pe simulator: http://127.0.0.1:8000.")
                 }
 
                 Section {
@@ -84,10 +78,22 @@ struct SettingsView: View {
                     }
                 }
 
-                Section {
-                    Toggle("Mod demo", isOn: $settings.demoMode)
-                        .accessibilityIdentifier("settings.demoModeToggle")
-                    if settings.demoMode {
+                if settings.isSignedIn {
+                    Section {
+                        Button {
+                            saveBaseURL()
+                            webLinkPresented = true
+                        } label: {
+                            Label("Deschide pe web", systemImage: "safari")
+                        }
+                        .accessibilityIdentifier("settings.openWebButton")
+                    } footer: {
+                        Text("Programul de azi, medicamentele și ce e de verificat, pe alt telefon, pe o tabletă sau pe laptop.")
+                    }
+                }
+
+                if settings.demoMode {
+                    Section {
                         Button {
                             Task { await useDemoPatient() }
                         } label: {
@@ -110,48 +116,58 @@ struct SettingsView: View {
                                 .foregroundStyle(.secondary)
                                 .accessibilityIdentifier("settings.demoStatus")
                         }
-                    }
-                } footer: {
-                    Text("Pacientul demo e refăcut pe server cu lista inițială de medicamente. Rețeta ORL e medicul nou din scenariu; doza ratată apare la aparținător în Noutăți.")
-                }
-
-                if settings.isSignedIn && pendingRole == .caregiver {
-                    Section {
-                        NavigationLink {
-                            DayHoursView()
-                        } label: {
-                            LabeledContent("Orele zilei", value: anchorsSummary)
-                        }
-                        .accessibilityIdentifier("settings.dayHoursButton")
+                    } header: {
+                        Text("Demo")
                     } footer: {
-                        Text("Trezirea, mesele și culcarea. Pastilele se mută odată cu orele.")
+                        Text("Pacientul demo e refăcut pe server cu lista inițială de medicamente. Rețeta ORL e medicul nou din scenariu; doza ratată apare la aparținător în Noutăți.")
                     }
                 }
 
                 if settings.isSignedIn {
                     Section {
-                        Button {
-                            saveBaseURL()
-                            webLinkPresented = true
-                        } label: {
-                            Label("Deschide pe web", systemImage: "safari")
-                        }
-                        .accessibilityIdentifier("settings.openWebButton")
-                    } footer: {
-                        Text("Programul de azi, medicamentele și ce e de verificat, pe alt telefon, pe o tabletă sau pe laptop.")
-                    }
-                }
-
-                if settings.isSignedIn {
-                    Section("Pacient") {
-                        if let patient = store.patient {
-                            LabeledContent("Nume", value: patient.name)
-                            LabeledContent("Anul nașterii", value: String(patient.birthYear))
-                        }
                         Button("Deconectează telefonul", role: .destructive) {
                             confirmSignOut = true
                         }
                         .accessibilityIdentifier("settings.signOutButton")
+                    }
+                }
+
+                // adresa serverului și modul demo țin de instalare, nu de folosirea zilnică: restrânse, la final
+                Section {
+                    DisclosureGroup(isExpanded: $advancedExpanded) {
+                        TextField("http://192.168.1.10:8001", text: $baseURL)
+                            .keyboardType(.URL)
+                            .textContentType(.URL)
+                            .textInputAutocapitalization(.never)
+                            .autocorrectionDisabled()
+                            .onSubmit(saveBaseURL)
+                            .accessibilityLabel("Adresa serverului")
+                            .accessibilityIdentifier("settings.baseURLField")
+                        Button {
+                            Task { await checkConnection() }
+                        } label: {
+                            HStack {
+                                Text("Verifică legătura")
+                                Spacer()
+                                if isChecking { ProgressView() }
+                            }
+                        }
+                        .disabled(isChecking)
+                        .accessibilityIdentifier("settings.checkConnectionButton")
+                        if let connectionStatus {
+                            Text(connectionStatus)
+                                .foregroundStyle(.secondary)
+                                .accessibilityIdentifier("settings.connectionStatus")
+                        }
+                        Toggle("Mod demo", isOn: $settings.demoMode)
+                            .accessibilityIdentifier("settings.demoModeToggle")
+                    } label: {
+                        Text("Avansat")
+                    }
+                    .accessibilityIdentifier("settings.advancedToggle")
+                } footer: {
+                    if advancedExpanded {
+                        Text("Adresa serverului: pe telefon, adresa Mac-ului din aceeași rețea Wi-Fi, cu portul afișat de „make demo”; pe simulator, http://127.0.0.1 cu același port.")
                     }
                 }
             }
@@ -189,7 +205,14 @@ struct SettingsView: View {
         .onAppear {
             baseURL = store.settings.baseURLString
             pendingRole = store.settings.role
+            advancedExpanded = !store.settings.isSignedIn
         }
+    }
+
+    /// „1,65 m · 68 kg · 3 afecțiuni”; gol dacă nu e completat nimic
+    private var profileSummary: String {
+        guard let patient = store.patient else { return "" }
+        return PatientProfile(patient).shortSummary
     }
 
     /// „07:00–22:30”: de la trezire la culcare

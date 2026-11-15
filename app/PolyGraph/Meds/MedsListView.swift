@@ -116,7 +116,7 @@ struct MedsListView: View {
                 if let error = store.deletions.lastError {
                     Section {
                         Label(error, systemImage: "exclamationmark.circle")
-                            .foregroundStyle(.red)
+                            .foregroundStyle(PgColor.error)
                             .accessibilityIdentifier("meds.deleteError")
                     }
                 }

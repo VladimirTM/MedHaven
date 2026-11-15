@@ -221,6 +221,10 @@ def health() -> dict[str, Any]:
 # ---------------------------------------------------------------- pacienți
 
 
+# înălțimea, greutatea și afecțiunile (patient.schema.json); deocamdată doar se arată medicului, motorul nu le folosește
+PROFILE_FIELDS = ("height_cm", "weight_kg", "conditions", "conditions_note")
+
+
 @app.post("/v1/patients", status_code=201)
 def create_patient(body: dict[str, Any]) -> dict[str, Any]:
     invalid("patient_create", body)
@@ -231,6 +235,8 @@ def create_patient(body: dict[str, Any]) -> dict[str, Any]:
         "caregiver_name": body.get("caregiver_name"),
         "anchors": body.get("anchors") or DEMO["patient"]["anchors"],
     }
+    # profilul de sănătate e opțional: în onboarding se poate sări
+    patient.update({k: body[k] for k in PROFILE_FIELDS if k in body})
     token = store().create_patient(patient)
     return {"id": patient["id"], "patient_token": token, "patient": patient}
 
@@ -243,7 +249,7 @@ def get_patient(pid: str, x_patient_token: str | None = Header(None)) -> dict[st
 @app.patch("/v1/patients/{pid}")
 def update_patient(pid: str, body: dict[str, Any], x_patient_token: str | None = Header(None)) -> dict[str, Any]:
     patient = auth(pid, x_patient_token)
-    extra = set(body) - {"name", "birth_year", "caregiver_name", "anchors"}
+    extra = set(body) - {"name", "birth_year", "caregiver_name", "anchors", *PROFILE_FIELDS}
     if extra:
         raise HTTPException(422, f"Câmpuri necunoscute: {sorted(extra)}")
     return save_patient(pid, patient, {**patient, **body})

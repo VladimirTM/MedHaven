@@ -40,6 +40,7 @@ final class EdgeCaseTour: ReviewTestCase {
 
     private func setBaseURL(_ url: String) {
         guard tap("settings.openButton") else { return }
+        openAdvancedSettings()
         guard let field = expect("settings.baseURLField") else { return }
         field.tap()
         if let current = field.value as? String, !current.isEmpty {

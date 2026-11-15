@@ -36,6 +36,70 @@
     },
     "anchors": {
       "$ref": "schedule.schema.json#/$defs/anchors"
+    },
+    "height_cm": {
+      "type": [
+        "integer",
+        "null"
+      ],
+      "minimum": 100,
+      "maximum": 230,
+      "description": "înălțimea în centimetri; null = necompletată"
+    },
+    "weight_kg": {
+      "type": [
+        "number",
+        "null"
+      ],
+      "minimum": 25,
+      "maximum": 250,
+      "description": "greutatea în kilograme; null = necompletată"
+    },
+    "conditions": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/condition"
+      },
+      "uniqueItems": true,
+      "maxItems": 30,
+      "description": "afecțiunile alese din listă; etichetele în română sunt în fixtures/conditions.json"
+    },
+    "conditions_note": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "maxLength": 200,
+      "description": "alte afecțiuni, scrise liber"
+    }
+  },
+  "$defs": {
+    "condition": {
+      "type": "string",
+      "description": "Afecțiunile din profilul pacientului (lista din aplicație și din portal). Deocamdată doar se arată; regulile boală–medicament vin după hackathon.",
+      "enum": [
+        "hypertension",
+        "heart_failure",
+        "atrial_fibrillation",
+        "coronary_disease",
+        "stroke",
+        "high_cholesterol",
+        "diabetes",
+        "hypothyroidism",
+        "chronic_kidney_disease",
+        "liver_disease",
+        "copd_asthma",
+        "gastric_ulcer",
+        "osteoporosis",
+        "arthritis",
+        "dementia",
+        "parkinson",
+        "depression",
+        "epilepsy",
+        "glaucoma",
+        "prostate",
+        "falls"
+      ]
     }
   }
 }

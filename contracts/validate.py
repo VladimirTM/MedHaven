@@ -149,6 +149,21 @@ def check_fixtures(fixtures: dict[str, Any] | None = None) -> list[str]:
     def err(where: str, msgs: list[str]) -> None:
         errors.extend(f"fixtures/{where}: {m}" for m in msgs)
 
+    # etichetele afecțiunilor: exact codurile din schemă, în aceeași ordine, fiecare cu text
+    codes = json.loads((SCHEMA_DIR / "patient.schema.json").read_text())["$defs"][
+        "condition"
+    ]["enum"]
+    labels = fixtures["conditions.json"]["conditions"]
+    if [c.get("code") for c in labels] != codes or not all(
+        c.get("label") for c in labels
+    ):
+        err(
+            "conditions.json",
+            [
+                "codurile trebuie să fie cele din patient.schema.json ($defs/condition), în ordine, cu etichetă"
+            ],
+        )
+
     demo = fixtures["demo_patient.json"]
     med09 = fixtures["med_09_fromilid.json"]
     err("demo_patient.json#patient", schema_errors("patient", demo["patient"]))
