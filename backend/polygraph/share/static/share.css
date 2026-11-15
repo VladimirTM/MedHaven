@@ -539,11 +539,41 @@ caption { text-align: left; color: var(--text-2); padding: 0.5rem 0 0.25rem; cap
 /* ---------------------------------------------------------------- lista de pacienți și autentificarea */
 
 .crumb { font-size: 0.875rem; margin-bottom: 0.125rem; }
+/* înapoi la listă: ca butonul „înapoi” din iOS (chevron + titlul ecranului anterior), fără subliniere, cu țintă de 44 px */
+.back-link {
+  display: inline-flex; align-items: center; gap: 0.375rem;
+  min-height: 2.75rem; margin-left: -0.625rem; padding: 0 0.75rem 0 0.625rem;
+  border-radius: 999px; font-size: 1rem; font-weight: 600; text-decoration: none;
+  transition: background-color 160ms var(--ease), transform 160ms var(--ease);
+}
+.back-link:hover { background: color-mix(in srgb, var(--accent) 14%, transparent); }
+.back-link:active { transform: scale(0.97); transition-duration: 0s; }
+.back-link:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.back-chevron { width: 0.625rem; height: 1rem; fill: none; stroke: currentColor; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; transition: transform 160ms var(--ease); }
+.back-link:hover .back-chevron { transform: translateX(-2px); }
+@media (prefers-reduced-motion: reduce) { .back-link, .back-chevron { transition: none; } .back-link:hover .back-chevron { transform: none; } }
 /* antetul portalului: logo, numele medicului, ieșirea */
 .wordmark-sub { font-weight: 500; color: var(--text-2); font-size: 1rem; letter-spacing: 0; }
 .bar-actions { display: flex; align-items: center; gap: 0.75rem; }
 .doctor-name { font-weight: 600; color: var(--text-2); font-size: 0.9375rem; }
-.portal-bar .topbar-inner { flex-wrap: nowrap; max-width: 50rem; }
+/* lista de pacienți ocupă lățimea ecranului (până la 96rem pe monitoarele foarte late); textele lungi își păstrează lățimea de citit */
+.portal-bar .topbar-inner { flex-wrap: nowrap; max-width: 96rem; }
+.portal-content { max-width: 96rem; padding-left: max(clamp(1rem, 4vw, 3rem), env(safe-area-inset-left)); padding-right: max(clamp(1rem, 4vw, 3rem), env(safe-area-inset-right)); }
+.portal-bar { padding-left: max(clamp(1rem, 4vw, 3rem), env(safe-area-inset-left)); padding-right: max(clamp(1rem, 4vw, 3rem), env(safe-area-inset-right)); }
+/* fișa pacientului folosește aceeași lățime; paragrafele rămân la o lungime de citit */
+.portal-content p { max-width: 75ch; }
+.portal-content .welcome-lead { max-width: 44rem; }
+/* antetul portalului se distinge de pagină: opac (ca restul portalului), nuanțat cu accentul, cu o linie dedesubt, mai înalt */
+.portal-bar {
+  background: color-mix(in srgb, var(--accent) 12%, var(--surface));
+  -webkit-backdrop-filter: none; backdrop-filter: none;
+  box-shadow: 0 1px 0 var(--line);
+  padding-top: max(1.125rem, env(safe-area-inset-top)); padding-bottom: 1.125rem;
+}
+.portal-bar .wordmark { font-size: 1.375rem; gap: 0.625rem; }
+.portal-bar .wordmark-logo { width: 2.5rem; height: 2.5rem; }
+.portal-bar .wordmark-sub { font-size: 1.0625rem; }
+.portal-bar .doctor-name { font-size: 1rem; }
 
 .welcome { margin: 1.5rem 0 1.25rem; }
 .welcome-title { font-size: 2.25rem; margin-top: 0.25rem; letter-spacing: -0.03em; }
@@ -615,20 +645,26 @@ caption { text-align: left; color: var(--text-2); padding: 0.5rem 0 0.25rem; cap
 /* ---------------------------------------------------------------- fișa de tipărit (pe ecran) */
 
 .sheet { max-width: 48rem; margin: 0 auto; padding: 1.5rem 1rem 3rem; }
-.print-bar { display: flex; gap: 1rem; flex-wrap: wrap; justify-content: space-between; margin-bottom: 1.25rem; font-size: 0.875rem; }
+.print-topbar .topbar-inner { align-items: center; }
+/* pe ecran, fișa arată ca o foaie: un card pe fundalul paginii; la tipărire regulile din @media print o aduc la A4 */
+@media screen {
+  .print .sheet { max-width: 60rem; margin: 2rem auto 4rem; padding: 2.5rem clamp(1.25rem, 4vw, 3rem) 3rem; background: var(--surface); border-radius: 1rem; box-shadow: 0 0 0 1px var(--line), 0 1.5rem 3rem -1.5rem rgb(0 0 0 / 0.35); }
+  .print .sheet-head { padding-bottom: 1.25rem; margin-bottom: 0.5rem; border-bottom: 1px solid var(--line); }
+  .print .sheet-head .page-title { font-size: 2rem; letter-spacing: -0.025em; }
+  .print .sheet table { background: transparent; }
+}
+@media screen and (max-width: 40rem) { .print .sheet { margin: 0.75rem; padding: 1.25rem 1rem 2rem; } }
 .sheet-head { display: grid; gap: 0.25rem; }
 .sheet-head .summary-line { font-size: 1rem; }
+.sheet-head .page-title { text-align: center; margin-bottom: 1.25rem; }
+/* tabelele foii au chenar pe toate liniile */
+.sheet table.meds th, .sheet table.meds td, .sheet table.problems th, .sheet table.problems td { border: 1px solid var(--text-2) !important; }
 .sheet h2 { font-size: 1.0625rem; margin: 1.25rem 0 0.5rem; }
 .sheet table { background: var(--surface); }
 .sheet .group th { background: var(--fill); font-size: 0.8125rem; letter-spacing: 0.01em; }
 .problem { padding: 0.5rem 0 0.5rem 0.75rem; border-left: 0.1875rem solid var(--sev-major); margin-bottom: 0.5rem; display: grid; gap: 0.125rem; }
 .problem-title { font-weight: 600; }
 .questions { padding-left: 1.25rem; display: grid; gap: 0.25rem; }
-.lines { display: grid; gap: 1.75rem; margin: 1rem 0 1.5rem; }
-.lines span { border-bottom: 1px solid var(--text-2); height: 0; }
-.sign-row { display: flex; gap: 1.5rem; flex-wrap: wrap; }
-.blank { display: inline-block; width: 10rem; border-bottom: 1px solid var(--text-2); }
-.blank.short { width: 6rem; }
 
 /* ---------------------------------------------------------------- pagina de prezentare (/)
    Aceeași paletă ca portalul; o singură ilustrație (graful, în SVG inline, colorat din variabile),
@@ -749,7 +785,7 @@ caption { text-align: left; color: var(--text-2); padding: 0.5rem 0 0.25rem; cap
   .whatif-input, .whatif-form .btn, .whatif-error .btn, .live-stale .btn { min-height: 2.75rem; min-width: 2.75rem; }
   .crumb a,
   .graph-bar a,
-  .print-bar a,
+  .print-topbar .back-link,
   .graph-actions a,
   .login-foot a,
   .center a,
@@ -851,7 +887,9 @@ caption { text-align: left; color: var(--text-2); padding: 0.5rem 0 0.25rem; cap
 /* ---------------------------------------------------------------- tipărire (A4, fără graf interactiv, fără butoane) */
 
 @media print {
-  @page { size: A4; margin: 12mm 13mm; }
+  /* fără margini de pagină, browserul nu mai are unde pune antetul și subsolul lui (titlul, adresa, data, „1 of 2”);
+     marginile A4 le dă foaia, repetate pe fiecare pagină cu box-decoration-break */
+  @page { size: A4; margin: 0; }
 
   :root {
     --bg: #fff; --surface: #fff; --text: #000; --text-2: #444; --line: #bbb; --fill: #eee;
@@ -864,7 +902,7 @@ caption { text-align: left; color: var(--text-2); padding: 0.5rem 0 0.25rem; cap
   details:not([open]) > summary ~ * { display: block; }
   details > summary { display: none; }
   a { color: inherit; text-decoration: none; }
-  .content, .sheet { max-width: none; padding: 0; margin: 0; }
+  .content, .sheet { max-width: none; margin: 0; padding: 12mm 13mm; -webkit-box-decoration-break: clone; box-decoration-break: clone; }
   .summary, .alert, .table-wrap, .stat, .med, .card-list, .schedule { box-shadow: none; padding: 0; border-radius: 0; }
   .info-panel { background: none; padding: 0; margin: 2pt 0 0 !important; animation: none; }
   .stats { grid-template-columns: repeat(4, 1fr); gap: 6pt; }
@@ -876,6 +914,7 @@ caption { text-align: left; color: var(--text-2); padding: 0.5rem 0 0.25rem; cap
   .alert { border-left-width: 2pt; padding-left: 6pt; break-inside: avoid; margin-bottom: 6pt; }
   h2 { font-size: 11pt; margin: 10pt 0 4pt; break-after: avoid; }
   .page-title { font-size: 16pt; }
+  .sheet-head .page-title { margin-bottom: 12pt; }
   .summary-line { font-size: 10.5pt; }
   .badge { background: none !important; border: 0.5pt solid #000; padding: 0 3pt; font-size: 7pt; color: #000 !important; }
   th, td { padding: 2.5pt 4pt; }
@@ -885,14 +924,12 @@ caption { text-align: left; color: var(--text-2); padding: 0.5rem 0 0.25rem; cap
   .problem p { margin: 0; }
   table.problems td { padding: 1pt 4pt; }
   .small, caption { font-size: 8pt; }
-  .signature { break-inside: avoid; }
-  .lines { gap: 16pt; margin: 8pt 0 14pt; }
-  .lines span, .blank { border-color: #000; }
   table.meds thead { display: table-header-group; }
   table.meds, table.meds tbody { display: table-row-group; }
   table.meds { display: table; }
   table.meds tr { display: table-row; padding: 0; }
-  table.meds th, table.meds td { display: table-cell; padding: 2.5pt 4pt; color: #000; font-size: 9pt; border-top: 0.5pt solid #bbb !important; }
+  table.meds th, table.meds td { display: table-cell; padding: 2.5pt 4pt; color: #000; font-size: 9pt; }
+  .sheet table.meds th, .sheet table.meds td, .sheet table.problems th, .sheet table.problems td { border: 0.5pt solid #000 !important; }
 }
 
 /* ---------------------------------------------------------------- pagina familiei (E2)

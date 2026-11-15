@@ -70,12 +70,12 @@ Fluxul normal nu rulează niciun LLM: OCR-ul și vocea sunt pe telefon, potrivir
 
 **Pe slide**
 
-> Familii: abonament mic. Medici: fișa de reconciliere, OTC-urile pe care altfel nu le văd.
+> Familii: abonament mic. Medici: fișa medicației pentru consultație, OTC-urile pe care altfel nu le văd.
 > Urmează: date licențiate, pilot Timișoara, CNAS prin softul de cabinet.
 
 **De spus**
 
-Familia plătește un abonament mic; medicul de familie primește gratuit portalul și fișa de reconciliere, care îi arată ce nu vede în sistemul lui. Pașii următori sunt datele licențiate comercial (DDInter e doar necomercial), un pilot cu un cabinet din Timișoara și integrarea cu sistemele CNAS prin softul de cabinet.
+Familia plătește un abonament mic; medicul de familie primește gratuit portalul și fișa medicației pentru consultație, care îi arată ce nu vede în sistemul lui. Pașii următori sunt datele licențiate comercial (DDInter e doar necomercial), un pilot cu un cabinet din Timișoara și integrarea cu sistemele CNAS prin softul de cabinet.
 
 ## 7. Responsabil
 

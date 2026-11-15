@@ -227,7 +227,7 @@ class Scenario:
         grave = [a for a in self.analysis()["alerts"] if a["severity"] in ("critical", "major")]
         absent = [a["title"] for a in grave if html.escape(a["title"]) not in page and a["title"] not in page]
         need(not absent, f"lipsesc de pe fișa de tipărit: {absent}")
-        return f"reconcilierea are toate cele {len(grave)} alerte grave"
+        return f"fișa pentru consultație are toate cele {len(grave)} alerte grave"
 
     def missed_dose(self) -> str:
         event = valid("feed_event", self.post("/demo/missed-dose").json())
@@ -250,7 +250,7 @@ STEPS: list[tuple[str, str, Callable[[Scenario], str]]] = [
     ("X1", "„Pot să iau o aspirină?”", Scenario.can_i_take),
     ("2:10", "Medic nou: rețeta ORL", Scenario.new_doctor),
     ("2:30", "Portalul medicului de familie", Scenario.portal),
-    ("2:50", "Reconcilierea de tipărit", Scenario.print_sheet),
+    ("2:50", "Fișa pentru consultație", Scenario.print_sheet),
     ("plan B", "Doză ratată (modul demo)", Scenario.missed_dose),
     ("–", "Reset pentru scenă", Scenario.cleanup),
 ]

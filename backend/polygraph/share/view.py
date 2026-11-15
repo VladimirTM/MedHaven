@@ -460,7 +460,7 @@ def portal_summary(cards: list[Json], today: date) -> Json:
     escalated_value, escalated_label = _count(escalated, "simptom semnalat", "simptome semnalate")
     reviewed_value, reviewed_label = _count(reviewed, "alertă revizuită", "alerte revizuite")
     return {
-        "date": f"{WEEKDAYS[today.weekday()]}, {today.day} {MONTHS[today.month - 1]}",
+        "date": f"{WEEKDAYS[today.weekday()]}, {today.day} {MONTHS[today.month - 1]} {today.year}",
         "lead": (
             f"{plural(pending, 'alertă gravă', 'alerte grave')} de revizuit la {plural(with_pending, 'pacient', 'pacienți')}."
             if pending
