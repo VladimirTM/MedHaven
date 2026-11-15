@@ -656,7 +656,7 @@ caption { text-align: left; color: var(--text-2); padding: 0.5rem 0 0.25rem; cap
 @media screen and (max-width: 40rem) { .print .sheet { margin: 0.75rem; padding: 1.25rem 1rem 2rem; } }
 .sheet-head { display: grid; gap: 0.25rem; }
 .sheet-head .summary-line { font-size: 1rem; }
-.sheet-head .page-title { text-align: center; }
+.sheet-head .page-title { text-align: center; margin-bottom: 1.25rem; }
 /* tabelele foii au chenar pe toate liniile */
 .sheet table.meds th, .sheet table.meds td, .sheet table.problems th, .sheet table.problems td { border: 1px solid var(--text-2) !important; }
 .sheet h2 { font-size: 1.0625rem; margin: 1.25rem 0 0.5rem; }
@@ -919,6 +919,7 @@ caption { text-align: left; color: var(--text-2); padding: 0.5rem 0 0.25rem; cap
   .alert { border-left-width: 2pt; padding-left: 6pt; break-inside: avoid; margin-bottom: 6pt; }
   h2 { font-size: 11pt; margin: 10pt 0 4pt; break-after: avoid; }
   .page-title { font-size: 16pt; }
+  .sheet-head .page-title { margin-bottom: 12pt; }
   .summary-line { font-size: 10.5pt; }
   .badge { background: none !important; border: 0.5pt solid #000; padding: 0 3pt; font-size: 7pt; color: #000 !important; }
   th, td { padding: 2.5pt 4pt; }
