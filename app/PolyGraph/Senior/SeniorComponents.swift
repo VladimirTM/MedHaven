@@ -89,10 +89,10 @@ struct QuantityIcon: View {
 }
 
 /// Un medicament din moment. Un singur element VoiceOver.
-/// Cu poza pastilei (E5), pastila e vedeta: ea se recunoaște în palmă; cutia stă mică lângă nume.
-/// Fără poza pastilei, cutia sus, mai scundă decât înainte, ca numele și doza să încapă fără derulare.
+/// Cutia sus, mare: eticheta e ce citește pacientul. Cu poza pastilei (E5), pastila stă mică lângă nume.
+/// Cutia e mai scundă decât înainte, ca numele și doza să încapă fără derulare.
 /// Pozele se văd întregi (`scaledToFit`), nu tăiate: o capsulă lungă sau o cutie lată nu-și pierd capetele.
-/// La textul de accesibilitate numele vine înaintea pozei, iar miniatura cutiei dispare (Q3-02).
+/// La textul de accesibilitate numele vine înaintea pozei, iar miniatura pastilei dispare (Q3-02).
 struct DoseCard: View {
     let dose: DoseElement
     let med: MedicationItem?
@@ -103,7 +103,6 @@ struct DoseCard: View {
     @Environment(\.dynamicTypeSize) private var typeSize
     @ScaledMetric(relativeTo: .title) private var nameSize: CGFloat = 28
     @ScaledMetric(relativeTo: .title2) private var textSize: CGFloat = 22
-    @ScaledMetric(relativeTo: .title3) private var captionSize: CGFloat = 17
     @ScaledMetric(relativeTo: .title) private var thumbSize: CGFloat = 72
 
     /// Explicit, ca apelurile vechi (fără poza pastilei) să rămână valide.
@@ -135,8 +134,8 @@ struct DoseCard: View {
     private var details: some View {
         VStack(alignment: .leading, spacing: Spacing.s) {
             HStack(alignment: .center, spacing: Spacing.s) {
-                if pillPhotoURL != nil && !typeSize.isAccessibilitySize {
-                    boxThumbnail
+                if let pillPhotoURL, !typeSize.isAccessibilitySize {
+                    pillThumbnail(pillPhotoURL)
                 }
                 VStack(alignment: .leading, spacing: Spacing.xxs) {
                     Text(brand)
@@ -158,43 +157,8 @@ struct DoseCard: View {
         .frame(maxWidth: .infinity, alignment: .leading)
     }
 
-    @ViewBuilder
+    /// Cutia, întreagă, pe fundalul cardului.
     private var hero: some View {
-        if let pillPhotoURL {
-            pillHero(pillPhotoURL)
-        } else {
-            boxHero
-        }
-    }
-
-    /// Pastila mare, întreagă, pe banda nisipie, cu eticheta „Pastila” în colț.
-    /// Fără poză reușită, doar banda: nu se desenează o pastilă în locul ei.
-    private func pillHero(_ url: URL) -> some View {
-        Color.clear
-            .aspectRatio(16 / 9, contentMode: .fit)
-            .overlay {
-                AsyncImage(url: url) { phase in
-                    if let image = phase.image {
-                        image
-                            .resizable()
-                            .scaledToFit()
-                            .clipShape(RoundedRectangle(cornerRadius: Radius.card, style: .continuous))
-                    } else {
-                        Color.clear
-                    }
-                }
-                .padding(Spacing.m)
-            }
-            .background(PgColor.calmCard)
-            .overlay(alignment: .topLeading) { caption(PillPhoto.pillCaption) }
-            .accessibilityElement(children: .ignore)
-            .accessibilityLabel(PillPhoto.accessibilityLabel(brand: med?.product.brand ?? "medicament"))
-            .accessibilityAddTraits(.isImage)
-            .accessibilityIdentifier("now.pillPhoto.\(dose.medid)")
-    }
-
-    /// Fără poza pastilei: cutia, întreagă, pe fundalul cardului.
-    private var boxHero: some View {
         Color.clear
             .aspectRatio(16 / 9, contentMode: .fit)
             .overlay {
@@ -214,33 +178,22 @@ struct DoseCard: View {
             .accessibilityHidden(true)
     }
 
-    /// Cutia, mică, lângă nume: ajută la recunoaștere, dar nu mai ocupă tot cardul.
-    private var boxThumbnail: some View {
-        AsyncImage(url: photoURL) { phase in
+    /// Pastila, mică, lângă nume: ajută la recunoaștere, fără să acopere eticheta cutiei.
+    /// Fără poză reușită, doar un pătrat liniștit: nu se desenează o pastilă în locul ei.
+    private func pillThumbnail(_ url: URL) -> some View {
+        AsyncImage(url: url) { phase in
             if let image = phase.image {
                 image.resizable().scaledToFit().padding(Spacing.xxs)
             } else {
-                Image(systemName: "pills")
-                    .font(.system(size: thumbSize * 0.4))
-                    .foregroundStyle(PgColor.textSecondary)
+                Color.clear
             }
         }
         .frame(width: thumbSize, height: thumbSize)
-        .background(
-            RoundedRectangle(cornerRadius: Radius.card, style: .continuous)
-                .strokeBorder(PgColor.calmCard, lineWidth: 2))
-        .accessibilityHidden(true)
-    }
-
-    private func caption(_ text: String) -> some View {
-        Text(text)
-            .font(.system(size: captionSize, weight: .semibold))
-            .foregroundStyle(PgColor.textPrimary)
-            .padding(.horizontal, Spacing.s)
-            .padding(.vertical, Spacing.xxs)
-            .background(Capsule().fill(PgColor.surface))
-            .padding(Spacing.s)
-            .accessibilityHidden(true)
+        .background(PgColor.calmCard, in: RoundedRectangle(cornerRadius: Radius.card, style: .continuous))
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(PillPhoto.accessibilityLabel(brand: med?.product.brand ?? "medicament"))
+        .accessibilityAddTraits(.isImage)
+        .accessibilityIdentifier("now.pillPhoto.\(dose.medid)")
     }
 }
 
